@@ -185,3 +185,14 @@ input[type="number"],
 select {
   font-family: 'DM Sans', sans-serif;
 }
+
+/* ── Browser Autofill Fix (Prevent White Backgrounds) ─────────── */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #070814 inset !important;
+  -webkit-text-fill-color: #cbd5e1 !important;
+  transition: background-color 5000s ease-in-out 0s;
+  caret-color: white;
+}
