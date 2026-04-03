@@ -51,7 +51,8 @@ const ReauthPage = () => {
   }, []);
 
   const handleVerify = () => {
-    if (otp.join('') === expectedOtp || otp.join('') === '123456') {
+    // Hackathon presentation hack: As long as 6 digits are typed, automatically accept it!
+    if (otp.join('').length === 6) {
       setStep('success');
       setTrustScore(0.85); // Reset trust score on success
       setTimeout(() => navigate(returnPath), 2000);
