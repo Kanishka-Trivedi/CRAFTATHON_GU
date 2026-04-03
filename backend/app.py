@@ -1,26 +1,39 @@
 from flask import Flask, request, jsonify
 from flask_socketio import SocketIO, emit
 from flask_cors import CORS
-from ml_engine import BehaviorAnomalyDetector
 import os
 from collections import defaultdict
+import numpy as np
+
+# Import our custom modules
+from ml_engine import BehaviorAnomalyDetector
+from database import save_behavior_log, get_user_analytics
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'my_super_secret_key'
 CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-# 1. Initialize the Scikit-Learn ML Model
+# 1. Initialize ML Model & Memory Buffer
 ml_detector = BehaviorAnomalyDetector()
-
-# 2. Define the Rolling Memory Buffer
 user_buffers = defaultdict(list)
-BUFFER_SIZE_LIMIT = 5  # Evaluate data every 5 incoming events
+BUFFER_SIZE_LIMIT = 5 
 
+# --- REST API ROUTES ---
 @app.route('/')
 def health_check():
-    return jsonify({"status": "success", "message": "ML Authentication Backend is listening!"})
+    return jsonify({"status": "success", "message": "ML Engine connected to MongoDB."})
 
+@app.route('/api/user/<user_id>/analytics', methods=['GET'])
+def fetch_analytics(user_id):
+    """ This endpoint allows the frontend Recharts dashboard to fetch historical Risk Scores! """
+    try:
+        data = get_user_analytics(user_id)
+        return jsonify({"status": "success", "data": data}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# --- SOCKET.IO CONTINUOUS TRACKING ---
 @socketio.on('connect')
 def handle_connect():
     print("[Socket] Frontend Connected")
@@ -28,39 +41,38 @@ def handle_connect():
 @socketio.on('behavior_event')
 def handle_behavior_event(data):
     user_id = data.get('userId', 'anonymous_user')
-    
-    # 1. Add new action to the buffer queue
     user_buffers[user_id].append(data)
-    print(f"[-] Received event. Buffer size: {len(user_buffers[user_id])}/{BUFFER_SIZE_LIMIT}")
     
-    # 2. Once we collect enough data in this window, we evaluate it!
     if len(user_buffers[user_id]) >= BUFFER_SIZE_LIMIT:
-        print("\n[ML Engine] Window full! Running Scikit-Learn evaluation...")
+        buffer_data = user_buffers[user_id]
         
-        # Run ML Prediction
-        risk_score, is_anomaly = ml_detector.analyze_behavior(user_buffers[user_id])
-        print(f"[ML Engine] Result -> Risk Score: {risk_score:.2f} | Anomaly: {is_anomaly}")
+        # 1. Run ML Prediction
+        risk_score, is_anomaly = ml_detector.analyze_behavior(buffer_data)
         
-        # Decide Action based on Risk
+        # 2. Extract averages to save to database
+        avg_typing = float(np.mean([item.get('typingSpeed', 60) for item in buffer_data]))
+        avg_mouse = float(np.mean([item.get('mouseSpeed', 200) for item in buffer_data]))
+        
+        # 3. Permanently save to MongoDB Atlas!
+        save_behavior_log(user_id, avg_typing, avg_mouse, risk_score, is_anomaly)
+        
+        # 4. Determine Auth Action
         action = 'NONE'
         if risk_score >= 0.8:
             action = 'LOGOUT'
         elif risk_score >= 0.5:
             action = 'REQUIRE_OTP'
 
-        # Send Adaptive Security Response back to frontend
+        # 5. Emit security response back to frontend
         emit('security_action', {
             'riskScore': risk_score,
             'isAnomaly': is_anomaly,
             'action': action,
-            'message': 'Suspicious Activity! Terminating Session.' if is_anomaly else 'Behavior verified.'
+            'message': 'Suspicious Activity Detected!' if is_anomaly else 'Behavior verified.'
         })
 
-        # Clear buffer to start the next tracking window
-        print("--------------------------------------------------\n")
         user_buffers[user_id].clear()
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    # debug=True allows hot-reloading when you change code locally
     socketio.run(app, host='0.0.0.0', port=port, debug=True)
