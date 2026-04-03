@@ -1,8 +1,19 @@
+import dns from 'dns';
+// Force Google DNS — bypasses restricted network DNS that blocks mongodb.net SRV records
+dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
+
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: path.join(__dirname, '.env') });
+
+// Load .env explicitly — works whether run via `node` directly or via dotenvx
+const envResult = dotenv.config({ path: path.join(__dirname, '.env') });
+if (envResult.error) {
+  console.warn('[ENV] Warning: Could not load .env file:', envResult.error.message);
+} else {
+  console.log('[ENV] Loaded:', Object.keys(envResult.parsed || {}).join(', '));
+}
 
 import express from 'express';
 import mongoose from 'mongoose';
@@ -22,8 +33,10 @@ app.use(cors({
 // Connect to MongoDB Atlas (Now with DNS-Resilience)
 const connectDB = async () => {
   const options = {
-    connectTimeoutMS: 10000,
-    dbName: 'behaveguard' // Explicitly points the Auth API exactly to the teammate's 'behaveguard' database!
+    connectTimeoutMS: 15000,
+    serverSelectionTimeoutMS: 15000,
+    family: 4, // Force IPv4 — fixes ECONNREFUSED on restrictive networks (DNS SRV over IPv6 often fails)
+    dbName: 'behaveguard'
   };
 
   try {
