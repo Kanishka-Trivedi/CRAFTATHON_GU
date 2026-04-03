@@ -2,7 +2,7 @@ export const dummyUser = {
   name: "Rahul Mehta",
   email: "rahul.mehta@gmail.com",
   avatar: "RM",
-  balance: 124500,
+  balance: 0,
   accountNo: "•••• •••• 4829",
   phone: "+91 98765 43210"
 };

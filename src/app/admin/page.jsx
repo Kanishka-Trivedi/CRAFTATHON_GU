@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useEffect } from 'react';
 import { clsx } from 'clsx';
 import { motion } from 'framer-motion';
@@ -6,10 +7,10 @@ import {
   ArrowUpRight, ArrowDownRight, Search, Filter, 
   MapPin, Clock, ExternalLink
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link } from 'next/navigation';
 import { Bar, Line } from 'react-chartjs-2';
-import { useAdmin } from '../context/AdminContext';
-import { GlassCard, AdminNav } from '../components/Shared';
+import { useAdmin } from '../../context/AdminContext';
+import { GlassCard, AdminNav } from '../../components/Shared';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -170,7 +171,7 @@ const AdminOverviewPage = () => {
         <GlassCard className="overflow-hidden border-white/5">
            <div className="p-8 pb-4 flex items-center justify-between">
               <h3 className="font-sora font-bold text-xl">Operational Logs</h3>
-              <Link to="/admin/alerts" className="text-xs font-bold text-accent hover:underline uppercase tracking-widest">Full Incident Log</Link>
+              <Link href="/admin/alerts" className="text-xs font-bold text-accent hover:underline uppercase tracking-widest">Full Incident Log</Link>
            </div>
            <div className="overflow-x-auto">
               <table className="w-full text-left min-w-[1000px]">
@@ -218,7 +219,7 @@ const AdminOverviewPage = () => {
                             <span className="px-3 py-1 rounded-lg bg-white/5 border border-white/5 text-[10px] font-bold text-secondary uppercase tracking-widest">{alert.action}</span>
                          </td>
                          <td className="py-5 px-8 text-right">
-                            <Link to={`/admin/session/${alert.id}`} className="text-xs font-bold text-accent-teal hover:underline flex items-center justify-end space-x-1 uppercase tracking-widest">
+                            <Link href={`/admin/session/${alert.id}`} className="text-xs font-bold text-accent-teal hover:underline flex items-center justify-end space-x-1 uppercase tracking-widest">
                                <span>Inspect</span>
                                <ExternalLink size={12} />
                             </Link>

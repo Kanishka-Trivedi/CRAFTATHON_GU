@@ -1,5 +1,6 @@
+"use client";
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Shield, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -12,7 +13,7 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { login } = useAuth();
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,7 +22,7 @@ const LoginPage = () => {
     
     const result = await login(email, password);
     if (result?.success) {
-      navigate('/dashboard');
+      router.push('/dashboard');
     } else {
       setError(result?.message || 'Login failed');
     }
@@ -168,7 +169,7 @@ const LoginPage = () => {
             <div className="mt-10 text-center">
               <p className="text-secondary text-sm">
                 Don't have an account? 
-                <button onClick={() => navigate('/signup')} className="text-accent font-bold ml-2 hover:underline">Sign up for Guard</button>
+                <button onClick={() => router.push('/signup')} className="text-accent font-bold ml-2 hover:underline">Sign up for Guard</button>
               </p>
             </div>
           </GlassCard>

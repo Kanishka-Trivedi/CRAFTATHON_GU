@@ -1,22 +1,23 @@
+"use client";
 import React, { useState, useEffect } from 'react';
 import { clsx } from 'clsx';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShieldAlert, ShieldCheck, ShieldX, Key, 
   Smartphone, Lock, RefreshCw, XCircle, ArrowRight
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { GlassCard, ToastNotification } from '../components/Shared';
+import { useAuth } from '../../context/AuthContext';
+import { GlassCard, ToastNotification } from '../../components/Shared';
 
 
 
 const ReauthPage = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
+  const pathname = usePathname();
+  const router = useRouter();
   const { setTrustScore } = useAuth();
   
-  const { returnPath = '/dashboard', reason = 'Unusual activity detected' } = location.state || {};
+  const { returnPath = '/dashboard', reason = 'Unusual activity detected' } = null || {};
   
   const [step, setStep] = useState('challenge'); // challenge | success | fail
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
@@ -55,7 +56,7 @@ const ReauthPage = () => {
     if (otp.join('').length === 6) {
       setStep('success');
       setTrustScore(0.85); // Reset trust score on success
-      setTimeout(() => navigate(returnPath), 2000);
+      setTimeout(() => router.push(returnPath), 2000);
     } else {
       setAttempts(prev => prev + 1);
       if (attempts >= 2) setStep('fail');
@@ -149,7 +150,7 @@ const ReauthPage = () => {
              </p>
              
              <button 
-               onClick={() => navigate('/')}
+               onClick={() => router.push('/')}
                className="mt-6 text-sm text-trust-danger hover:underline font-bold block mx-auto flex items-center space-x-2 opacity-70"
              >
                <XCircle size={16} />
@@ -201,7 +202,7 @@ const ReauthPage = () => {
                 We've sent an emergency alert to your registered mobile and email.
              </p>
              <button 
-               onClick={() => navigate('/')}
+               onClick={() => router.push('/')}
                className="mt-12 px-10 py-5 bg-white/5 border border-white/10 rounded-2xl font-bold hover:bg-white/10 transition-all text-xl"
              >
                 Exit to Landing Page

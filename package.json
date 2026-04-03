@@ -4,9 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "next dev",
+    "vite-dev": "vite",
     "server": "node backend/server.js",
-    "build": "vite build",
+    "build": "next build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
@@ -25,10 +26,11 @@
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.323.0",
     "mongoose": "^9.3.3",
+    "next": "^16.2.2",
     "nodemailer": "^8.0.4",
-    "react": "^18.2.0",
+    "react": "^19.2.4",
     "react-chartjs-2": "^5.2.0",
-    "react-dom": "^18.2.0",
+    "react-dom": "^19.2.4",
     "react-router-dom": "^6.22.0"
   },
   "devDependencies": {

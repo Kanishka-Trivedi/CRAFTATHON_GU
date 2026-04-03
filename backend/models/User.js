@@ -21,7 +21,7 @@ const userSchema = new mongoose.Schema({
   },
   balance: {
     type: Number,
-    default: 124500,
+    default: 0, // Cleared dummy balance for real-time integration
   },
   isEnrolled: {
     type: Boolean,
@@ -29,7 +29,7 @@ const userSchema = new mongoose.Schema({
   },
   trustScore: {
     type: Number,
-    default: 0.7,
+    default: 1.0, // Start users at a perfect 1.0 Trust Score
   },
   createdAt: {
     type: Date,

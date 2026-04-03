@@ -1,18 +1,19 @@
+"use client";
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, Shield, Lock, Eye, Bell, Globe, 
   Trash2, Download, Smartphone, LogOut, ChevronRight
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { GlassCard, NavBar, TrustBadge, ToastNotification } from '../components/Shared';
+import { useAuth } from '../../context/AuthContext';
+import { GlassCard, NavBar, TrustBadge, ToastNotification } from '../../components/Shared';
 
 import { clsx } from 'clsx';
 
 const SettingsPage = () => {
   const { user, trustScore, logout, updateProfile } = useAuth();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('profile');
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
   
@@ -37,7 +38,7 @@ const SettingsPage = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    router.push('/');
   };
 
   const tabs = [

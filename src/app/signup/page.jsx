@@ -1,9 +1,10 @@
+"use client";
 import React, { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Shield, ChevronRight } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { GlassCard } from '../components/Shared';
+import { useAuth } from '../../context/AuthContext';
+import { GlassCard } from '../../components/Shared';
 import axios from 'axios';
 
 const SignupPage = () => {
@@ -12,7 +13,7 @@ const SignupPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({ name: '', email: '', password: '', pin: ['', '', '', '', '', ''], otp: ['', '', '', '', '', ''] });
   const { signup } = useAuth();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [clickCount, setClickCount] = useState(0);
 
@@ -51,7 +52,7 @@ const SignupPage = () => {
       });
       
       if (result?.success) {
-        navigate('/dashboard');
+        router.push('/dashboard');
       } else {
         setError(result?.message || 'Signup failed');
         // If it fails, we stay on step 3 so they can try again or check OTP

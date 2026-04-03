@@ -1,15 +1,16 @@
+"use client";
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, ShieldAlert, CheckCircle2, AlertCircle, Activity, ArrowRight, User } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { GlassCard, NavBar, TrustBadge, RiskBar } from '../components/Shared';
+import { useAuth } from '../../context/AuthContext';
+import { GlassCard, NavBar, TrustBadge, RiskBar } from '../../components/Shared';
 
 import { clsx } from 'clsx';
 
 const TransferPage = () => {
   const { trustScore, riskLevel } = useAuth();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [formData, setFormData] = useState({ account: '', amount: '', note: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -18,9 +19,9 @@ const TransferPage = () => {
   // Monitor trust score and trigger re-auth if it drops too low
   useEffect(() => {
     if (trustScore < 0.35 && formData.account.length > 5) {
-      navigate('/reauth', { state: { returnPath: '/transfer', reason: 'Typing pattern anomaly detected during fund transfer' } });
+      router.push('/reauth', { state: { returnPath: '/transfer', reason: 'Typing pattern anomaly detected during fund transfer' } });
     }
-  }, [trustScore, formData.account, navigate]);
+  }, [trustScore, formData.account, router]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -78,7 +79,7 @@ const TransferPage = () => {
           <GlassCard className="p-10 border-white/5 relative overflow-hidden">
             <AnimatePresence mode="wait">
               {!isSuccess ? (
-                <motion.div 
+                <motion.div
                   key="form"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -89,8 +90,8 @@ const TransferPage = () => {
                       <label className="block text-xs font-bold uppercase tracking-widest text-secondary mb-3 px-1">Recipient Account Number</label>
                       <div className="relative">
                         <User className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary" size={18} />
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           placeholder="0000 0000 0000 0000"
                           value={formData.account}
                           onChange={(e) => setFormData({ ...formData, account: e.target.value })}
@@ -103,8 +104,8 @@ const TransferPage = () => {
                     <div className="grid grid-cols-2 gap-6">
                       <div>
                         <label className="block text-xs font-bold uppercase tracking-widest text-secondary mb-3 px-1">Amount (₹)</label>
-                        <input 
-                          type="number" 
+                        <input
+                          type="number"
                           placeholder="0.00"
                           value={formData.amount}
                           onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
@@ -123,8 +124,8 @@ const TransferPage = () => {
 
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-widest text-secondary mb-3 px-1">Note (Optional)</label>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         placeholder="Purpose of payment"
                         value={formData.note}
                         onChange={(e) => setFormData({ ...formData, note: e.target.value })}
@@ -135,7 +136,7 @@ const TransferPage = () => {
                     {/* Risk Message */}
                     <AnimatePresence>
                       {trustScore < 0.5 && (
-                        <motion.div 
+                        <motion.div
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: 10 }}
@@ -153,13 +154,13 @@ const TransferPage = () => {
                       )}
                     </AnimatePresence>
 
-                    <button 
+                    <button
                       type="submit"
                       disabled={trustScore < 0.4 || isSubmitting}
                       className={clsx(
                         "w-full py-5 rounded-2xl font-bold text-lg transition-all flex items-center justify-center space-x-3",
-                        trustScore < 0.4 
-                          ? "bg-white/5 text-secondary cursor-not-allowed border border-white/5" 
+                        trustScore < 0.4
+                          ? "bg-white/5 text-secondary cursor-not-allowed border border-white/5"
                           : "bg-gradient-to-r from-accent to-accent-violet text-white hover:shadow-[0_0_30px_rgba(108,99,255,0.4)] active:scale-[0.98]"
                       )}
                     >
@@ -175,7 +176,7 @@ const TransferPage = () => {
                   </form>
                 </motion.div>
               ) : (
-                <motion.div 
+                <motion.div
                   key="success"
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -193,7 +194,7 @@ const TransferPage = () => {
                   <p className="text-secondary max-w-xs mb-10">
                     Your payment of ₹{Number(formData.amount).toLocaleString()} to account ending in {formData.account.slice(-4)} was processed successfully.
                   </p>
-                  <button 
+                  <button
                     onClick={() => setIsSuccess(false)}
                     className="px-10 py-4 bg-white/5 border border-white/10 rounded-xl font-bold hover:bg-white/10 transition-colors"
                   >
@@ -209,67 +210,67 @@ const TransferPage = () => {
             <GlassCard className="p-8 border-white/5">
               <div className="flex items-center justify-between mb-8">
                 <div>
-                   <h3 className="font-sora font-bold text-xl">Behaviour Monitor</h3>
-                   <p className="text-sm text-secondary">Continuous risk telemetry</p>
+                  <h3 className="font-sora font-bold text-xl">Behaviour Monitor</h3>
+                  <p className="text-sm text-secondary">Continuous risk telemetry</p>
                 </div>
                 <Activity className="text-accent animate-pulse" size={24} />
               </div>
 
               <div className="space-y-6">
-                 <RiskBar label="Typing Velocity" value={Math.round(metrics.typingSpeed)} />
-                 <RiskBar label="Key Hold Signature" value={Math.round(metrics.holdTime / 2)} />
-                 <RiskBar label="Navigation Rhythm" value={Math.round(metrics.rhythm)} />
-                 <RiskBar label="Input Pattern Match" value={Math.round(metrics.swipe)} />
+                <RiskBar label="Typing Velocity" value={Math.round(metrics.typingSpeed)} />
+                <RiskBar label="Key Hold Signature" value={Math.round(metrics.holdTime / 2)} />
+                <RiskBar label="Navigation Rhythm" value={Math.round(metrics.rhythm)} />
+                <RiskBar label="Input Pattern Match" value={Math.round(metrics.swipe)} />
               </div>
 
               <div className="mt-10 p-6 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center space-x-6">
-                 <div className="relative w-20 h-20">
-                    <svg className="w-full h-full transform -rotate-90">
-                       <circle cx="40" cy="40" r="34" fill="transparent" stroke="rgba(255,255,255,0.05)" strokeWidth="8" />
-                       <circle 
-                         cx="40" cy="40" r="34" 
-                         fill="transparent" 
-                         stroke={trustScore > 0.6 ? "#10B981" : (trustScore > 0.35 ? "#F59E0B" : "#EF4444")} 
-                         strokeWidth="8" 
-                         strokeDasharray="213.6" 
-                         strokeDashoffset={213.6 - (213.6 * trustScore)} 
-                         strokeLinecap="round" 
-                         className="transition-all duration-1000"
-                       />
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                       <span className="text-xl font-bold">{Math.round(trustScore * 100)}</span>
-                       <span className="text-[8px] font-bold text-secondary uppercase tracking-widest">Score</span>
-                    </div>
-                 </div>
-                 <div className="flex-1">
-                    <h4 className="font-bold text-sm mb-1 uppercase tracking-tight">Identity Confidence</h4>
-                    <p className="text-xs text-secondary leading-relaxed">
-                       {trustScore > 0.6 ? 
-                         "High confidence. Implicit biometric pattern matches Rahul Mehta's baseline profile." : 
-                         "Caution: Behaviour drift detected. Transfer limits restricted to ensure account security."
-                       }
-                    </p>
-                 </div>
+                <div className="relative w-20 h-20">
+                  <svg className="w-full h-full transform -rotate-90">
+                    <circle cx="40" cy="40" r="34" fill="transparent" stroke="rgba(255,255,255,0.05)" strokeWidth="8" />
+                    <circle
+                      cx="40" cy="40" r="34"
+                      fill="transparent"
+                      stroke={trustScore > 0.6 ? "#10B981" : (trustScore > 0.35 ? "#F59E0B" : "#EF4444")}
+                      strokeWidth="8"
+                      strokeDasharray="213.6"
+                      strokeDashoffset={213.6 - (213.6 * trustScore)}
+                      strokeLinecap="round"
+                      className="transition-all duration-1000"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-xl font-bold">{Math.round(trustScore * 100)}</span>
+                    <span className="text-[8px] font-bold text-secondary uppercase tracking-widest">Score</span>
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-bold text-sm mb-1 uppercase tracking-tight">Identity Confidence</h4>
+                  <p className="text-xs text-secondary leading-relaxed">
+                    {trustScore > 0.6 ?
+                      "High confidence. Implicit biometric pattern matches Rahul Mehta's baseline profile." :
+                      "Caution: Behaviour drift detected. Transfer limits restricted to ensure account security."
+                    }
+                  </p>
+                </div>
               </div>
             </GlassCard>
 
-            <motion.div 
-               whileHover={{ scale: 1.02 }}
-               className="glass p-6 border-trust-safe/20 bg-trust-safe/5 group cursor-pointer"
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              className="glass p-6 border-trust-safe/20 bg-trust-safe/5 group cursor-pointer"
             >
-               <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                     <div className="w-10 h-10 rounded-full bg-trust-safe/20 flex items-center justify-center text-trust-safe">
-                        <CheckCircle2 size={20} />
-                     </div>
-                     <div>
-                        <p className="font-bold text-sm">Adaptive Security Active</p>
-                        <p className="text-xs text-secondary">Step-up challenges enabled</p>
-                     </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="w-10 h-10 rounded-full bg-trust-safe/20 flex items-center justify-center text-trust-safe">
+                    <CheckCircle2 size={20} />
                   </div>
-                  <ArrowRight size={16} className="text-secondary group-hover:text-white transition-all group-hover:translate-x-1" />
-               </div>
+                  <div>
+                    <p className="font-bold text-sm">Adaptive Security Active</p>
+                    <p className="text-xs text-secondary">Step-up challenges enabled</p>
+                  </div>
+                </div>
+                <ArrowRight size={16} className="text-secondary group-hover:text-white transition-all group-hover:translate-x-1" />
+              </div>
             </motion.div>
           </div>
         </div>

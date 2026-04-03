@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from 'react';
 import { clsx } from 'clsx';
 import { motion } from 'framer-motion';
@@ -6,9 +7,9 @@ import {
   Shield, Check, Fingerprint, Activity, MousePointer2, 
   Smartphone, Eye, Download, Trash2, ArrowUpRight, Zap
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { dummyBehaviourProfile } from '../data/dummy';
-import { GlassCard, NavBar, TrustBadge, MiniSparkline } from '../components/Shared';
+import { useAuth } from '../../context/AuthContext';
+import { dummyBehaviourProfile } from '../../data/dummy';
+import { GlassCard, NavBar, TrustBadge, MiniSparkline } from '../../components/Shared';
 import {
   Chart as ChartJS,
   RadialLinearScale,

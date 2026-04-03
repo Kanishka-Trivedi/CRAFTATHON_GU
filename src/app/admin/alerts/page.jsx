@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from 'react';
 import { clsx } from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -6,9 +7,9 @@ import {
   MapPin, User, ChevronDown, ChevronUp, Search, Filter, 
   Download, ExternalLink, SlidersHorizontal
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { useAdmin } from '../context/AdminContext';
-import { GlassCard, AdminNav } from '../components/Shared';
+import { Link } from 'next/navigation';
+import { useAdmin } from '../../context/AdminContext';
+import { GlassCard, AdminNav } from '../../components/Shared';
 
 
 
@@ -186,7 +187,7 @@ const AlertsLogPage = () => {
                             <div className="flex flex-col justify-between">
                                <h4 className="text-[10px] font-black text-secondary uppercase tracking-widest mb-6 border-b border-white/5 pb-2">Administrative Actions</h4>
                                <div className="grid grid-cols-2 gap-4">
-                                  <Link to={`/admin/session/${alert.id}`} className="px-4 py-3 bg-accent/10 border border-accent/20 rounded-xl text-[10px] font-black text-accent uppercase tracking-widest text-center hover:bg-accent/20 transition-all flex items-center justify-center space-x-2">
+                                  <Link href={`/admin/session/${alert.id}`} className="px-4 py-3 bg-accent/10 border border-accent/20 rounded-xl text-[10px] font-black text-accent uppercase tracking-widest text-center hover:bg-accent/20 transition-all flex items-center justify-center space-x-2">
                                      <ExternalLink size={14} />
                                      <span>Full Inspect</span>
                                   </Link>

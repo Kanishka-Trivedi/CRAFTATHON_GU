@@ -1,11 +1,12 @@
+"use client";
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Users, Search, Filter, Shield, MoreVertical, 
   Trash2, RotateCw, ShieldCheck, ShieldAlert, ShieldX, Activity
 } from 'lucide-react';
-import { useAdmin } from '../context/AdminContext';
-import { GlassCard, AdminNav, TrustBadge } from '../components/Shared';
+import { useAdmin } from '../../context/AdminContext';
+import { GlassCard, AdminNav, TrustBadge } from '../../components/Shared';
 
 import { clsx } from 'clsx';
 

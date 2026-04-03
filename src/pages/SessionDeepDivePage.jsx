@@ -1,5 +1,6 @@
+"use client";
 import React, { useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useRouter, Link } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { 
   ChevronLeft, ShieldAlert, ShieldCheck, Activity, 
@@ -37,7 +38,7 @@ import { clsx } from 'clsx';
 
 const SessionDeepDivePage = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
+  const router = useRouter();
   const { sessions } = useAdmin();
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
   const session = sessions[0] || {}; // Mocking for demo
@@ -99,7 +100,7 @@ const SessionDeepDivePage = () => {
         "transition-all duration-300 p-8 pt-6 min-h-screen max-w-7xl mx-auto",
         isSidebarCollapsed ? "md:ml-20" : "md:ml-64"
       )}>
-        <button onClick={() => navigate(-1)} className="flex items-center space-x-2 text-secondary hover:text-white transition-all text-sm font-bold uppercase tracking-widest mb-10 group">
+        <button onClick={() => router.push(-1)} className="flex items-center space-x-2 text-secondary hover:text-white transition-all text-sm font-bold uppercase tracking-widest mb-10 group">
            <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
            <span>Return to Overview</span>
         </button>

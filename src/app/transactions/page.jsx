@@ -1,12 +1,13 @@
+"use client";
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
   ChevronLeft, ChevronRight, Search, Filter, Download, 
   Calendar, CreditCard, ShoppingBag, Utensils, Send, Tv, Receipt
 } from 'lucide-react';
-import { dummyTransactions } from '../data/dummy';
-import { GlassCard, NavBar, TrustBadge } from '../components/Shared';
-import { useAuth } from '../context/AuthContext';
+import { dummyTransactions } from '../../data/dummy';
+import { GlassCard, NavBar, TrustBadge } from '../../components/Shared';
+import { useAuth } from '../../context/AuthContext';
 
 import { clsx } from 'clsx';
 

@@ -1,13 +1,15 @@
+"use client";
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Check, Shield, AlertTriangle, X, ChevronRight, Menu, 
+import {
+  Check, Shield, AlertTriangle, X, ChevronRight, Menu,
   LayoutDashboard, CreditCard, Send, User, Settings as SettingsIcon,
   BarChart3, Activity, ShieldAlert, Users, LogOut, Search, ShieldCheck
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { clsx } from 'clsx';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 
 export const GlassCard = ({ children, className }) => (
   <div className={clsx("glass p-6", className)}>
@@ -21,7 +23,7 @@ export const TrustBadge = ({ score }) => {
 
   return (
     <div className={clsx("flex items-center space-x-2 px-3 py-1.5 rounded-full border border-white/10 glass", color + "/20")}>
-      <motion.div 
+      <motion.div
         animate={{ scale: [1, 1.2, 1], opacity: [0.8, 1, 0.8] }}
         transition={{ repeat: Infinity, duration: 2 }}
         className={clsx("w-2 h-2 rounded-full", color)}
@@ -40,7 +42,7 @@ export const RiskBar = ({ value, label }) => {
         <span>{value}%</span>
       </div>
       <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-        <motion.div 
+        <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${value}%` }}
           className={clsx("h-full", color)}
@@ -76,11 +78,11 @@ export const MiniSparkline = ({ data, color = "#6C63FF" }) => {
 export const ToastNotification = ({ message, type = "success", show, onClose }) => (
   <AnimatePresence>
     {show && (
-      <motion.div 
+      <motion.div
         initial={{ x: 300, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         exit={{ x: 300, opacity: 0 }}
-        className={clsx("fixed bottom-8 right-8 z-[9999] p-4 rounded-xl glass border-white/10 flex items-center space-x-3 shadow-2xl", 
+        className={clsx("fixed bottom-8 right-8 z-[9999] p-4 rounded-xl glass border-white/10 flex items-center space-x-3 shadow-2xl",
           type === "success" ? "border-l-4 border-l-trust-safe" : "border-l-4 border-l-trust-danger"
         )}
       >
@@ -98,12 +100,12 @@ export const LoadingSpinner = () => (
 
 export const NavBar = ({ isCollapsed, setCollapsed }) => {
   const { user, logout } = useAuth();
-  const location = useLocation();
-  const navigate = useNavigate();
+  const pathname = usePathname();
+  const router = useRouter();
 
   const handleLogout = async () => {
     await logout();
-    navigate('/');
+    router.push('/');
   };
 
   const navItems = [
@@ -115,7 +117,7 @@ export const NavBar = ({ isCollapsed, setCollapsed }) => {
   ];
 
   const Icons = {
-     LayoutDashboard, CreditCard, Send, User, SettingsIcon
+    LayoutDashboard, CreditCard, Send, User, SettingsIcon
   };
 
   return (
@@ -141,12 +143,12 @@ export const NavBar = ({ isCollapsed, setCollapsed }) => {
 
         <nav className="flex-1 px-4 space-y-2">
           {navItems.map((item) => (
-            <Link 
-              key={item.path} 
-              to={item.path}
+            <Link
+              key={item.path}
+              href={item.path}
               className={clsx(
                 "flex items-center space-x-3 px-4 py-3 rounded-xl transition-all group",
-                location.pathname === item.path ? "bg-accent/20 text-accent" : "text-secondary hover:bg-white/5 hover:text-white"
+                pathname === item.path ? "bg-accent/20 text-accent" : "text-secondary hover:bg-white/5 hover:text-white"
               )}
             >
               <span className="w-6 h-6 flex items-center justify-center opacity-70 group-hover:opacity-100 flex-shrink-0">
@@ -170,8 +172,8 @@ export const NavBar = ({ isCollapsed, setCollapsed }) => {
               </div>
             </div>
           )}
-          
-          <button 
+
+          <button
             onClick={handleLogout}
             className={clsx(
               "flex items-center space-x-3 px-4 py-3 rounded-xl transition-all group w-full text-trust-danger hover:bg-trust-danger/10",
@@ -186,25 +188,25 @@ export const NavBar = ({ isCollapsed, setCollapsed }) => {
 
       {/* Mobile Bottom Nav */}
       <div className="md:hidden fixed bottom-6 left-6 right-6 h-20 glass z-[60] flex items-center justify-around px-4 border border-white/10 shadow-2xl">
-         {navItems.map((item) => (
-            <Link 
-              key={item.path} 
-              to={item.path}
-              className={clsx(
-                "p-3 rounded-2xl transition-all",
-                location.pathname === item.path ? "bg-accent/20 text-accent shadow-inner" : "text-secondary"
-              )}
-            >
-              {React.createElement(Icons[item.icon], { size: 24 })}
-            </Link>
-         ))}
+        {navItems.map((item) => (
+          <Link
+            key={item.path}
+            href={item.path}
+            className={clsx(
+              "p-3 rounded-2xl transition-all",
+              pathname === item.path ? "bg-accent/20 text-accent shadow-inner" : "text-secondary"
+            )}
+          >
+            {React.createElement(Icons[item.icon], { size: 24 })}
+          </Link>
+        ))}
       </div>
     </>
   );
 }
 
 export const AdminNav = ({ isCollapsed, setCollapsed }) => {
-  const location = useLocation();
+  const pathname = usePathname();
   const navItems = [
     { name: 'Overview', path: '/admin', icon: 'BarChart3' },
     { name: 'Sessions', path: '/admin/alerts', icon: 'Activity' },
@@ -213,7 +215,7 @@ export const AdminNav = ({ isCollapsed, setCollapsed }) => {
   ];
 
   const Icons = {
-     BarChart3, Activity, ShieldAlert, Users
+    BarChart3, Activity, ShieldAlert, Users
   };
 
   return (
@@ -238,12 +240,12 @@ export const AdminNav = ({ isCollapsed, setCollapsed }) => {
 
         <nav className="flex-1 px-4 space-y-2">
           {navItems.map((item) => (
-            <Link 
-              key={item.path} 
-              to={item.path}
+            <Link
+              key={item.path}
+              href={item.path}
               className={clsx(
                 "flex items-center space-x-3 px-4 py-3 rounded-xl transition-all group",
-                location.pathname === item.path ? "bg-accent/20 text-accent border border-accent/20" : "text-secondary hover:bg-white/5 hover:text-white"
+                pathname === item.path ? "bg-accent/20 text-accent border border-accent/20" : "text-secondary hover:bg-white/5 hover:text-white"
               )}
             >
               <span className="w-6 h-6 flex items-center justify-center opacity-70 group-hover:opacity-100 flex-shrink-0">
@@ -253,7 +255,7 @@ export const AdminNav = ({ isCollapsed, setCollapsed }) => {
             </Link>
           ))}
         </nav>
-        
+
         <div className="p-8">
           {!isCollapsed && <div className="glass p-3 rounded-xl text-center bg-accent-violet/10 border-accent-violet/20">
             <p className="text-[10px] text-accent-violet font-bold uppercase tracking-widest mb-1">System Status</p>
@@ -264,18 +266,18 @@ export const AdminNav = ({ isCollapsed, setCollapsed }) => {
 
       {/* Admin Mobile Nav */}
       <div className="md:hidden fixed bottom-6 left-6 right-6 h-20 glass z-[60] flex items-center justify-around px-4 border border-white/10 shadow-2xl">
-         {navItems.map((item) => (
-            <Link 
-              key={item.path} 
-              to={item.path}
-              className={clsx(
-                "p-3 rounded-2xl transition-all",
-                location.pathname === item.path ? "bg-accent/20 text-accent shadow-inner" : "text-secondary"
-              )}
-            >
-              {React.createElement(Icons[item.icon], { size: 24 })}
-            </Link>
-         ))}
+        {navItems.map((item) => (
+          <Link
+            key={item.path}
+            href={item.path}
+            className={clsx(
+              "p-3 rounded-2xl transition-all",
+              pathname === item.path ? "bg-accent/20 text-accent shadow-inner" : "text-secondary"
+            )}
+          >
+            {React.createElement(Icons[item.icon], { size: 24 })}
+          </Link>
+        ))}
       </div>
     </>
   );
