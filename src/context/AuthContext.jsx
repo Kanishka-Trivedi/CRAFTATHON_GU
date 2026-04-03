@@ -19,33 +19,25 @@ const dummyUser = {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  
+
   // Real ML Engine State
   const [trustScore, setTrustScore] = useState(0.85); // 1.0 (safe) to 0.0 (danger)
   const [riskLevel, setRiskLevel] = useState('safe'); // 'safe', 'watch', 'danger'
-  
+
   const [isEnrolled, setIsEnrolled] = useState(true);
   const [sessionEvents, setSessionEvents] = useState([]);
   const [keystrokes, setKeystrokes] = useState([]);
-  
-  // Restore user session on reload if token exists
+
+  // Restore user session on reload
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const response = await axios.get(`${API_URL}/me`);
-        if (response.data.success) {
-          setUser(response.data.user);
-        }
-      } catch (error) {
-        // Silently fail if not logged in
-      } finally {
-        setLoading(false);
-      }
-    };
-    checkAuth();
+    const token = localStorage.getItem('behaveguard_token');
+    if (token) {
+      setUser(dummyUser);
+    }
+    setLoading(false);
   }, []);
-  
-  // Buffers for 5-second aggregation
+
+  // Buffers for fast real-time aggregation
   const metricsBuffer = useRef({
     keysHeld: [],
     keyFlights: [],
@@ -68,17 +60,17 @@ export const AuthProvider = ({ children }) => {
     const handleKeyDown = (e) => {
       const now = Date.now();
       keyDownTime.current[e.key] = now;
-      
+
       const flightTime = now - lastKeyTime.current;
       metricsBuffer.current.keyFlights.push(flightTime);
       metricsBuffer.current.charCount++;
-      
+
       const idleTime = (now - lastActionTime.current) / 1000;
       if (idleTime > 0.5) metricsBuffer.current.idleTimes.push(idleTime);
-      
+
       lastActionTime.current = now;
       lastKeyTime.current = now;
-      
+
       setKeystrokes(prev => {
         const updatedKeys = [...prev, { key: e.key, flightTime, timestamp: now }];
         if (updatedKeys.length > 50) return updatedKeys.slice(-50);
@@ -93,7 +85,7 @@ export const AuthProvider = ({ children }) => {
         const holdTime = now - startTime;
         metricsBuffer.current.keysHeld.push(holdTime);
         delete keyDownTime.current[e.key];
-        
+
         setKeystrokes(prev => {
           const updated = [...prev];
           const last = updated[updated.length - 1];
@@ -108,29 +100,32 @@ export const AuthProvider = ({ children }) => {
     const handleMouseMove = (e) => {
       const now = Date.now();
       const { x: lastX, y: lastY, time: lastTime } = lastMousePos.current;
-      
+
       if (lastX !== null && lastY !== null && now - lastTime > 50) {
         const dist = Math.sqrt(Math.pow(e.clientX - lastX, 2) + Math.pow(e.clientY - lastY, 2));
         const dt = (now - lastTime) / 1000;
         if (dt > 0) metricsBuffer.current.mouseSpeeds.push(dist / dt);
       }
-      
+
+      const idleTime = (now - lastActionTime.current) / 1000;
+      if (idleTime > 2.0) metricsBuffer.current.idleTimes.push(idleTime); // only log major idle times for mouse
+
       lastMousePos.current = { x: e.clientX, y: e.clientY, time: now };
       lastActionTime.current = now;
     };
 
     const handleScroll = () => {
-        const now = Date.now();
-        metricsBuffer.current.scrollSpeeds.push(500);
-        lastActionTime.current = now;
+      const now = Date.now();
+      metricsBuffer.current.scrollSpeeds.push(500); // placeholder value representing scroll intensity
+      lastActionTime.current = now;
     };
 
     const handleClick = (e) => {
-        const rect = e.target.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-        metricsBuffer.current.clickDeviations.push(Math.sqrt(Math.pow(e.clientX - centerX, 2) + Math.pow(e.clientY - centerY, 2)));
-        lastActionTime.current = now;
+      const rect = e.target.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      metricsBuffer.current.clickDeviations.push(Math.sqrt(Math.pow(e.clientX - centerX, 2) + Math.pow(e.clientY - centerY, 2)));
+      lastActionTime.current = Date.now();
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -148,112 +143,82 @@ export const AuthProvider = ({ children }) => {
     };
   }, [user]);
 
-  // 2. INTERVAL EVALUATION (Every 5 seconds)
+  // 2. INTERVAL EVALUATION (Fast 1-second ticks for live demo!)
   useEffect(() => {
     let interval;
     if (user) {
-        interval = setInterval(async () => {
-            const b = metricsBuffer.current;
-            const avg = (arr, defaultVal) => arr.length ? arr.reduce((a,b) => a+b, 0) / arr.length : defaultVal;
-            
-            let payload = {
-                user_id: user.id || user._id || "user_001",
-                typing_speed: b.charCount / 5.0,
-                key_hold_avg_ms: avg(b.keysHeld, 110),
-                key_flight_avg_ms: avg(b.keyFlights, 150),
-                mouse_velocity: avg(b.mouseSpeeds, 360),
-                scroll_speed: avg(b.scrollSpeeds, 300),
-                idle_time_s: avg(b.idleTimes, 5.0),
-                click_deviation_px: avg(b.clickDeviations, 8)
-            };
+      interval = setInterval(async () => {
+        const b = metricsBuffer.current;
+        const avg = (arr, defaultVal) => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : defaultVal;
 
-            metricsBuffer.current = {
-                keysHeld: [], keyFlights: [], mouseSpeeds: [], scrollSpeeds: [],
-                idleTimes: [], clickDeviations: [], charCount: 0
-            };
+        let payload = {
+          user_id: user.id || user._id || "user_001",
+          typing_speed: b.charCount / 1.0, // Divided by 1 due to 1-second interval
+          key_hold_avg_ms: avg(b.keysHeld, 110),
+          key_flight_avg_ms: avg(b.keyFlights, 150),
+          mouse_velocity: avg(b.mouseSpeeds, 360),
+          scroll_speed: avg(b.scrollSpeeds, 300),
+          idle_time_s: avg(b.idleTimes, 5.0),
+          click_deviation_px: avg(b.clickDeviations, 8)
+        };
 
-            try {
-                const response = await fetch("http://localhost:8001/score", {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    const newTrust = 1.0 - (data.risk_score / 100);
-                    setTrustScore(parseFloat(newTrust.toFixed(2)));
+        metricsBuffer.current = {
+          keysHeld: [], keyFlights: [], mouseSpeeds: [], scrollSpeeds: [],
+          idleTimes: [], clickDeviations: [], charCount: 0
+        };
 
-                    if (data.risk_level === 'LOW') setRiskLevel('safe');
-                    else if (data.risk_level === 'MEDIUM') setRiskLevel('watch');
-                    else setRiskLevel('danger');
-                    
-                    if (data.anomalies && data.anomalies.length > 0) {
-                        setSessionEvents(prev => [
-                            { timestamp: new Date().toISOString(), type: 'anomaly', message: data.anomalies[0]},
-                            ...prev
-                        ]);
-                    }
-                }
-            } catch (error) {
-                // Fallback simulation if ML engine is off
-                setTrustScore(prev => {
-                    const drift = (Math.random() - 0.48) * 0.04;
-                    return parseFloat(Math.max(0, Math.min(1, prev + drift)).toFixed(2));
-                });
+        try {
+          const response = await fetch("http://localhost:8001/score", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            const newTrust = 1.0 - (data.risk_score / 100);
+            setTrustScore(parseFloat(newTrust.toFixed(2)));
+
+            if (data.risk_level === 'LOW') setRiskLevel('safe');
+            else if (data.risk_level === 'MEDIUM') setRiskLevel('watch');
+            else setRiskLevel('danger');
+
+            if (data.anomalies && data.anomalies.length > 0) {
+              setSessionEvents(prev => [
+                { timestamp: new Date().toISOString(), type: 'anomaly', message: data.anomalies[0] },
+                ...prev
+              ]);
             }
-        }, 5000);
+          }
+        } catch (error) {
+          // Fallback simulation if ML engine is off
+          setTrustScore(prev => {
+            const drift = (Math.random() - 0.48) * 0.04;
+            return parseFloat(Math.max(0, Math.min(1, prev + drift)).toFixed(2));
+          });
+        }
+      }, 1000); // 1-second fast evaluation
     }
     return () => clearInterval(interval);
   }, [user]);
 
   const login = async (email, password) => {
-    try {
-      const response = await axios.post(`${API_URL}/login`, { email, password });
-      if (response.data.success) {
-        let userData = response.data.user;
-        
-        // Extract name from email if name is missing or is the default "Rahul Mehta"
-        if (!userData.name || userData.name === "Rahul Mehta") {
-          const namePart = email.split('@')[0];
-          userData.name = namePart
-            .split(/[\._]/)
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(' ');
-          userData.avatar = namePart.substring(0, 2).toUpperCase();
-        }
-
-        setUser(userData);
-        return { success: true };
-      }
-    } catch (error) {
-      // Fallback for demo if backend is not running
-      const namePart = email.split('@')[0];
-      const formattedName = namePart.split(/[\._]/).map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-      setUser({ ...dummyUser, email, name: formattedName, avatar: namePart.substring(0, 2).toUpperCase() });
-      return { success: true };
-    }
+    // Teammate didn't build backend logic! Mocking login for the hackathon
+    localStorage.setItem('behaveguard_token', 'secret_demo_token');
+    setUser(dummyUser);
+    return { success: true };
   };
 
   const signup = async (userData) => {
-    try {
-      const response = await axios.post(`${API_URL}/signup`, userData);
-      if (response.data.success) {
-        setUser(response.data.user);
-        return { success: true };
-      }
-    } catch (error) {
-      return { success: false, message: error.response?.data?.message || 'Signup failed' };
-    }
+    // Teammate didn't build backend logic! Mocking signup for the hackathon
+    localStorage.setItem('behaveguard_token', 'secret_demo_token');
+    setUser(dummyUser);
+    return { success: true };
   };
 
   const logout = async () => {
-    try {
-      await axios.post(`${API_URL}/logout`);
-      setUser(null);
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
+    localStorage.removeItem('behaveguard_token');
+    setUser(null);
   };
 
   const updateProfile = (updatedData) => {
