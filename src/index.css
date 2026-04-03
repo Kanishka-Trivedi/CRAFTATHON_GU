@@ -1,3 +1,5 @@
+@import '@fontsource/bricolage-grotesque/800.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -6,6 +8,9 @@
 @layer base {
   body {
     @apply bg-navy-950 text-primary font-dm overflow-x-hidden antialiased;
+  }
+  .font-heading {
+    font-family: 'Bricolage Grotesque', sans-serif;
   }
 }
 

@@ -8,6 +8,8 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { GlassCard, NavBar, TrustBadge, ToastNotification } from '../../components/Shared';
+import { GlobalSpotlight } from '../../components/MagicSpotlight';
+import { useRef } from 'react';
 
 import { clsx } from 'clsx';
 
@@ -16,6 +18,7 @@ const SettingsPage = () => {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('profile');
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const gridRef = useRef(null);
   
   // Profile Form State
   const [formData, setFormData] = useState({
@@ -36,8 +39,8 @@ const SettingsPage = () => {
     setTimeout(() => setShowToast(false), 3000);
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     router.push('/');
   };
 
@@ -57,10 +60,11 @@ const SettingsPage = () => {
 
       <NavBar isCollapsed={isSidebarCollapsed} setCollapsed={setSidebarCollapsed} />
 
-      <main className={clsx(
-        "transition-all duration-300 p-8 pt-6 min-h-screen max-w-7xl mx-auto",
+      <main ref={gridRef} className={clsx(
+        "transition-all duration-300 p-8 pt-6 min-h-screen max-w-7xl mx-auto bento-section",
         isSidebarCollapsed ? "md:ml-20" : "md:ml-64"
       )}>
+        <GlobalSpotlight gridRef={gridRef} />
         <header className="flex flex-col md:flex-row md:items-center justify-between mb-12 gap-6">
           <div>
             <h1 className="font-sora font-extrabold text-3xl md:text-4xl">System Settings</h1>
@@ -86,7 +90,7 @@ const SettingsPage = () => {
                   className={clsx(
                     "w-full flex items-center space-x-3 px-6 py-4 rounded-2xl font-bold transition-all border",
                     activeTab === tab.id 
-                      ? "bg-accent border-accent text-white shadow-[0_0_20px_rgba(108,99,255,0.3)] scale-[1.02]" 
+                      ? "bg-[#121212] border-2 border-[#430BB8] text-white shadow-[0_0_20px_rgba(67,11,184,0.2)] scale-[1.02]" 
                       : "bg-white/5 border-transparent text-secondary hover:bg-white/10"
                   )}
                 >
@@ -117,7 +121,7 @@ const SettingsPage = () => {
                     exit={{ opacity: 0, x: -20 }}
                     className="space-y-8"
                   >
-                     <GlassCard className="p-8 border-white/5">
+                     <GlassCard className="p-8 border-white/5 magic-bento-card magic-bento-card--border-glow">
                         <h3 className="font-sora font-bold text-xl mb-8">Personal Information</h3>
                         <div className="flex flex-col md:flex-row items-center space-y-6 md:space-y-0 md:space-x-10 mb-12">
                            <div className="relative group">
@@ -181,7 +185,7 @@ const SettingsPage = () => {
                            <button className="bg-white/5 border border-white/10 px-8 py-4 rounded-xl font-bold hover:bg-white/10 transition-all mr-4 text-sm">Cancel</button>
                            <button 
                              onClick={handleSave}
-                             className="bg-accent px-10 py-4 rounded-xl font-bold hover:shadow-[0_0_20px_rgba(108,99,255,0.4)] transition-all text-sm"
+                             className="bg-[#121212] border-2 border-[#430BB8] px-10 py-4 rounded-xl font-bold hover:shadow-[0_0_20px_rgba(67,11,184,0.3)] transition-all text-sm"
                            >
                              Save Profile Changes
                            </button>
@@ -197,7 +201,7 @@ const SettingsPage = () => {
                     animate={{ opacity: 1, x: 0 }} 
                     className="space-y-8"
                   >
-                     <GlassCard className="p-8 border-white/5">
+                     <GlassCard className="p-8 border-white/5 magic-bento-card magic-bento-card--border-glow">
                         <h3 className="font-sora font-bold text-xl mb-8 flex items-center space-x-3">
                            <Lock size={20} className="text-accent" />
                            <span>Active Security Engines</span>
@@ -223,7 +227,7 @@ const SettingsPage = () => {
                         </div>
                      </GlassCard>
 
-                     <GlassCard className="p-8 border-white/5">
+                     <GlassCard className="p-8 border-white/5 magic-bento-card magic-bento-card--border-glow">
                         <h3 className="font-sora font-bold text-xl mb-8">Login Sessions</h3>
                         <div className="space-y-4">
                            <div className="flex items-center justify-between p-6 rounded-2xl bg-white/[0.05] border border-accent/30 relative overflow-hidden">
@@ -268,7 +272,7 @@ const SettingsPage = () => {
                     animate={{ opacity: 1, x: 0 }} 
                     className="space-y-8"
                   >
-                     <GlassCard className="p-8 border-white/5">
+                     <GlassCard className="p-8 border-white/5 magic-bento-card magic-bento-card--border-glow">
                         <h3 className="font-sora font-bold text-xl mb-8">Data Governance</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                            <div className="space-y-6">

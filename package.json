@@ -12,6 +12,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fontsource/bricolage-grotesque": "^5.2.10",
     "@lottiefiles/dotlottie-react": "^0.18.9",
     "axios": "^1.14.0",
     "bcryptjs": "^3.0.3",
@@ -24,6 +25,7 @@
     "dotenv": "^17.4.0",
     "express": "^5.2.1",
     "framer-motion": "^11.0.3",
+    "gsap": "^3.14.2",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.468.0",
     "mongoose": "^9.3.3",

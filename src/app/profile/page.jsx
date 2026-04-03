@@ -10,6 +10,8 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { dummyBehaviourProfile } from '../../data/dummy';
 import { GlassCard, NavBar, TrustBadge, MiniSparkline } from '../../components/Shared';
+import { GlobalSpotlight } from '../../components/MagicSpotlight';
+import { useRef } from 'react';
 import {
   Chart as ChartJS,
   RadialLinearScale,
@@ -32,6 +34,7 @@ ChartJS.register(
 const ProfilePage = () => {
   const { trustScore } = useAuth();
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const gridRef = useRef(null);
 
   const radarData = {
     labels: ['Typing Speed', 'Key Hold Time', 'Flight Time', 'Swipe Velocity', 'Tap Pressure', 'Nav Flow'],
@@ -39,13 +42,13 @@ const ProfilePage = () => {
       {
         label: 'Your Pattern',
         data: dummyBehaviourProfile.user,
-        backgroundColor: 'rgba(108, 99, 255, 0.3)',
-        borderColor: '#6C63FF',
+        backgroundColor: 'rgba(67, 11, 184, 0.3)',
+        borderColor: '#430BB8',
         borderWidth: 2,
-        pointBackgroundColor: '#6C63FF',
+        pointBackgroundColor: '#430BB8',
         pointBorderColor: '#fff',
         pointHoverBackgroundColor: '#fff',
-        pointHoverBorderColor: '#6C63FF'
+        pointHoverBorderColor: '#430BB8'
       },
       {
         label: 'Typical User',
@@ -84,10 +87,11 @@ const ProfilePage = () => {
 
       <NavBar isCollapsed={isSidebarCollapsed} setCollapsed={setSidebarCollapsed} />
 
-      <main className={clsx(
-        "transition-all duration-300 p-8 pt-6 min-h-screen",
+      <main ref={gridRef} className={clsx(
+        "transition-all duration-300 p-8 pt-6 min-h-screen bento-section",
         isSidebarCollapsed ? "md:ml-20" : "md:ml-64"
       )}>
+        <GlobalSpotlight gridRef={gridRef} />
         <header className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-6">
           <div>
             <h1 className="font-sora font-extrabold text-3xl md:text-4xl leading-tight">Your Fingerprint</h1>
@@ -98,14 +102,14 @@ const ProfilePage = () => {
 
         {/* Section 1: Radar Chart */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 mb-10">
-          <GlassCard className="lg:col-span-1 p-8 flex flex-col items-center">
+          <GlassCard className="lg:col-span-1 p-8 flex flex-col items-center magic-bento-card magic-bento-card--border-glow">
             <h3 className="font-sora font-bold text-xl mb-8 w-full">Biometric Radar</h3>
             <div className="w-full aspect-square max-w-[300px]">
               <Radar data={radarData} options={radarOptions} />
             </div>
             <div className="mt-8 flex items-center space-x-6 text-xs font-bold uppercase tracking-widest bg-white/5 py-4 px-6 rounded-2xl border border-white/5 w-full justify-between">
                <div className="flex items-center space-x-2">
-                 <div className="w-3 h-3 rounded-full bg-accent"></div>
+                 <div className="w-3 h-3 rounded-full bg-[#430BB8]"></div>
                  <span className="text-white">Your Pattern</span>
                </div>
                <div className="flex items-center space-x-2">
@@ -117,49 +121,49 @@ const ProfilePage = () => {
 
           <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
              {dummyBehaviourProfile.metrics.map((m, idx) => (
-                <GlassCard key={idx} className="p-6 border-white/5 hover:bg-white/[0.05] transition-all group overflow-hidden">
+                <GlassCard key={idx} className="p-6 border-white/5 hover:bg-white/[0.05] transition-all group overflow-hidden magic-bento-card magic-bento-card--border-glow">
                    <div className="flex justify-between items-start mb-6">
-                      <div className="flex items-center space-x-3">
-                         <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent">
-                            {idx === 0 && <Zap size={18} />}
-                            {idx === 1 && <Activity size={18} />}
-                            {idx === 2 && <MousePointer2 size={18} />}
-                            {idx === 3 && <Smartphone size={18} />}
-                            {idx === 4 && <Fingerprint size={18} />}
-                            {idx === 5 && <Eye size={18} />}
-                         </div>
-                         <div>
-                            <p className="font-bold text-sm leading-tight">{m.name}</p>
-                            <span className="text-[10px] font-bold text-trust-safe uppercase tracking-widest">{m.status}</span>
-                         </div>
-                      </div>
-                      <MiniSparkline data={m.trend} color={idx % 2 === 0 ? "#6C63FF" : "#06B6D4"} />
-                   </div>
-                   <div className="flex items-end justify-between">
-                      <div>
-                         <p className="text-xs text-secondary mb-1">Baseline Value</p>
-                         <p className="text-xl font-sora font-bold">{m.value}</p>
-                      </div>
-                      <div className="flex items-center text-[10px] font-bold text-trust-safe bg-trust-safe/10 px-2 py-1 rounded">
-                         <Check size={12} className="mr-1" />
-                         <span>Normal Range</span>
-                      </div>
-                   </div>
-                   {/* Background decoration */}
-                   <div className="absolute right-0 bottom-0 opacity-[0.03] transform translate-x-1/4 translate-y-1/4 group-hover:scale-110 transition-transform">
-                      {React.createElement(idx === 0 ? Zap : (idx === 1 ? Activity : MousePointer2), { size: 100 })}
-                   </div>
-                </GlassCard>
+                       <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 rounded-xl bg-[#430BB8]/10 border border-[#430BB8]/20 flex items-center justify-center text-[#430BB8]">
+                             {idx === 0 && <Zap size={18} />}
+                             {idx === 1 && <Activity size={18} />}
+                             {idx === 2 && <MousePointer2 size={18} />}
+                             {idx === 3 && <Smartphone size={18} />}
+                             {idx === 4 && <Fingerprint size={18} />}
+                             {idx === 5 && <Eye size={18} />}
+                          </div>
+                          <div>
+                             <p className="font-bold text-sm leading-tight">{m.name}</p>
+                             <span className="text-[10px] font-bold text-trust-safe uppercase tracking-widest">{m.status}</span>
+                          </div>
+                       </div>
+                       <MiniSparkline data={m.trend} color={idx % 2 === 0 ? "#430BB8" : "#06B6D4"} />
+                    </div>
+                    <div className="flex items-end justify-between">
+                       <div>
+                          <p className="text-xs text-secondary mb-1">Baseline Value</p>
+                          <p className="text-xl font-sora font-bold">{m.value}</p>
+                       </div>
+                       <div className="flex items-center text-[10px] font-bold text-trust-safe bg-trust-safe/10 px-2 py-1 rounded">
+                          <Check size={12} className="mr-1" />
+                          <span>Normal Range</span>
+                       </div>
+                    </div>
+                    {/* Background decoration */}
+                    <div className="absolute right-0 bottom-0 opacity-[0.03] transform translate-x-1/4 translate-y-1/4 group-hover:scale-110 transition-transform">
+                       {React.createElement(idx === 0 ? Zap : (idx === 1 ? Activity : MousePointer2), { size: 100 })}
+                    </div>
+                 </GlassCard>
              ))}
           </div>
         </div>
 
         {/* Section 2: Enrolment Timeline */}
-        <GlassCard className="p-8 mb-10 border-white/5">
+        <GlassCard className="p-8 mb-10 border-white/5 magic-bento-card magic-bento-card--border-glow">
            <h3 className="font-sora font-bold text-xl mb-12">Model Enrolment Status</h3>
            <div className="relative px-10">
               <div className="absolute top-1/2 left-10 right-10 h-1 bg-white/10 -translate-y-1/2">
-                 <div className="h-full bg-accent w-[75%]"></div>
+                 <div className="h-full bg-[#430BB8] w-[75%]"></div>
               </div>
               <div className="relative flex justify-between">
                  {[
@@ -171,7 +175,7 @@ const ProfilePage = () => {
                     <div key={i} className="flex flex-col items-center">
                        <div className={clsx(
                          "w-12 h-12 rounded-full flex items-center justify-center z-10 transition-all font-bold",
-                         step.status === 'completed' ? "bg-accent text-white" : "bg-bg-card border-4 border-accent text-accent shadow-[0_0_20px_rgba(108,99,255,0.4)]"
+                         step.status === 'completed' ? "bg-[#121212] border-2 border-[#430BB8] text-white" : "bg-bg-card border-4 border-[#430BB8] text-[#430BB8] shadow-[0_0_20px_rgba(67,11,184,0.4)]"
                        )}>
                           {step.status === 'completed' ? <Check size={20} /> : <Activity size={20} />}
                        </div>
@@ -189,7 +193,7 @@ const ProfilePage = () => {
                  </div>
                  <p className="text-sm font-medium text-secondary italic">Your behaviour model is continuously learning. Accuracy increased by 0.4% this session.</p>
               </div>
-              <button className="px-6 py-2 rounded-xl border border-trust-danger/30 text-trust-danger text-xs font-bold uppercase tracking-widest hover:bg-trust-danger/10 transition-all">
+              <button className="px-6 py-2 rounded-xl border border-trust-danger/30 text-trust-danger text-xs font-bold uppercase tracking-widest hover:bg-trust-danger/10 transition-all text-[#121212] bg-[#121212]/0">
                 Reset Profile Baseline
               </button>
            </div>
@@ -197,7 +201,7 @@ const ProfilePage = () => {
 
         {/* Section 3: Data Controls */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-           <GlassCard className="p-8 border-white/5">
+           <GlassCard className="p-8 border-white/5 magic-bento-card magic-bento-card--border-glow">
               <h3 className="font-sora font-bold text-xl mb-8">Data Collection Controls</h3>
               <div className="space-y-6">
                  {[
@@ -213,11 +217,11 @@ const ProfilePage = () => {
                        </div>
                        <div className={clsx(
                          "w-12 h-6 rounded-full relative transition-all cursor-pointer",
-                         opt.active ? "bg-accent" : "bg-white/10"
+                         opt.active ? "bg-[#121212] border-2 border-[#430BB8]" : "bg-white/10"
                        )}>
                           <div className={clsx(
-                            "absolute top-1 w-4 h-4 rounded-full bg-white transition-all shadow-md",
-                            opt.active ? "right-1" : "left-1"
+                            "absolute top-[2px] w-4 h-4 rounded-full bg-white transition-all shadow-md",
+                            opt.active ? "right-[2px]" : "left-[2px]"
                           )}></div>
                        </div>
                     </div>
@@ -228,19 +232,19 @@ const ProfilePage = () => {
               </p>
            </GlassCard>
 
-           <GlassCard className="p-8 border-white/5 flex flex-col justify-between">
+           <GlassCard className="p-8 border-white/5 flex flex-col justify-between magic-bento-card magic-bento-card--border-glow">
               <div>
                  <h3 className="font-sora font-bold text-xl mb-4">Export & Portability</h3>
                  <p className="text-sm text-secondary leading-relaxed mb-8">
                     Download a copy of your behavioural profile in JSON format. This data can be migrated to other Guard-compatible platforms.
                  </p>
-                 <button className="w-full flex items-center justify-center space-x-3 bg-white/5 border border-white/10 py-4 rounded-xl font-bold hover:bg-white/10 transition-all mb-4">
+                 <button className="w-full flex items-center justify-center space-x-3 bg-[#121212] border-2 border-[#430BB8] py-4 rounded-xl font-bold hover:shadow-[0_0_15px_rgba(67,11,184,0.2)] transition-all mb-4">
                     <Download size={18} />
                     <span>Download Fingerprint (142KB)</span>
                  </button>
               </div>
               <div className="pt-8 border-t border-white/5">
-                 <button className="w-full flex items-center justify-center space-x-3 text-trust-danger bg-trust-danger/5 border border-trust-danger/10 py-4 rounded-xl font-bold hover:bg-trust-danger/10 transition-all">
+                 <button className="w-full flex items-center justify-center space-x-3 text-trust-danger bg-[#121212] border-2 border-trust-danger/40 py-4 rounded-xl font-bold hover:bg-trust-danger/5 transition-all">
                     <Trash2 size={18} />
                     <span>Delete Behavioural Profile</span>
                  </button>
@@ -254,5 +258,3 @@ const ProfilePage = () => {
 };
 
 export default ProfilePage;
-
-

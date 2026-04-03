@@ -8,6 +8,8 @@ import { useAuth } from '../../context/AuthContext';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import loginLottie from '../../assets/login.json';
 import FloatingInput from '../../components/FloatingInput';
+import logo from '../../assets/logo.png';
+import Image from 'next/image';
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
@@ -128,8 +130,14 @@ const LoginPage = () => {
                         onClick={() => router.push('/')}
                         className="flex items-center space-x-3 mb-12 cursor-pointer group w-fit"
                     >
-                        <div className="w-10 h-10 rounded-2xl bg-indigo-500 flex items-center justify-center shadow-[0_0_20px_rgba(99,102,241,0.4)] group-hover:scale-110 transition-transform duration-300">
-                            <Shield className="text-white" size={22} />
+                        <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shadow-[0_0_20px_rgba(99,102,241,0.2)] group-hover:scale-110 transition-transform duration-300 overflow-hidden p-1">
+                            <Image 
+                               src={logo} 
+                               alt="Logo" 
+                               width={32} 
+                               height={32}
+                               className="object-contain"
+                            />
                         </div>
                         <span className="font-sora font-extrabold text-xl tracking-tighter">BehaveGuard</span>
                     </div>

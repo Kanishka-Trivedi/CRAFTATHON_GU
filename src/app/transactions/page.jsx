@@ -7,13 +7,16 @@ import {
 } from 'lucide-react';
 import { dummyTransactions } from '../../data/dummy';
 import { GlassCard, NavBar, TrustBadge } from '../../components/Shared';
+import { GlobalSpotlight } from '../../components/MagicSpotlight';
 import { useAuth } from '../../context/AuthContext';
+import { useRef } from 'react';
 
 import { clsx } from 'clsx';
 
 const TransactionsPage = () => {
   const { trustScore } = useAuth();
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const gridRef = useRef(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState('All');
   const [search, setSearch] = useState('');
@@ -80,10 +83,11 @@ const TransactionsPage = () => {
 
       <NavBar isCollapsed={isSidebarCollapsed} setCollapsed={setSidebarCollapsed} />
 
-      <main className={clsx(
-        "transition-all duration-300 p-8 pt-6 min-h-screen",
+      <main ref={gridRef} className={clsx(
+        "transition-all duration-300 p-8 pt-6 min-h-screen bento-section",
         isSidebarCollapsed ? "md:ml-20" : "md:ml-64"
       )}>
+        <GlobalSpotlight gridRef={gridRef} />
         <header className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-6">
           <div>
             <h1 className="font-sora font-extrabold text-3xl md:text-4xl">Transaction History</h1>
@@ -123,7 +127,7 @@ const TransactionsPage = () => {
                   onClick={() => handleFilterChange(cat)}
                   className={clsx(
                     "px-6 py-3 rounded-xl text-sm font-bold border transition-all whitespace-nowrap",
-                    filter === cat ? "bg-accent border-accent text-white" : "border-white/10 bg-white/5 text-secondary hover:bg-white/10"
+                    filter === cat ? "bg-[#121212] border-2 border-[#430BB8] text-white shadow-[0_0_15px_rgba(67,11,184,0.2)]" : "border-white/10 bg-white/5 text-secondary hover:bg-white/10"
                   )}
                 >
                   {cat}
@@ -133,7 +137,7 @@ const TransactionsPage = () => {
         </div>
 
         {/* Transaction Table */}
-        <GlassCard className="p-0 overflow-hidden border-white/5">
+        <GlassCard className="p-0 overflow-hidden border-white/5 magic-bento-card magic-bento-card--border-glow">
           <div className="overflow-x-auto">
             <table className="w-full text-left min-w-[900px]">
               <thead>
@@ -231,7 +235,7 @@ const TransactionsPage = () => {
                     onClick={() => setCurrentPage(page)}
                     className={clsx(
                       "w-10 h-10 flex items-center justify-center rounded-xl font-bold transition-all",
-                      currentPage === page ? "bg-accent text-white" : "bg-white/5 border border-white/10 text-secondary hover:bg-white/10"
+                      currentPage === page ? "bg-[#121212] border-2 border-[#430BB8] text-white shadow-[0_0_10px_rgba(67,11,184,0.3)]" : "bg-white/5 border border-white/10 text-secondary hover:bg-white/10"
                     )}
                   >
                     {page}

@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Check, Shield, AlertTriangle, X, ChevronRight, Menu,
+  Check, Shield, AlertTriangle, X, ChevronRight, ChevronLeft, Menu,
   LayoutDashboard, CreditCard, Send, User, Settings as SettingsIcon,
   BarChart3, Activity, ShieldAlert, Users, LogOut, Search, ShieldCheck, Lock
 } from 'lucide-react';
@@ -10,6 +10,8 @@ import { useAuth } from '../context/AuthContext';
 import { clsx } from 'clsx';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import Image from 'next/image';
+import logo from '../assets/logo.png';
 
 export const GlassCard = ({ children, className }) => (
   <div className={clsx("glass p-6", className)}>
@@ -124,34 +126,32 @@ export const NavBar = ({ isCollapsed, setCollapsed }) => {
     <>
       {/* Desktop Sidebar */}
       <aside className={clsx(
-        "fixed left-0 top-0 h-screen glass border-r border-white/5 z-50 transition-all duration-300 md:flex flex-col hidden",
+        "fixed left-0 top-0 h-screen glass border-r border-white/5 z-50 transition-all duration-300 md:flex flex-col hidden rounded-r-[32px] overflow-visible shadow-[10_0_40px_rgba(0,0,0,0.5)]",
         isCollapsed ? "w-20" : "w-64"
       )}>
         <div className="p-6 mb-8 flex items-center justify-between">
           {!isCollapsed && (
             <div className="flex items-center space-x-3 group cursor-pointer" onClick={() => router.push('/')}>
-              <div className="relative w-9 h-9">
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                  className="absolute inset-0 rounded-lg opacity-60 blur-[2px]"
-                  style={{ background: 'conic-gradient(from 0deg, #FF4D6D, #8B5CF6, #00D4E8, #FF4D6D)' }}
+              <div className="relative w-9 h-9 flex items-center justify-center transition-transform hover:scale-110 duration-300">
+                <Image 
+                   src={logo} 
+                   alt="Logo" 
+                   width={32} 
+                   height={32}
+                   className="object-contain"
                 />
-                <div className="absolute inset-[2.5px] rounded-[7px] bg-navy-950 flex items-center justify-center z-10">
-                  <div className="relative">
-                    <Lock size={14} className="text-white relative z-10" />
-                    <div className="absolute inset-0 blur-[6px]" style={{ background: 'linear-gradient(135deg, #FF4D6D, #8B5CF6)', opacity: 0.8 }} />
-                  </div>
-                </div>
               </div>
               <div className="flex flex-col">
                 <span className="font-sora font-extrabold text-base tracking-tighter leading-none text-white">BehaveGuard</span>
-                <span className="font-mono text-[7px] uppercase tracking-[0.2em] text-emerald font-bold mt-1">Active</span>
+                <span className="font-mono text-[7px] uppercase tracking-[0.2em] text-[#a78bfa] font-bold mt-1 tracking-[0.1em]">Active Protection</span>
               </div>
             </div>
           )}
-          <button onClick={() => setCollapsed(!isCollapsed)} className="p-2 hover:bg-white/5 rounded-lg text-secondary">
-            <Menu size={20} />
+          <button 
+            onClick={() => setCollapsed(!isCollapsed)} 
+            className="absolute -right-3 top-10 w-7 h-7 rounded-full bg-navy-800 border border-[#8B5CF6]/30 flex items-center justify-center text-[#8B5CF6] hover:text-white hover:bg-[#8B5CF6] hover:scale-110 hover:shadow-[0_0_15px_rgba(139,92,246,0.6)] transition-all z-50 shadow-lg cursor-pointer"
+          >
+            {isCollapsed ? <ChevronRight size={14} className="ml-0.5" /> : <ChevronLeft size={14} className="-ml-0.5" />}
           </button>
         </div>
 
@@ -161,8 +161,10 @@ export const NavBar = ({ isCollapsed, setCollapsed }) => {
               key={item.path}
               href={item.path}
               className={clsx(
-                "flex items-center space-x-3 px-4 py-3 rounded-xl transition-all group",
-                pathname === item.path ? "bg-accent/20 text-accent" : "text-secondary hover:bg-white/5 hover:text-white"
+                "flex items-center space-x-3 px-4 py-3 rounded-lg transition-all group relative overflow-hidden",
+                pathname === item.path 
+                  ? "text-[#a78bfa] bg-[#8B5CF6]/15 before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-8 before:w-[4px] before:bg-[#a78bfa] before:rounded-r-full font-bold shadow-[inset_0_0_15px_rgba(139,92,246,0.15)]" 
+                  : "text-secondary hover:bg-white/5 hover:text-white"
               )}
             >
               <span className="w-6 h-6 flex items-center justify-center opacity-70 group-hover:opacity-100 flex-shrink-0">
@@ -241,20 +243,18 @@ export const AdminNav = ({ isCollapsed, setCollapsed }) => {
         <div className="p-6 mb-8 flex items-center justify-between">
           {!isCollapsed && (
             <div className="flex items-center space-x-3 group animate-pulse-slow">
-              <div className="relative w-9 h-9">
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                  className="absolute inset-0 rounded-lg opacity-60 blur-[2px]"
-                  style={{ background: 'conic-gradient(from 0deg, #FF4D6D, #8B5CF6, #00D4E8, #FF4D6D)' }}
+              <div className="relative w-9 h-9 flex items-center justify-center">
+                <Image 
+                   src={logo} 
+                   alt="Logo" 
+                   width={32} 
+                   height={32}
+                   className="object-contain"
                 />
-                <div className="absolute inset-[2.5px] rounded-[7px] bg-navy-950 flex items-center justify-center z-10">
-                  <Lock size={14} className="text-white" />
-                </div>
               </div>
               <div className="flex flex-col">
                 <span className="font-sora font-extrabold text-base tracking-tighter leading-none text-white uppercase">Admin Guard</span>
-                <span className="font-mono text-[7px] uppercase tracking-[0.2em] text-muted font-bold mt-1">Superuser Access</span>
+                <span className="font-mono text-[7px] uppercase tracking-[0.2em] text-[#a78bfa] font-bold mt-1 tracking-[0.1em]">Superuser Access</span>
               </div>
             </div>
           )}

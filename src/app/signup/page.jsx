@@ -9,6 +9,8 @@ import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import axios from 'axios';
 import loginLottie from '../../assets/login.json';
 import FloatingInput from '../../components/FloatingInput';
+import logo from '../../assets/logo.png';
+import Image from 'next/image';
 
 const STEPS = [
     { label: 'Identity Setup' },
@@ -130,8 +132,14 @@ const SignupPage = () => {
                 <div className="relative z-10 flex flex-col justify-between h-full py-10 px-10">
                     {/* Logo */}
                     <div onClick={() => router.push('/')} className="flex items-center gap-3 cursor-pointer group w-fit">
-                        <div className="w-10 h-10 rounded-2xl bg-indigo-500 flex items-center justify-center shadow-[0_0_20px_rgba(99,102,241,0.4)] group-hover:scale-110 transition-transform duration-300">
-                            <Shield className="text-white" size={22} />
+                        <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shadow-[0_0_20px_rgba(99,102,241,0.2)] group-hover:scale-110 transition-transform duration-300 overflow-hidden p-1">
+                            <Image 
+                               src={logo} 
+                               alt="Logo" 
+                               width={32} 
+                               height={32}
+                               className="object-contain"
+                            />
                         </div>
                         <span className="font-sora font-extrabold text-xl tracking-tighter">BehaveGuard</span>
                     </div>
@@ -204,8 +212,14 @@ const SignupPage = () => {
                 <div className="w-full max-w-[420px]">
                     {/* Mobile logo */}
                     <div onClick={() => router.push('/')} className="flex lg:hidden items-center gap-3 cursor-pointer mb-10 w-fit">
-                        <div className="w-9 h-9 rounded-xl bg-indigo-500 flex items-center justify-center">
-                            <Shield className="text-white" size={20} />
+                        <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center overflow-hidden p-1">
+                            <Image 
+                               src={logo} 
+                               alt="Logo" 
+                               width={28} 
+                               height={28}
+                               className="object-contain"
+                            />
                         </div>
                         <span className="font-sora font-extrabold text-lg tracking-tighter text-white">BehaveGuard</span>
                     </div>

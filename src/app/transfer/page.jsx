@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Send, ShieldAlert, CheckCircle2, AlertCircle, Activity, ArrowRight, User } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { GlassCard, NavBar, TrustBadge, RiskBar } from '../../components/Shared';
+import { GlobalSpotlight } from '../../components/MagicSpotlight';
+import { useRef } from 'react';
 
 import { clsx } from 'clsx';
 
@@ -12,6 +14,7 @@ const TransferPage = () => {
   const { trustScore, riskLevel } = useAuth();
   const router = useRouter();
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const gridRef = useRef(null);
   const [formData, setFormData] = useState({ account: '', amount: '', note: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -62,10 +65,11 @@ const TransferPage = () => {
 
       <NavBar isCollapsed={isSidebarCollapsed} setCollapsed={setSidebarCollapsed} />
 
-      <main className={clsx(
-        "transition-all duration-300 p-8 pt-6 min-h-screen",
+      <main ref={gridRef} className={clsx(
+        "transition-all duration-300 p-8 pt-6 min-h-screen bento-section",
         isSidebarCollapsed ? "md:ml-20" : "md:ml-64"
       )}>
+        <GlobalSpotlight gridRef={gridRef} />
         <header className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-6">
           <div>
             <h1 className="font-sora font-extrabold text-3xl md:text-4xl">Secure Transfer</h1>
@@ -76,7 +80,7 @@ const TransferPage = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
           {/* Transfer Form */}
-          <GlassCard className="p-10 border-white/5 relative overflow-hidden">
+          <GlassCard className="p-10 border-white/5 relative overflow-hidden magic-bento-card magic-bento-card--border-glow">
             <AnimatePresence mode="wait">
               {!isSuccess ? (
                 <motion.div
@@ -161,7 +165,7 @@ const TransferPage = () => {
                         "w-full py-5 rounded-2xl font-bold text-lg transition-all flex items-center justify-center space-x-3",
                         trustScore < 0.4
                           ? "bg-white/5 text-secondary cursor-not-allowed border border-white/5"
-                          : "bg-gradient-to-r from-accent to-accent-violet text-white hover:shadow-[0_0_30px_rgba(108,99,255,0.4)] active:scale-[0.98]"
+                          : "bg-[#121212] border-2 border-[#430BB8] text-white hover:shadow-[0_0_30px_rgba(67,11,184,0.3)] active:scale-[0.98]"
                       )}
                     >
                       {isSubmitting ? (
@@ -207,7 +211,7 @@ const TransferPage = () => {
 
           {/* Right Monitor Panel */}
           <div className="flex flex-col space-y-6">
-            <GlassCard className="p-8 border-white/5">
+            <GlassCard className="p-8 border-white/5 magic-bento-card magic-bento-card--border-glow">
               <div className="flex items-center justify-between mb-8">
                 <div>
                   <h3 className="font-sora font-bold text-xl">Behaviour Monitor</h3>

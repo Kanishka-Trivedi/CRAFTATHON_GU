@@ -10,6 +10,8 @@ import {
   X, Info, Target, MousePointer2, CheckCircle2,
   Github, Twitter, Linkedin
 } from 'lucide-react';
+import logo from '../assets/logo.png';
+import Image from 'next/image';
 
 import { AnimatePresence } from 'framer-motion';
 import DarkVeil from '../components/DarkVeil';
@@ -23,31 +25,20 @@ const Logo = ({ size = "md" }) => {
   const isLarge = size === "lg";
   return (
     <div className="flex items-center space-x-4 group cursor-pointer">
-      <div className={`relative ${isLarge ? 'w-14 h-14' : 'w-12 h-12'}`}>
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-          className="absolute inset-0 rounded-xl opacity-60 blur-[3px]"
-          style={{ background: 'conic-gradient(from 0deg, #FF4D6D, #8B5CF6, #00D4E8, #FF4D6D)' }}
-        />
-        <div className="absolute inset-[3px] rounded-[10px] bg-navy-950 flex items-center justify-center z-10">
-          <div className="relative">
-            <Lock size={isLarge ? 22 : 18} className="text-white relative z-10" />
-            <motion.div
-              animate={{ scale: [1, 1.3, 1] }}
-              transition={{ duration: 2.5, repeat: Infinity }}
-              className="absolute inset-0 blur-[12px]"
-              style={{ background: 'linear-gradient(135deg, #FF4D6D, #8B5CF6)', opacity: 0.9 }}
-            />
-          </div>
-        </div>
+      <div className={`relative ${isLarge ? 'w-12 h-12' : 'w-10 h-10'} flex items-center justify-center transition-transform group-hover:scale-110 duration-500`}>
+         <Image 
+            src={logo} 
+            alt="BehaveGuard Logo" 
+            width={isLarge ? 48 : 40} 
+            height={isLarge ? 48 : 40}
+            className="object-contain"
+         />
       </div>
       <div className="flex flex-col">
         <div className="flex items-center gap-3">
-          <span className={`font-sora font-bold ${isLarge ? 'text-2xl' : 'text-xl'} tracking-tighter leading-none text-white`}>BehaveGuard</span>
+          <span className={`font-sora font-bold ${isLarge ? 'text-2xl' : 'text-xl'} tracking-tighter leading-none text-white transition-all group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-white/60`}>BehaveGuard</span>
         </div>
         <span className={`font-mono ${isLarge ? 'text-[10px]' : 'text-[9px]'} uppercase tracking-[0.25em] text-white/70 leading-none mt-2`}>Continuous Intelligence</span>
-
       </div>
     </div>
   );
@@ -329,14 +320,14 @@ const LandingPage = () => {
             <div className="flex flex-col items-center gap-1 mt-36 mb-5 max-w-4xl">
               <BlurText
                 text="Security that"
-                className="font-sora font-bold text-6xl md:text-[80px] leading-[1.05] tracking-tight text-white text-center"
+                className="font-heading font-black text-6xl md:text-[100px] leading-[0.95] tracking-tight text-white text-center"
                 delay={110}
                 animateBy="words"
                 direction="top"
               />
               <BlurText
                 text="reads you."
-                className="font-sora font-bold text-6xl md:text-[80px] leading-[1.05] tracking-tight text-white text-center"
+                className="font-heading font-black text-6xl md:text-[100px] leading-[0.95] tracking-tight text-white text-center"
                 delay={110}
                 animateBy="words"
                 direction="bottom"

@@ -17,6 +17,7 @@ export default function RootLayout({ children }) {
           href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Space+Mono:wght@400;700&display=swap"
           rel="stylesheet"
         />
+        <link rel="icon" type="image/png" href="/assets/logo.png" />
       </head>
       <body>
         <AuthProvider>

@@ -397,6 +397,7 @@ import {
 
 import { useRouter } from 'next/navigation';
 import useKeystrokeStream from '../../hooks/useKeystrokeStream';
+import { GlobalSpotlight } from '../../components/MagicSpotlight';
 
 ChartJS.register(
   CategoryScale,
@@ -422,6 +423,7 @@ const DashboardPage = () => {
   const freezeStartedRef = useRef(false);
   const pinLockActive = useRef(false);
   const entryTimeRef = useRef(Date.now());
+  const gridRef = useRef(null);
 
   // Real-time transaction filtering
   const recentTransactions = dummyTransactions.filter(tx => {
@@ -586,10 +588,11 @@ const DashboardPage = () => {
 
       <NavBar isCollapsed={isSidebarCollapsed} setCollapsed={setSidebarCollapsed} />
 
-      <main className={clsx(
-        "transition-all duration-300 p-8 pt-6 min-h-screen",
+      <main ref={gridRef} className={clsx(
+        "transition-all duration-300 p-8 pt-6 min-h-screen bento-section",
         isSidebarCollapsed ? "md:ml-20" : "md:ml-64"
       )}>
+        <GlobalSpotlight gridRef={gridRef} />
 
         {/* Top warning banner for alerts (shows AI anomaly details) */}
         <AnimatePresence>
@@ -742,9 +745,12 @@ const DashboardPage = () => {
             <motion.h1
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="font-sora font-extrabold text-3xl md:text-4xl mb-2"
+              className="text-3xl md:text-5xl mb-2 tracking-tight leading-[0.9]"
             >
-              Good morning, {user?.name ? (user.name.includes('.') || user.name.includes('_') ? user.name.split(/[._]/)[0] : user.name.split(' ')[0]) : 'User'}
+              <span className="font-heading font-black">Good morning,</span>
+              <span className="font-sora font-extrabold ml-3 whitespace-nowrap">
+                {user?.name ? (user.name.includes('.') || user.name.includes('_') ? user.name.split(/[._]/)[0] : user.name.split(' ')[0]) : 'User'}
+              </span>
             </motion.h1>
             <div className="flex items-center space-x-2 text-secondary font-medium">
               <ShieldCheck size={16} className="text-trust-safe" />
@@ -760,7 +766,7 @@ const DashboardPage = () => {
                 placeholder="Search transactions..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-transparent border-none outline-none text-sm w-48 text-white placeholder:text-secondary"
+                className="bg-transparent border-none outline-none text-sm w-80 text-white placeholder:text-secondary"
               />
               {searchQuery && (
                 <button onClick={() => setSearchQuery('')} className="ml-2 hover:text-white transition-colors">
@@ -768,13 +774,12 @@ const DashboardPage = () => {
                 </button>
               )}
             </div>
-            <TrustBadge score={trustScore} />
           </div>
         </header>
 
         {/* Stats Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-          <GlassCard className="flex flex-col justify-between hover:bg-white/[0.05] transition-all cursor-pointer">
+          <GlassCard className="flex flex-col justify-between hover:bg-white/[0.05] transition-all cursor-pointer magic-bento-card magic-bento-card--border-glow">
             <span className="text-xs font-bold text-secondary uppercase tracking-widest mb-4">Total Balance</span>
             <div className="flex items-end justify-between">
               <h2 className="font-sora font-bold text-2xl">₹1,24,500</h2>
@@ -782,7 +787,7 @@ const DashboardPage = () => {
             </div>
           </GlassCard>
 
-          <GlassCard className="flex flex-col justify-between hover:bg-white/[0.05] transition-all cursor-pointer">
+          <GlassCard className="flex flex-col justify-between hover:bg-white/[0.05] transition-all cursor-pointer magic-bento-card magic-bento-card--border-glow">
             <span className="text-xs font-bold text-secondary uppercase tracking-widest mb-4">Today's Spend</span>
             <div className="flex items-end justify-between">
               <h2 className="font-sora font-bold text-2xl">₹3,240</h2>
@@ -791,7 +796,7 @@ const DashboardPage = () => {
           </GlassCard>
 
           {/* Safety Score card — text centered + green when safe */}
-          <GlassCard className="flex flex-col justify-between hover:bg-white/[0.05] transition-all cursor-pointer">
+          <GlassCard className="flex flex-col justify-between hover:bg-white/[0.05] transition-all cursor-pointer magic-bento-card magic-bento-card--border-glow">
             <span className="text-xs font-bold text-secondary uppercase tracking-widest mb-4">Safety Score</span>
             <div className={clsx(
               "flex items-end",
@@ -833,7 +838,7 @@ const DashboardPage = () => {
             )}
           </GlassCard>
 
-          <GlassCard className="flex flex-col justify-between hover:bg-white/[0.05] transition-all cursor-pointer">
+          <GlassCard className="flex flex-col justify-between hover:bg-white/[0.05] transition-all cursor-pointer magic-bento-card magic-bento-card--border-glow">
             <span className="text-xs font-bold text-secondary uppercase tracking-widest mb-4">Sessions Protected</span>
             <div className="flex items-end justify-between">
               <h2 className="font-sora font-bold text-2xl">47</h2>
@@ -844,7 +849,7 @@ const DashboardPage = () => {
 
         {/* Chart & Cards Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 mb-10">
-          <GlassCard className="lg:col-span-2 min-h-[400px] flex flex-col">
+          <GlassCard className="lg:col-span-2 min-h-[400px] flex flex-col magic-bento-card magic-bento-card--border-glow">
             <div className="flex items-center justify-between mb-8">
               <div>
                 <h3 className="font-sora font-bold text-xl mb-1">Live Trust Monitoring</h3>
@@ -861,12 +866,11 @@ const DashboardPage = () => {
           </GlassCard>
 
           <div className="flex flex-col space-y-6">
-            <div className="relative h-[220px] mb-12">
-              <BankCard cardData={user} className="absolute top-0 left-0 z-20" />
-              <BankCard cardData={{ ...user, accountNo: '•••• •••• •••• 9210' }} variant="mastercard" className="absolute top-10 left-6 z-10 opacity-60 scale-95" />
+            <div className="relative h-[240px] mb-8 mt-4 flex items-center justify-center pointer-events-auto">
+              <BankCard cardData={user} className="z-20" />
             </div>
 
-            <GlassCard className="flex-1 border-accent/20 bg-accent/5">
+            <GlassCard className="flex-1 border-accent/20 bg-accent/5 magic-bento-card magic-bento-card--border-glow">
               <h4 className="font-sora font-bold mb-3">Security Insights</h4>
               <p className="text-sm text-secondary mb-4 leading-relaxed">
                 Your typing rhythm is consistent with your 30-day baseline. Verification will be waived for transfers under ₹1,0,000.
@@ -878,7 +882,7 @@ const DashboardPage = () => {
 
         {/* Transactions List */}
         <div className="grid grid-cols-1 gap-10">
-          <GlassCard>
+          <GlassCard className="magic-bento-card magic-bento-card--border-glow">
             <div className="flex items-center justify-between mb-8">
               <div>
                 <h3 className="font-sora font-bold text-xl">Recent Transactions</h3>
@@ -933,7 +937,7 @@ const DashboardPage = () => {
                         <span className="text-xs font-bold px-2 py-1 rounded bg-white/5 border border-white/5 text-secondary">{tx.category}</span>
                       </td>
                       <td className="py-4 text-right">
-                        <p className={clsx("font-bold", tx.amount > 0 ? "text-trust-safe" : "text-white")}>
+                        <p className={clsx("font-bold text-lg", tx.amount > 0 ? "text-trust-safe" : "text-red-500")}>
                           {tx.amount > 0 ? `+ ₹${tx.amount.toLocaleString('en-IN')}` : `- ₹${Math.abs(tx.amount).toLocaleString('en-IN')}`}
                         </p>
                         <p className="text-[10px] text-secondary">Completed</p>
