@@ -1,4 +1,9 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.join(__dirname, '.env') });
+
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
@@ -21,9 +26,8 @@ const connectDB = async () => {
   };
 
   try {
-    // We try to connect to your Atlas string
-    // Tip: If you still get DNS errors, try connecting to your phone hotspot!
-    await mongoose.connect(process.env.MONGO_URI, options);
+    // Force explicitly connecting to ContinuousAuthDB so your tables spawn exactly there!
+    await mongoose.connect(process.env.MONGO_URI + 'ContinuousAuthDB', options);
     console.log(`[DATABASE] Success: Connected to BehaveGuard Atlas Cluster`);
   } catch (error) {
     console.warn(`[DATABASE] Cloud Error: ${error.message}`);
@@ -46,9 +50,9 @@ app.get('/', (req, res) => {
 // Final Safety Shield
 app.use((err, req, res, next) => {
   console.error('[SERVER CRASH PREVENTED]', err.stack);
-  res.status(500).json({ 
-    success: false, 
-    message: err.message || 'Internal Security Error' 
+  res.status(500).json({
+    success: false,
+    message: err.message || 'Internal Security Error'
   });
 });
 
