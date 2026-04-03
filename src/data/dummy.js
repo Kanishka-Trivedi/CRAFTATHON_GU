@@ -34,8 +34,8 @@ export const dummyUsers = Array.from({ length: 20 }, (_, i) => ({
   id: i + 1,
   name: ["Amit Sharma", "Sanya Iyer", "Vikram Singh", "Priya Patel", "Arjun Reddy", "Meera Nair", "Rohan Gupta", "Ananya Das", "Siddharth Jain", "Tanvi Joshi", "Rahul Mehta", "Kavita Rao", "Sameer Sheikh", "Neha Kapoor", "Varun Malhotra", "Ishani Verma", "Aditya Bose", "Kiara Advani", "Yash Chopra", "Deepika Padukone"][i],
   email: `user${i + 1}@example.com`,
-  accountNo: `•••• •••• ${1000 + Math.floor(Math.random() * 9000)}`,
-  trustScore: (0.7 + Math.random() * 0.3).toFixed(2),
+  accountNo: `•••• •••• ${1000 + (i * 432) % 9000}`,
+  trustScore: (0.7 + ((i * 13) % 30) / 100).toFixed(2),
   status: ["Enrolled", "Enrolled", "Anomaly", "Blocked", "Enrolled", "Enrolled", "Enrolled", "Enrolled", "Enrolled", "Enrolled", "Enrolled", "Enrolled", "Enrolled", "Enrolled", "Enrolled", "Enrolled", "Enrolled", "Enrolled", "Enrolled", "Enrolled"][i],
   lastActive: "2h ago",
   avatar: ["AS", "SI", "VS", "PP", "AR", "MN", "RG", "AD", "SJ", "TJ", "RM", "KR", "SS", "NK", "VM", "IV", "AB", "KA", "YC", "DP"][i]
@@ -45,10 +45,10 @@ export const dummyAlerts = Array.from({ length: 50 }, (_, i) => ({
   id: i + 1,
   time: "2024-04-03 14:23:47",
   user: "Rahul Mehta",
-  riskScore: (Math.random() * 0.5 + 0.4).toFixed(2),
-  trigger: ["Typing pattern anomaly", "Flight time deviation", "Unusual navigation rhythm", "Device orientation change", "Swipe velocity spike"][Math.floor(Math.random() * 5)],
-  action: ["Re-auth requested", "Session flagged", "Transfer blocked"][Math.floor(Math.random() * 3)],
-  status: ["Resolved", "Pending", "Escalated"][Math.floor(Math.random() * 3)],
+  riskScore: (0.4 + ((i * 7) % 50) / 100).toFixed(2),
+  trigger: ["Typing pattern anomaly", "Flight time deviation", "Unusual navigation rhythm", "Device orientation change", "Swipe velocity spike"][i % 5],
+  action: ["Re-auth requested", "Session flagged", "Transfer blocked"][i % 3],
+  status: ["Resolved", "Pending", "Escalated"][i % 3],
   severity: i % 5 === 0 ? "Critical" : (i % 3 === 0 ? "High" : "Medium")
 }));
 
@@ -61,11 +61,12 @@ export const dummySessions = [
     anomalyScore: 0.78,
     duration: "4m 32s",
     trustData: Array.from({ length: 120 }, (_, i) => {
-      if (i > 85 && i < 100) return 0.3 + Math.random() * 0.1;
-      return 0.8 + Math.random() * 0.15;
+      if (i > 85 && i < 100) return 0.3 + ((i * 3) % 10) / 100;
+      return 0.8 + ((i * 7) % 15) / 100;
     })
   }
 ];
+
 
 export const dummyBehaviourProfile = {
   baseline: [85, 90, 75, 80, 70, 85],

@@ -174,7 +174,13 @@ const SignupPage = () => {
       setStep(step + 1);
     } else if (step === 5) {
       setIsSubmitting(true);
-      const result = await signup({ name: formData.name, email: formData.email, password: formData.password, otp: formData.otp.join('') });
+      const result = await signup({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        pin: formData.pin.join(''),
+        otp: formData.otp.join('')
+      });
       if (result?.success) router.push('/dashboard');
       else setError(result?.message || 'Biometric enrolment failed.');
       setIsSubmitting(false);
@@ -358,7 +364,7 @@ const SignupPage = () => {
               {canShowNext() && (
                 <motion.button key="next" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }}
                   whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleNext} disabled={isSubmitting}
-              className="flex-1 order-1 md:order-2 py-5 rounded-2xl font-sora font-bold text-lg text-white shadow-2xl transition-all flex items-center justify-center space-x-3 disabled:opacity-30"
+                  className="flex-1 order-1 md:order-2 py-5 rounded-2xl font-sora font-bold text-lg text-white shadow-2xl transition-all flex items-center justify-center space-x-3 disabled:opacity-30"
                   style={{ background: 'linear-gradient(135deg, #00D4E8, #4F6EF7)' }}
                 >
                   <div className="flex items-center gap-3">

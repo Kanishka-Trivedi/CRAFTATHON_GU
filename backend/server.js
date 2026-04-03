@@ -9,8 +9,12 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import authRoutes from './routes/auth.js';
+import http from 'http';
+import { WebSocketServer } from 'ws';
+import Keystroke from './models/Keystroke.js';
 
 const app = express();
+const server = http.createServer(app);
 
 app.use(express.json());
 app.use(cookieParser());
@@ -48,6 +52,32 @@ app.get('/', (req, res) => {
   res.send('BehaveGuard API is running...');
 });
 
+// Optional HTTP fallback for telemetry
+app.post('/api/telemetry', async (req, res) => {
+  try {
+    const { userId, sessionId, deviceId, events = [] } = req.body || {};
+    if (!userId || !Array.isArray(events)) {
+      return res.status(400).json({ success: false, message: 'Invalid payload' });
+    }
+    const serverTs = new Date();
+    const docs = events.map(e => ({
+      userId,
+      sessionId,
+      deviceId,
+      code: e.code,
+      type: e.type,
+      t: e.t,
+      dwell: e.dwell,
+      serverTs
+    }));
+    if (docs.length) await Keystroke.insertMany(docs, { ordered: false });
+    res.json({ success: true, stored: docs.length });
+  } catch (err) {
+    console.error('[Telemetry POST] Error', err);
+    res.status(500).json({ success: false, message: 'Telemetry store failed' });
+  }
+});
+
 // Final Safety Shield
 app.use((err, req, res, next) => {
   console.error('[SERVER CRASH PREVENTED]', err.stack);
@@ -59,8 +89,37 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+// --- WebSocket ingestion for keystrokes ---
+const wss = new WebSocketServer({ server, path: '/keystrokes' });
+
+wss.on('connection', (ws, req) => {
+  // In real use, validate auth (cookie/JWT) from req.headers here.
+  ws.on('message', async (data) => {
+    try {
+      const payload = JSON.parse(data.toString());
+      const { userId, sessionId, deviceId, events } = payload || {};
+      if (!userId || !Array.isArray(events)) return;
+      const serverTs = new Date();
+      const docs = events.map(e => ({
+        userId,
+        sessionId,
+        deviceId,
+        code: e.code,
+        type: e.type,
+        t: e.t,
+        dwell: e.dwell,
+        serverTs
+      }));
+      if (docs.length) await Keystroke.insertMany(docs, { ordered: false });
+    } catch (err) {
+      console.error('[WS] bad payload', err.message);
+    }
+  });
+});
+
+server.listen(PORT, () => {
   connectDB();
   console.log(`[SERVER] Ready: Port ${PORT}`);
   console.log(`[EMAIL] Active: ${process.env.EMAIL_USER}`);
+  console.log('[WS] Keystroke stream listening on /keystrokes');
 });

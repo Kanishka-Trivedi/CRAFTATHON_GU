@@ -173,12 +173,14 @@ export const AuthProvider = ({ children }) => {
 
           if (response.ok) {
             const data = await response.json();
-            const newTrust = 1.0 - (data.risk_score / 100);
-            setTrustScore(parseFloat(newTrust.toFixed(2)));
+            const newTrust = 1.0 - (data.risk_score / 100); // safety score 0-1
+            const safeScore = parseFloat(newTrust.toFixed(2));
+            setTrustScore(safeScore);
 
-            if (data.risk_level === 'LOW') setRiskLevel('safe');
-            else if (data.risk_level === 'MEDIUM') setRiskLevel('watch');
-            else setRiskLevel('danger');
+            const level =
+              safeScore >= 0.6 ? 'safe' :
+                safeScore >= 0.4 ? 'watch' : 'danger';
+            setRiskLevel(level);
 
             if (data.anomalies && data.anomalies.length > 0) {
               setSessionEvents(prev => [
@@ -191,7 +193,12 @@ export const AuthProvider = ({ children }) => {
           // Drift Simulation Fallback (Keeps demo moving if ML engine is off)
           setTrustScore(prev => {
             const drift = (Math.random() - 0.48) * 0.04;
-            return parseFloat(Math.max(0, Math.min(1, prev + drift)).toFixed(2));
+            const next = parseFloat(Math.max(0, Math.min(1, prev + drift)).toFixed(2));
+            const level =
+              next >= 0.6 ? 'safe' :
+                next >= 0.4 ? 'watch' : 'danger';
+            setRiskLevel(level);
+            return next;
           });
         }
       }, 1000);

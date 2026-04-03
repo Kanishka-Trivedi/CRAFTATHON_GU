@@ -92,7 +92,7 @@ router.post('/send-otp', (req, res) => {
 // Signup
 router.post('/signup', async (req, res) => {
   try {
-    const { name, email, password, otp } = req.body;
+    const { name, email, password, otp, pin } = req.body;
 
     // Verify OTP (Bypass for demo: 000000)
     const storedOtp = otpStore.get(email);
@@ -108,10 +108,15 @@ router.post('/signup', async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
+    if (!pin || pin.length !== 6) {
+      return res.status(400).json({ message: 'PIN must be 6 digits' });
+    }
+
     const user = await User.create({
       name,
       email,
       password,
+      pin,
     });
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'secret', {
@@ -201,6 +206,28 @@ router.get('/me', async (req, res) => {
     res.status(200).json({ success: true, user });
   } catch (error) {
     res.status(401).json({ message: 'Token invalid' });
+  }
+});
+
+// Verify PIN for current user
+router.post('/verify-pin', async (req, res) => {
+  try {
+    const token = req.cookies.token;
+    if (!token) return res.status(401).json({ success: false, message: 'Not authenticated' });
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+    const user = await User.findById(decoded.id);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    const { pin } = req.body || {};
+    if (!pin || pin.length !== 6) return res.status(400).json({ success: false, message: 'Invalid PIN' });
+
+    const ok = await user.comparePin(pin);
+    if (!ok) return res.status(401).json({ success: false, message: 'PIN mismatch' });
+
+    return res.json({ success: true });
+  } catch (err) {
+    console.error('[PIN VERIFY]', err.message);
+    return res.status(500).json({ success: false, message: 'Verification failed' });
   }
 });
 

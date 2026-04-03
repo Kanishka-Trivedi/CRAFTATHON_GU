@@ -18,8 +18,9 @@ export const GlassCard = ({ children, className }) => (
 );
 
 export const TrustBadge = ({ score }) => {
-  const color = score > 0.6 ? 'bg-trust-safe' : (score > 0.35 ? 'bg-trust-watch' : 'bg-trust-danger');
-  const level = score > 0.6 ? 'SAFE' : (score > 0.35 ? 'WATCH' : 'DANGER');
+  const color = score >= 0.7 ? 'bg-trust-safe' : (score >= 0.4 ? 'bg-trust-watch' : 'bg-trust-danger');
+  const level = score >= 0.7 ? 'SAFE' : (score >= 0.4 ? 'WATCH' : 'DANGER');
+  const safetyPct = Math.round((score || 0) * 100);
 
   return (
     <div className={clsx("flex items-center space-x-2 px-3 py-1.5 rounded-full border border-white/10 glass", color + "/20")}>
@@ -28,7 +29,7 @@ export const TrustBadge = ({ score }) => {
         transition={{ repeat: Infinity, duration: 2 }}
         className={clsx("w-2 h-2 rounded-full", color)}
       />
-      <span className={clsx("text-xs font-bold tracking-wider", color.replace('bg-', 'text-'))}>{level} {Math.round(score * 100)}%</span>
+      <span className={clsx("text-xs font-bold tracking-wider", color.replace('bg-', 'text-'))}>{level} {safetyPct}%</span>
     </div>
   );
 };
