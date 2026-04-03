@@ -264,6 +264,7 @@ const LandingPage = () => {
           scanlineFrequency={0}
           warpAmount={0}
         />
+
       </div>
 
       <div className="relative z-10 w-full h-full">
@@ -278,11 +279,13 @@ const LandingPage = () => {
       <motion.nav
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="fixed top-0 left-0 right-0 z-50 px-8 py-6"
+        className="fixed top-0 left-0 right-0 z-50 px-8 py-3"
         style={{
-          background: scrollY > 50 ? 'rgba(6,13,31,0.92)' : 'transparent',
-          backdropFilter: scrollY > 50 ? 'blur(24px)' : 'none',
-          borderBottom: scrollY > 50 ? '1px solid rgba(255,255,255,0.08)' : 'none',
+          background: scrollY > 50 ? 'rgba(2, 6, 23, 0.5)' : 'rgba(255, 255, 255, 0.03)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          borderBottom: scrollY > 50 ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid rgba(255, 255, 255, 0.03)',
+          boxShadow: scrollY > 50 ? '0 8px 32px rgba(0, 0, 0, 0.3)' : 'none',
           transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
         }}
       >
@@ -328,7 +331,7 @@ const LandingPage = () => {
       </motion.nav>
 
       {/* ─── HERO (Full-width centered) ──────────────────── */}
-      <section className="relative min-h-screen flex items-center justify-center px-6 pt-24 pb-20">
+      <section className="relative min-h-[calc(100vh-100px)] flex items-center justify-center px-6 pt-12 pb-8">
         <div className="max-w-6xl mx-auto w-full z-10 flex flex-col items-center">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -336,13 +339,10 @@ const LandingPage = () => {
             transition={{ duration: 0.8 }}
             className="flex flex-col items-center text-center"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/30 bg-white/[0.1] text-white text-xs font-dm font-medium mb-10 translate-y-0">
-              <Sparkles size={14} />
-              AI-Powered Authentication
-            </div>
 
 
-            <div className="flex flex-col items-center gap-1 mb-8 max-w-4xl">
+
+            <div className="flex flex-col items-center gap-1 mt-36 mb-5 max-w-4xl">
               <BlurText
                 text="Security that"
                 className="font-sora font-bold text-6xl md:text-[80px] leading-[1.05] tracking-tight text-white text-center"
@@ -360,7 +360,7 @@ const LandingPage = () => {
             </div>
 
 
-            <p className="text-xl md:text-2xl text-white/80 font-dm leading-[1.7] max-w-3xl mb-12">
+            <p className="text-lg md:text-xl text-white/80 font-dm leading-[1.6] max-w-3xl mb-8">
               Revolutionary behavioral biometrics that continuously authenticate you through{' '}
               <span className="text-white font-semibold">typing patterns</span>,{' '}
               <span className="text-white font-semibold">touch dynamics</span>, and{' '}
@@ -369,7 +369,7 @@ const LandingPage = () => {
 
 
             {/* Stat Cards - wider */}
-            <div className="flex flex-wrap justify-center gap-4 mb-12">
+            <div className="flex flex-wrap justify-center gap-4 mb-8">
               <div className="px-8 py-5 rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm">
                 <p className="font-sora font-bold text-4xl text-emerald">99.9%</p>
                 <p className="font-dm text-sm text-white/70 mt-1">Accuracy</p>
