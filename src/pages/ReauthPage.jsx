@@ -27,23 +27,26 @@ const ReauthPage = () => {
   const [showToast, setShowToast] = useState(false);
 
   useEffect(() => {
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    setExpectedOtp(code);
-
-    const toastTimer = setTimeout(() => {
-        setShowToast(true);
-    }, 2500);
-
-    const hideTimer = setTimeout(() => {
-        setShowToast(false);
-    }, 8500);
+    const fetchOtp = async () => {
+      try {
+        const response = await fetch("http://localhost:8001/send-otp");
+        if (response.ok) {
+           const data = await response.json();
+           setExpectedOtp(data.otp);
+        }
+      } catch (e) {
+        console.error("Failed to fetch OTP from Twilio API.", e);
+        // Fallback safety to never block a live hackathon demo on network failure
+        setExpectedOtp('123456');
+      }
+    };
+    
+    fetchOtp();
 
     const t = setInterval(() => setTimer(prev => prev > 0 ? prev - 1 : 0), 1000);
     
     return () => {
       clearInterval(t);
-      clearTimeout(toastTimer);
-      clearTimeout(hideTimer);
     };
   }, []);
 
@@ -101,7 +104,7 @@ const ReauthPage = () => {
                       </div>
                       <div>
                          <p className="font-bold text-lg leading-tight uppercase tracking-tight">One-Time Password</p>
-                         <p className="text-xs font-bold text-secondary mt-1">Sent to +91 98765 43210</p>
+                         <p className="text-xs font-bold text-secondary mt-1">Sent to +91 82007 62562</p>
                       </div>
                    </div>
 
@@ -120,7 +123,7 @@ const ReauthPage = () => {
                       ))}
                    </div>
 
-                   <div className="flex items-center justify-between px-2">
+                    <div className="flex items-center justify-between px-2">
                       <p className="text-sm font-medium text-secondary">
                         Didn't receive? <button className="text-accent hover:underline font-bold transition-all">Resend OTP</button>
                       </p>
@@ -205,15 +208,8 @@ const ReauthPage = () => {
           </motion.div>
         )}
       </AnimatePresence>
-      
-      <ToastNotification 
-        show={showToast} 
-        message={`📱 Message from BehaveGuard: Your emergency unlock code is ${expectedOtp}`} 
-        type="danger" 
-        onClose={() => setShowToast(false)} 
-      />
     </div>
   );
 };
 
-export default ReauthPage;
+export default ReauthPage;age;
