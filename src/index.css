@@ -1,0 +1,120 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-bg-deep text-primary font-inter overflow-x-hidden;
+    --primary-text: #F1F0FF;
+    --secondary-text: #8B8DB8;
+  }
+}
+
+
+
+
+.glass {
+  background: rgba(17, 18, 40, 0.7);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(108,99,255,0.2);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+/* Background orbs */
+.bg-mesh {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  background-color: #0A0B1A;
+  overflow: hidden;
+}
+
+.orb-1 {
+  position: absolute;
+  top: -10%;
+  left: -10%;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: #6C63FF;
+  opacity: 0.15;
+  filter: blur(120px);
+  animation: float-1 20s infinite alternate linear;
+}
+
+.orb-2 {
+  position: absolute;
+  bottom: -5%;
+  right: -5%;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: #06B6D4;
+  opacity: 0.1;
+  filter: blur(100px);
+  animation: float-2 25s infinite alternate linear;
+}
+
+.orb-3 {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 400px;
+  height: 400px;
+  border-radius: 50%;
+  background: #8B5CF6;
+  opacity: 0.08;
+  filter: blur(140px);
+  animation: float-3 15s infinite alternate linear;
+}
+
+@keyframes float-1 {
+  from { transform: translate(0, 0); }
+  to { transform: translate(5%, 5%); }
+}
+
+@keyframes float-2 {
+  from { transform: translate(0, 0); }
+  to { transform: translate(-5%, -5%); }
+}
+
+@keyframes float-3 {
+  from { transform: translate(-50%, -50%) scale(1); }
+  to { transform: translate(-45%, -55%) scale(1.1); }
+}
+
+/* BankCard styles */
+.bank-card {
+  width: 380px;
+  height: 220px;
+  border-radius: 18px;
+  position: relative;
+  transition: all 0.5s ease;
+  transform: rotate3d(1, 0.5, 0, 12deg);
+}
+
+.bank-card:hover {
+  transform: rotate3d(1, 0.5, 0, 5deg) translateY(-10px);
+}
+
+.card-shimmer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0) 100%);
+  background-size: 200% 200%;
+  pointer-events: none;
+  animation: shimmer 8s infinite linear;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% -200%; }
+  100% { background-position: 200% 200%; }
+}
