@@ -264,3 +264,36 @@ def demo_anomaly():
         idle_time_s=0.3,
         click_deviation_px=34,
     ))
+
+import random
+from twilio.rest import Client
+import os
+from dotenv import load_dotenv
+
+# Load environmental variables from .env file
+load_dotenv()
+
+TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
+MESSAGING_SERVICE_SID = os.getenv("MESSAGING_SERVICE_SID")
+TO_PHONE = os.getenv("TO_PHONE")
+
+@app.get("/send-otp")
+def send_otp():
+    """Generates a random OTP and sends it via Twilio SMS"""
+    try:
+        code = str(random.randint(100000, 999999))
+        client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+        
+        message = client.messages.create(
+            messaging_service_sid=MESSAGING_SERVICE_SID,
+            body=f"Ahoy 👋 {code}",
+            to=TO_PHONE
+        )
+        print(f"Twilio SMS sent! SID: {message.sid}")
+        return {"status": "success", "otp": code, "sid": message.sid}
+    except Exception as e:
+        print(f"Twilio API Error: {str(e)}")
+        # Safe fallback so hackathon demo continues seamlessly even if Twilio errors out
+        return {"status": "error", "otp": "123456", "detail": str(e)}
+
