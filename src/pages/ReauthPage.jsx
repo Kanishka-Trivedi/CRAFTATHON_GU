@@ -7,7 +7,7 @@ import {
   Smartphone, Lock, RefreshCw, XCircle, ArrowRight
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { GlassCard } from '../components/Shared';
+import { GlassCard, ToastNotification } from '../components/Shared';
 
 
 
@@ -22,14 +22,33 @@ const ReauthPage = () => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [timer, setTimer] = useState(60);
   const [attempts, setAttempts] = useState(0);
+  
+  const [expectedOtp, setExpectedOtp] = useState('');
+  const [showToast, setShowToast] = useState(false);
 
   useEffect(() => {
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    setExpectedOtp(code);
+
+    const toastTimer = setTimeout(() => {
+        setShowToast(true);
+    }, 2500);
+
+    const hideTimer = setTimeout(() => {
+        setShowToast(false);
+    }, 8500);
+
     const t = setInterval(() => setTimer(prev => prev > 0 ? prev - 1 : 0), 1000);
-    return () => clearInterval(t);
+    
+    return () => {
+      clearInterval(t);
+      clearTimeout(toastTimer);
+      clearTimeout(hideTimer);
+    };
   }, []);
 
   const handleVerify = () => {
-    if (otp.join('') === '123456') {
+    if (otp.join('') === expectedOtp || otp.join('') === '123456') {
       setStep('success');
       setTrustScore(0.85); // Reset trust score on success
       setTimeout(() => navigate(returnPath), 2000);
@@ -186,6 +205,13 @@ const ReauthPage = () => {
           </motion.div>
         )}
       </AnimatePresence>
+      
+      <ToastNotification 
+        show={showToast} 
+        message={`📱 Message from BehaveGuard: Your emergency unlock code is ${expectedOtp}`} 
+        type="danger" 
+        onClose={() => setShowToast(false)} 
+      />
     </div>
   );
 };
