@@ -27,7 +27,7 @@ const connectDB = async () => {
   };
 
   try {
-    // We cleanly connect using the defined options
+    // Connect to the database using unified security options
     await mongoose.connect(process.env.MONGO_URI, options);
     console.log(`[DATABASE] Success: Connected to BehaveGuard Atlas Cluster`);
   } catch (error) {

@@ -9,9 +9,9 @@ MONGO_URI = os.getenv("MONGO_URI")
 
 try:
     client = MongoClient(MONGO_URI)
-    db = client["ContinuousAuthDB"]
+    db = client["behaveguard"]
     logs_collection = db["behavior_logs"]
-    print("✅ Successfully connected to MongoDB Atlas!")
+    print("✅ Connected to BehaveGuard Cloud Storage!")
 except Exception as e:
     print(f"❌ Failed to connect to MongoDB: {e}")
 
