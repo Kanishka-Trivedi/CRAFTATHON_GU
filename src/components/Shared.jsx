@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Check, Shield, AlertTriangle, X, ChevronRight, Menu,
   LayoutDashboard, CreditCard, Send, User, Settings as SettingsIcon,
-  BarChart3, Activity, ShieldAlert, Users, LogOut, Search, ShieldCheck
+  BarChart3, Activity, ShieldAlert, Users, LogOut, Search, ShieldCheck, Lock
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { clsx } from 'clsx';
@@ -129,11 +129,25 @@ export const NavBar = ({ isCollapsed, setCollapsed }) => {
       )}>
         <div className="p-6 mb-8 flex items-center justify-between">
           {!isCollapsed && (
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center">
-                <Shield className="text-white" size={18} />
+            <div className="flex items-center space-x-3 group cursor-pointer" onClick={() => router.push('/')}>
+              <div className="relative w-9 h-9">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                  className="absolute inset-0 rounded-lg opacity-60 blur-[2px]"
+                  style={{ background: 'conic-gradient(from 0deg, #FF4D6D, #8B5CF6, #00D4E8, #FF4D6D)' }}
+                />
+                <div className="absolute inset-[2.5px] rounded-[7px] bg-navy-950 flex items-center justify-center z-10">
+                  <div className="relative">
+                    <Lock size={14} className="text-white relative z-10" />
+                    <div className="absolute inset-0 blur-[6px]" style={{ background: 'linear-gradient(135deg, #FF4D6D, #8B5CF6)', opacity: 0.8 }} />
+                  </div>
+                </div>
               </div>
-              <span className="font-sora font-extrabold text-xl tracking-tight">BehaveGuard</span>
+              <div className="flex flex-col">
+                <span className="font-sora font-extrabold text-base tracking-tighter leading-none text-white">BehaveGuard</span>
+                <span className="font-mono text-[7px] uppercase tracking-[0.2em] text-emerald font-bold mt-1">Active</span>
+              </div>
             </div>
           )}
           <button onClick={() => setCollapsed(!isCollapsed)} className="p-2 hover:bg-white/5 rounded-lg text-secondary">
@@ -226,11 +240,22 @@ export const AdminNav = ({ isCollapsed, setCollapsed }) => {
       )}>
         <div className="p-6 mb-8 flex items-center justify-between">
           {!isCollapsed && (
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center">
-                <Shield className="text-white" size={18} />
+            <div className="flex items-center space-x-3 group animate-pulse-slow">
+              <div className="relative w-9 h-9">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                  className="absolute inset-0 rounded-lg opacity-60 blur-[2px]"
+                  style={{ background: 'conic-gradient(from 0deg, #FF4D6D, #8B5CF6, #00D4E8, #FF4D6D)' }}
+                />
+                <div className="absolute inset-[2.5px] rounded-[7px] bg-navy-950 flex items-center justify-center z-10">
+                  <Lock size={14} className="text-white" />
+                </div>
               </div>
-              <span className="font-sora font-extrabold text-xl tracking-tight uppercase">Admin Guard</span>
+              <div className="flex flex-col">
+                <span className="font-sora font-extrabold text-base tracking-tighter leading-none text-white uppercase">Admin Guard</span>
+                <span className="font-mono text-[7px] uppercase tracking-[0.2em] text-muted font-bold mt-1">Superuser Access</span>
+              </div>
             </div>
           )}
           <button onClick={() => setCollapsed(!isCollapsed)} className="p-2 hover:bg-white/5 rounded-lg text-secondary">

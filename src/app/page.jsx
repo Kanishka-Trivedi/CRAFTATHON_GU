@@ -1,186 +1,599 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Shield, ArrowRight } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import BankCard from '../components/BankCard';
-import { GlassCard } from '../components/Shared';
+import {
+  Shield, Fingerprint, ScanEye, Activity, Lock,
+  Brain, Zap, Rocket, ShieldCheck, Sparkles,
+  Keyboard, Eye, RefreshCw, ChevronRight, ArrowRight,
+  ShieldAlert, Cpu, BadgeCheck, BatteryCharging,
+  X, Info, Target, MousePointer2, CheckCircle2,
+  Github, Twitter, Linkedin
+} from 'lucide-react';
 
-const LoginPage = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { login } = useAuth();
-  const router = useRouter();
+import { AnimatePresence } from 'framer-motion';
+import DarkVeil from '../components/DarkVeil';
+import BlurText from '../components/BlurText';
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setError('');
-    
-    const result = await login(email, password);
-    if (result?.success) {
-      router.push('/dashboard');
-    } else {
-      setError(result?.message || 'Login failed');
-    }
-    setIsSubmitting(false);
-  };
 
+
+const Logo = ({ size = "md" }) => {
+  const isLarge = size === "lg";
   return (
-    <div className="min-h-screen flex text-white relative">
-      <div className="bg-mesh">
-        <div className="orb-1"></div>
-        <div className="orb-2"></div>
-        <div className="orb-3"></div>
-      </div>
-
-      {/* Left Hero */}
-      <div className="hidden lg:flex flex-col flex-1 p-16 justify-center relative overflow-hidden">
-        <motion.div 
-          initial={{ opacity: 0, x: -50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8 }}
-          className="max-w-2xl z-10"
-        >
-          <div className="flex items-center space-x-3 mb-12">
-            <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center">
-              <Shield className="text-white" size={24} />
-            </div>
-            <span className="font-sora tracking-tight font-extrabold text-3xl">BehaveGuard</span>
-          </div>
-
-          <h1 className="font-sora font-extrabold text-[56px] leading-[1.1] mb-6 tracking-tight">
-            Secure banking that <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-accent-teal">knows it's you.</span>
-          </h1>
-          
-          <p className="text-xl text-secondary mb-12 leading-relaxed max-w-xl">
-            BehaveGuard learns your unique behaviour pattern to keep your account safe — invisibly. 
-            No friction, just pure security based on how you type, move, and interact.
-          </p>
-
-          <div className="grid grid-cols-3 gap-8">
-            <div>
-              <p className="text-3xl font-sora font-bold text-accent-teal">99.7%</p>
-              <p className="text-xs font-bold uppercase tracking-widest text-secondary mt-1">Accuracy</p>
-            </div>
-            <div>
-              <p className="text-3xl font-sora font-bold text-accent-violet">0ms</p>
-              <p className="text-xs font-bold uppercase tracking-widest text-secondary mt-1">Friction</p>
-            </div>
-            <div>
-              <p className="text-3xl font-sora font-bold text-accent">256-bit</p>
-              <p className="text-xs font-bold uppercase tracking-widest text-secondary mt-1">Encrypted</p>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Floating Cards Background Decoration */}
-        <div className="absolute top-1/2 right-0 transform translate-x-1/4 -translate-y-1/2 -z-0">
-          <motion.div
-            animate={{ translateY: [0, -12, 0] }}
-            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <BankCard 
-              className="-rotate-12 absolute -top-40 right-20 z-0 opacity-40 scale-75" 
-              cardData={{ name: 'RAHUL MEHTA', accountNo: '•••• •••• •••• 4829' }}
+    <div className="flex items-center space-x-4 group cursor-pointer">
+      <div className={`relative ${isLarge ? 'w-14 h-14' : 'w-12 h-12'}`}>
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+          className="absolute inset-0 rounded-xl opacity-60 blur-[3px]"
+          style={{ background: 'conic-gradient(from 0deg, #FF4D6D, #8B5CF6, #00D4E8, #FF4D6D)' }}
+        />
+        <div className="absolute inset-[3px] rounded-[10px] bg-navy-950 flex items-center justify-center z-10">
+          <div className="relative">
+            <Lock size={isLarge ? 22 : 18} className="text-white relative z-10" />
+            <motion.div
+              animate={{ scale: [1, 1.3, 1] }}
+              transition={{ duration: 2.5, repeat: Infinity }}
+              className="absolute inset-0 blur-[12px]"
+              style={{ background: 'linear-gradient(135deg, #FF4D6D, #8B5CF6)', opacity: 0.9 }}
             />
-            <BankCard 
-              className="rotate-6 z-10" 
-              variant="mastercard"
-              cardData={{ name: 'RAHUL MEHTA', accountNo: '•••• •••• •••• 9210' }}
-            />
-          </motion.div>
+          </div>
         </div>
       </div>
+      <div className="flex flex-col">
+        <div className="flex items-center gap-3">
+          <span className={`font-sora font-bold ${isLarge ? 'text-2xl' : 'text-xl'} tracking-tighter leading-none text-white`}>BehaveGuard</span>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald/10 border border-emerald/20 backdrop-blur-md">
+            <div className="w-2 h-2 rounded-full bg-emerald animate-pulse shadow-[0_0_10px_#00E5A0]" />
+            <span className={`font-mono ${isLarge ? 'text-[9px]' : 'text-[8px]'} font-bold uppercase tracking-widest text-emerald`}>Secured</span>
+          </div>
+        </div>
+        <span className={`font-mono ${isLarge ? 'text-[10px]' : 'text-[9px]'} uppercase tracking-[0.25em] text-white/70 leading-none mt-2`}>Continuous Intelligence</span>
 
-      {/* Right Login Form */}
-      <div className="flex-1 lg:flex-[0_0_45%] flex items-center justify-center p-8 z-10">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="w-full max-w-md"
-        >
-          <GlassCard className="p-10 border-white/5 border-[1px]">
-            <div className="mb-10 text-center lg:hidden flex flex-col items-center">
-              <div className="w-12 h-12 rounded-xl bg-accent flex items-center justify-center mb-4">
-                <Shield className="text-white" size={28} />
-              </div>
-              <h2 className="font-sora font-bold text-2xl">BehaveGuard</h2>
-            </div>
-            
-            <div className="mb-10">
-              <h2 className="font-sora font-bold text-3xl mb-2">Welcome Back</h2>
-              <p className="text-secondary">Signature biometric authentication active.</p>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-widest text-secondary mb-2 px-1">Email Address</label>
-                <input 
-                  type="email" 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="rahul.mehta@gmail.com"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-white focus:outline-none focus:ring-2 focus:ring-accent/50 focus:bg-white/[0.08] transition-all"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-widest text-secondary mb-2 px-1">Password</label>
-                <input 
-                  type="password" 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-white focus:outline-none focus:ring-2 focus:ring-accent/50 focus:bg-white/[0.08] transition-all"
-                  required
-                />
-              </div>
-
-              {error && (
-                <div className="bg-trust-danger/10 border border-trust-danger/20 text-trust-danger text-xs p-4 rounded-xl text-center">
-                  {error}
-                </div>
-              )}
-
-              <div className="flex items-center justify-between px-1">
-                <label className="flex items-center space-x-2 cursor-pointer group">
-                  <input type="checkbox" className="w-4 h-4 rounded border-white/10 bg-white/5 text-accent focus:ring-accent/30" />
-                  <span className="text-sm text-secondary group-hover:text-white transition-colors">Remember me</span>
-                </label>
-                <a href="#" className="text-sm text-accent hover:text-accent-violet transition-colors">Forgot password?</a>
-              </div>
-
-              <button 
-                type="submit" 
-                disabled={isSubmitting}
-                className="w-full bg-gradient-to-r from-accent to-accent-violet py-4 rounded-xl font-bold text-lg hover:shadow-[0_0_20px_rgba(108,99,255,0.4)] transition-all active:scale-[0.98] flex items-center justify-center space-x-2 group disabled:opacity-50"
-              >
-                <span>{isSubmitting ? 'Authenticating...' : 'Access Secure Dashboard'}</span>
-                {!isSubmitting && <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />}
-              </button>
-            </form>
-
-            <div className="mt-10 text-center">
-              <p className="text-secondary text-sm">
-                Don't have an account? 
-                <button onClick={() => router.push('/signup')} className="text-accent font-bold ml-2 hover:underline">Sign up for Guard</button>
-              </p>
-            </div>
-          </GlassCard>
-
-          <p className="text-center text-secondary text-[10px] mt-8 uppercase tracking-[0.2em] opacity-50">
-            Powered by Continuous Biometric Deep Learning
-          </p>
-        </motion.div>
       </div>
     </div>
   );
 };
 
-export default LoginPage;
+const HowItWorksModal = ({ isOpen, onClose }) => (
+  <AnimatePresence>
+    {isOpen && (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+        <motion.div
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          onClick={onClose}
+          className="absolute inset-0 bg-navy-950/80 backdrop-blur-xl"
+        />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.9, y: 20 }}
+          className="relative w-full max-w-2xl bg-navy-900 border border-white/[0.1] rounded-3xl overflow-hidden shadow-2xl"
+        >
+          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald via-electric to-rose" />
+          <div className="p-8">
+            <div className="flex justify-between items-start mb-8">
+              <div>
+                <h3 className="font-sora font-bold text-2xl text-white mb-2">How BehaveGuard Detects Threats</h3>
+                <p className="text-white/80 font-dm text-sm">Our 3-layer security logic differentiates you from intruders.</p>
+
+              </div>
+              <button onClick={onClose} className="p-2 rounded-full hover:bg-white/10 transition-colors">
+                <X size={20} className="text-white" />
+              </button>
+
+            </div>
+
+            <div className="space-y-6">
+              {[
+                { title: 'Pattern Deviations', desc: 'Analyzes typing cadence down to millisecond precision. If keys are held 12ms longer than your baseline, we flag it.', icon: Keyboard, color: '#00E5A0' },
+                { title: 'Navigation Habits', desc: 'Detects unusual mouse acceleration or robotic click paths that suggest scripts or unfamiliar users.', icon: MousePointer2, color: '#4F6EF7' },
+                { title: 'Real-Time Intervention', desc: 'If the risk score exceeds 0.85, the session freezes instantly, requiring a biometric re-scan or OTP.', icon: ShieldAlert, color: '#FF4D6D' },
+              ].map((step, i) => (
+                <div key={i} className="flex gap-5 p-5 rounded-2xl bg-white/[0.03] border border-white/[0.06]">
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: step.color + '20', border: `1px solid ${step.color}40` }}>
+                    <step.icon size={22} style={{ color: step.color }} />
+                  </div>
+                  <div>
+                    <h4 className="font-sora font-semibold text-white mb-1">{step.title}</h4>
+                    <p className="font-dm text-sm text-white/80 leading-relaxed">{step.desc}</p>
+                  </div>
+
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={onClose}
+              className="w-full mt-8 py-4 rounded-xl bg-gradient-to-r from-electric to-electric-dim text-white font-dm font-bold text-sm"
+            >
+              Understand & Secure Account
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    )}
+  </AnimatePresence>
+);
+
+/* ─── Floating Particles ─────────────────────────────────────── */
+const ParticleField = () => {
+  const [particles, setParticles] = useState([]);
+  useEffect(() => {
+    setParticles(
+      Array.from({ length: 35 }, (_, i) => ({
+        id: i,
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        size: Math.random() * 2.5 + 0.5,
+        duration: Math.random() * 25 + 15,
+        delay: Math.random() * 8,
+        opacity: Math.random() * 0.2 + 0.03,
+      }))
+    );
+  }, []);
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+      {particles.map((p) => (
+        <motion.div
+          key={p.id}
+          className="absolute rounded-full"
+          style={{
+            left: `${p.x}%`, top: `${p.y}%`,
+            width: p.size, height: p.size,
+            background: ['#4F6EF7', '#00D4E8', '#00E5A0', '#FF4D6D', '#8B5CF6'][p.id % 5],
+            opacity: p.opacity,
+          }}
+          animate={{ y: [0, -40, 0], x: [0, p.id % 2 === 0 ? 20 : -20, 0], opacity: [p.opacity, p.opacity * 2.5, p.opacity] }}
+          transition={{ duration: p.duration, repeat: Infinity, delay: p.delay, ease: 'easeInOut' }}
+        />
+      ))}
+    </div>
+  );
+};
+
+/* ─── Animated Trust Score Panel ──────────────────────────────── */
+const TrustScorePanel = () => {
+  const [score, setScore] = useState(98.5);
+  const [time, setTime] = useState(3);
+
+  useEffect(() => {
+    const i = setInterval(() => {
+      setScore(prev => {
+        const drift = (Math.random() - 0.3) * 0.4;
+        return Math.min(99.9, Math.max(95, parseFloat((prev + drift).toFixed(1))));
+      });
+      setTime(prev => prev + 1);
+    }, 3000);
+    return () => clearInterval(i);
+  }, []);
+
+  const bars = [
+    { label: 'Typing Pattern Match', value: 99, color: '#00E5A0' },
+    { label: 'Touch Dynamics', value: 98, color: '#8B5CF6' },
+    { label: 'Navigation Behavior', value: 97, color: '#F5A623' },
+    { label: 'Device Trust Level', value: 100, color: '#00D4E8' },
+  ];
+
+  return (
+    <div className="p-6 rounded-2xl border border-white/[0.08] bg-navy-900/80 backdrop-blur-md">
+      <div className="flex items-center justify-between mb-5">
+        <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-white/60">Trust Score</span>
+        <ShieldCheck size={28} className="text-emerald" />
+      </div>
+
+      <motion.p
+        key={score}
+        initial={{ opacity: 0.5, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="font-sora font-bold text-5xl text-emerald mb-6"
+      >
+        {score}
+      </motion.p>
+      <div className="space-y-4">
+        {bars.map((bar, i) => (
+          <div key={i}>
+            <div className="flex justify-between mb-1.5">
+              <span className="font-dm text-xs text-white font-medium">{bar.label}</span>
+              <span className="font-mono text-xs" style={{ color: bar.color }}>{bar.value}%</span>
+            </div>
+
+            <div className="h-[6px] rounded-full bg-white/[0.06] overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                whileInView={{ width: `${bar.value}%` }}
+                viewport={{ once: true }}
+                transition={{ duration: 1.2, delay: i * 0.15 }}
+                className="h-full rounded-full"
+                style={{ background: bar.color }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="flex items-center gap-2 mt-5">
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald animate-pulse" />
+        <span className="font-mono text-[10px] text-white/60">Verified <span className="text-emerald">{time} seconds ago</span></span>
+      </div>
+
+    </div>
+  );
+};
+
+/* ─── Feature Gradient Card ───────────────────────────────────── */
+const FeatureCard = ({ icon: Icon, title, description, gradient, delay }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 40 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true }}
+    transition={{ duration: 0.6, delay }}
+    className="group p-6 rounded-2xl border border-white/[0.06] bg-white/[0.02] hover:border-white/[0.12] transition-all duration-500"
+  >
+    <div className="h-14 rounded-xl mb-5 flex items-center pl-4 overflow-hidden" style={{ background: gradient }}>
+      <Icon size={22} className="text-white" />
+    </div>
+    <h3 className="font-sora font-semibold text-base text-white mb-2">{title}</h3>
+    <p className="text-white/80 text-sm leading-relaxed font-dm">{description}</p>
+
+  </motion.div>
+);
+
+/* ═══════════════════════════════════════════════════════════════ */
+/*                     LANDING PAGE                                */
+/* ═══════════════════════════════════════════════════════════════ */
+const LandingPage = () => {
+  const router = useRouter();
+  const [scrollY, setScrollY] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-[#020617] text-white overflow-x-hidden">
+      <div className="fixed inset-0 z-0 opacity-90 blur-[120px] pointer-events-none scale-150">
+        <DarkVeil speed={0.5} noiseIntensity={0.02} scanlineIntensity={0.1} warpAmount={0.25} />
+      </div>
+
+
+
+
+
+      <HowItWorksModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+
+      {/* ─── NAVBAR (Larger & Centered) ───────────────────── */}
+      <motion.nav
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="fixed top-0 left-0 right-0 z-50 px-8 py-6"
+        style={{
+          background: scrollY > 50 ? 'rgba(6,13,31,0.92)' : 'transparent',
+          backdropFilter: scrollY > 50 ? 'blur(24px)' : 'none',
+          borderBottom: scrollY > 50 ? '1px solid rgba(255,255,255,0.08)' : 'none',
+          transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+        }}
+      >
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <Logo size="lg" />
+
+          <div className="hidden lg:flex items-center space-x-12 font-dm text-base text-white/80 font-medium tracking-wide">
+
+            <a href="#features" className="hover:text-white transition-all relative group">
+              Features
+              <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-white/50 transition-all group-hover:w-full" />
+            </a>
+            <a href="#security" className="hover:text-white transition-all relative group">
+              Security
+              <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-white/50 transition-all group-hover:w-full" />
+            </a>
+            <a href="#cta" className="hover:text-white transition-all relative group">
+              Enterprise
+              <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-white/50 transition-all group-hover:w-full" />
+            </a>
+
+          </div>
+
+          <div className="flex items-center gap-5">
+            <button
+              onClick={() => router.push('/login')}
+              className="px-7 py-3 rounded-xl bg-white/[0.04] border border-white/[0.1] text-sm font-dm font-bold text-white hover:bg-white/[0.08] hover:border-white/[0.2] transition-all"
+            >
+
+              Log In
+            </button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => router.push('/signup')}
+              className="px-8 py-3 rounded-xl text-sm font-dm font-bold text-white shadow-xl transition-all"
+              style={{ background: 'linear-gradient(135deg, #FF4D6D, #8B5CF6)' }}
+            >
+              Get Started
+            </motion.button>
+          </div>
+        </div>
+      </motion.nav>
+
+      {/* ─── HERO (Full-width centered) ──────────────────── */}
+      <section className="relative min-h-screen flex items-center justify-center px-6 pt-24 pb-20">
+        <div className="max-w-6xl mx-auto w-full z-10 flex flex-col items-center">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="flex flex-col items-center text-center"
+          >
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/30 bg-white/[0.1] text-white text-xs font-dm font-medium mb-10 translate-y-0">
+              <Sparkles size={14} />
+              AI-Powered Authentication
+            </div>
+
+
+            <div className="flex flex-col items-center gap-1 mb-8 max-w-4xl">
+              <BlurText
+                text="Security that"
+                className="font-sora font-bold text-6xl md:text-[80px] leading-[1.05] tracking-tight text-white text-center"
+                delay={110}
+                animateBy="words"
+                direction="top"
+              />
+              <BlurText
+                text="reads you."
+                className="font-sora font-bold text-6xl md:text-[80px] leading-[1.05] tracking-tight text-white text-center"
+                delay={110}
+                animateBy="words"
+                direction="bottom"
+              />
+            </div>
+
+
+            <p className="text-xl md:text-2xl text-white/80 font-dm leading-[1.7] max-w-3xl mb-12">
+              Revolutionary behavioral biometrics that continuously authenticate you through{' '}
+              <span className="text-white font-semibold">typing patterns</span>,{' '}
+              <span className="text-white font-semibold">touch dynamics</span>, and{' '}
+              <span className="text-white font-semibold">navigation habits</span>.
+            </p>
+
+
+            {/* Stat Cards - wider */}
+            <div className="flex flex-wrap justify-center gap-4 mb-12">
+              <div className="px-8 py-5 rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm">
+                <p className="font-sora font-bold text-4xl text-emerald">99.9%</p>
+                <p className="font-dm text-sm text-white/70 mt-1">Accuracy</p>
+              </div>
+
+              <div className="px-8 py-5 rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm">
+                <p className="font-sora font-bold text-4xl text-white/90">&lt;10ms</p>
+                <p className="font-dm text-sm text-white/70 mt-1">Response</p>
+              </div>
+
+
+              <div className="px-8 py-5 rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm">
+                <p className="font-sora font-bold text-4xl text-white/90">Zero</p>
+                <p className="font-dm text-sm text-white/70 mt-1">Friction</p>
+              </div>
+
+
+            </div>
+
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+              <motion.button
+                whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(255,77,109,0.45)' }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => router.push('/signup')}
+                className="px-12 py-5 rounded-2xl text-white font-dm font-bold text-xl flex items-center gap-4 shadow-2xl transition-all"
+                style={{ background: 'linear-gradient(135deg, #FF4D6D, #8B5CF6)' }}
+              >
+                Start My Protection
+                <Rocket size={24} className="stroke-[2.5px]" />
+              </motion.button>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ─── CORE FEATURES ──────────────────────────────────── */}
+      <section id="features" className="relative py-28 px-6">
+        <div className="max-w-6xl mx-auto">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/25 bg-white/[0.08] text-white text-xs font-dm font-medium mb-6">
+              <Sparkles size={14} />
+              Core Features
+            </div>
+
+            <h2 className="font-sora font-bold text-3xl md:text-4xl mb-4">
+              <span className="text-white">Invisible Security,</span>
+              <br />Maximum Protection
+            </h2>
+
+            <p className="text-white/80 font-dm text-base max-w-xl mx-auto leading-relaxed">
+              Advanced behavioral biometrics working silently to keep your banking secure
+            </p>
+
+          </motion.div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <FeatureCard icon={Fingerprint} title="Behavioral Profiling" description="Captures typing rhythm, swipe velocity, tap pressure & navigation patterns" gradient="linear-gradient(135deg, #FF4D6D, #8B5CF6)" delay={0} />
+            <FeatureCard icon={Activity} title="Real-time Analysis" description="Continuous ML monitoring with instant anomaly detection" gradient="linear-gradient(135deg, #8B5CF6, #4F6EF7)" delay={0.1} />
+            <FeatureCard icon={Eye} title="Smart Detection" description="AI distinguishes genuine behavior from sophisticated fraud attempts" gradient="linear-gradient(135deg, #4F6EF7, #00D4E8)" delay={0.2} />
+            <FeatureCard icon={RefreshCw} title="Adaptive Response" description="Risk-based authentication with intelligent security escalation" gradient="linear-gradient(135deg, #00D4E8, #8B5CF6)" delay={0.3} />
+          </div>
+        </div>
+      </section>
+
+      {/* ─── PRIVACY & SECURITY ─────────────────────────────── */}
+      <section id="security" className="relative py-28 px-6">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          {/* Left Text */}
+          <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
+            <h2 className="font-sora font-bold text-3xl md:text-4xl mb-4 leading-tight">
+              Privacy-First, <span className="text-white">Security-Always</span>
+            </h2>
+
+            <p className="text-white/80 font-dm text-base leading-relaxed mb-8 max-w-lg">
+              Your behavioral patterns are processed <span className="text-white font-semibold">on-device</span> using advanced ML models. Zero data leaves your phone, maximum security stays with you.
+            </p>
+
+            <div className="space-y-4">
+              {[
+                { icon: Lock, text: 'AES 256-bit end-to-end encryption', color: '#4F6EF7' },
+                { icon: Cpu, text: 'On-device machine learning processing', color: '#00D4E8' },
+                { icon: BadgeCheck, text: 'GDPR, SOC 2, PCI DSS compliant', color: '#00E5A0' },
+                { icon: ShieldAlert, text: 'Zero-knowledge security architecture', color: '#8B5CF6' },
+                { icon: BatteryCharging, text: 'Optimized battery consumption', color: '#F5A623' },
+              ].map((item, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="flex items-center gap-3"
+                >
+                  <item.icon size={18} className="text-white/80" />
+                  <span className="font-dm text-sm text-white font-medium">{item.text}</span>
+                </motion.div>
+
+
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Right Trust Score Panel */}
+          <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
+            <TrustScorePanel />
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ─── CTA SECTION ────────────────────────────────────── */}
+      <section id="cta" className="relative py-28 px-6">
+        <div className="max-w-4xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="relative rounded-3xl p-12 md:p-16 text-center overflow-hidden"
+            style={{ background: 'linear-gradient(135deg, #1B3678 0%, #2B47D4 30%, #8B5CF6 60%, #FF4D6D 100%)' }}
+          >
+            {/* Glow overlay */}
+            <div className="absolute inset-0 opacity-30" style={{ background: 'radial-gradient(ellipse at 30% 50%, rgba(0,212,232,0.4), transparent 60%)' }} />
+
+            <div className="relative z-10">
+
+
+              <h2 className="font-sora font-bold text-3xl md:text-5xl text-white mb-4 leading-tight">
+                Ready for Invisible
+                <br />Security?
+              </h2>
+
+              <p className="font-dm text-white/80 text-base max-w-lg mx-auto mb-10 leading-relaxed">
+                Experience the future of banking authentication. Zero friction, maximum protection.
+              </p>
+
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-8">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => router.push('/signup')}
+                  className="px-10 py-5 rounded-2xl bg-white text-navy-950 font-dm font-bold text-base flex items-center gap-3 shadow-xl"
+                >
+                  <Rocket size={18} />
+                  Start My Protection
+                </motion.button>
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="px-10 py-5 rounded-2xl border-2 border-white/[0.3] bg-white/[0.08] text-white font-dm font-bold text-base hover:bg-white/[0.15] transition-all backdrop-blur-md flex items-center gap-3"
+                >
+                  <Target size={18} />
+                  How It Works
+                </button>
+              </div>
+
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ─── FOOTER ─────────────────────────────────────────── */}
+      <footer className="relative mt-20 pt-24 pb-16 px-8 border-t border-white/[0.08] bg-black/40 backdrop-blur-3xl">
+        <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-6 gap-16 mb-20">
+            {/* Brand column */}
+            <div className="lg:col-span-2 space-y-8">
+              <Logo size="md" />
+              <p className="text-white/60 font-dm text-base leading-relaxed max-w-sm">
+                Revolutionizing digital trust through continuous behavioral intelligence. Zero friction, total security.
+              </p>
+              <div className="flex items-center gap-6">
+                <a href="#" className="w-10 h-10 rounded-full bg-white/[0.03] border border-white/[0.08] flex items-center justify-center text-white/50 hover:text-white hover:bg-white/[0.08] hover:border-white/20 transition-all">
+                  <Github size={18} />
+                </a>
+                <a href="#" className="w-10 h-10 rounded-full bg-white/[0.03] border border-white/[0.08] flex items-center justify-center text-white/50 hover:text-white hover:bg-white/[0.08] hover:border-white/20 transition-all">
+                  <Twitter size={18} />
+                </a>
+                <a href="#" className="w-10 h-10 rounded-full bg-white/[0.03] border border-white/[0.08] flex items-center justify-center text-white/50 hover:text-white hover:bg-white/[0.08] hover:border-white/20 transition-all">
+                  <Linkedin size={18} />
+                </a>
+              </div>
+
+            </div>
+
+            {/* Links columns */}
+            {[
+              { title: 'Platform', links: ['Behavioral Auth', 'Threat Matrix', 'Risk Engine', 'Compliance'] },
+              { title: 'Resources', links: ['Documentation', 'API Reference', 'Case Studies', 'Security White-paper'] },
+              { title: 'Company', links: ['Mission', 'Privacy', 'Status', 'Contact'] },
+              { title: 'Legal', links: ['Privacy Policy', 'Data DPA', 'Security Terms', 'Cookie Policy'] },
+            ].map((col, i) => (
+              <div key={i} className="space-y-6">
+                <h4 className="font-sora font-semibold text-sm text-white tracking-wider uppercase opacity-90">{col.title}</h4>
+                <ul className="space-y-4">
+                  {col.links.map((link, j) => (
+                    <li key={j}>
+                      <span className="font-dm text-sm text-white/40 hover:text-white transition-all cursor-pointer flex items-center group">
+                        <ArrowRight size={12} className="opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all mr-2" />
+                        {link}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+
+          <div className="pt-8 border-t border-white/[0.05] flex flex-col md:flex-row items-center justify-between gap-8">
+            <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8">
+              <p className="font-dm text-sm text-white/30">
+                © 2026 BehaveGuard. All rights reserved.
+              </p>
+              <div className="flex items-center gap-6">
+                <span className="font-dm text-xs text-white/20 hover:text-white/40 transition-colors cursor-pointer">Status</span>
+                <span className="font-dm text-xs text-white/20 hover:text-white/40 transition-colors cursor-pointer">Security</span>
+                <span className="font-dm text-xs text-white/20 hover:text-white/40 transition-colors cursor-pointer">Uptime</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-6 px-5 py-2.5 rounded-full bg-white/[0.03] border border-white/[0.05]">
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald animate-pulse" />
+                <span className="font-mono text-[9px] uppercase tracking-widest text-emerald font-bold">Systems Operational</span>
+              </div>
+              <div className="w-[1px] h-3 bg-white/10" />
+              <span className="font-mono text-[9px] text-white/30 font-bold tracking-widest">v1.4.2</span>
+            </div>
+          </div>
+        </div>
+      </footer>
+
+    </div>
+  );
+};
+
+export default LandingPage;

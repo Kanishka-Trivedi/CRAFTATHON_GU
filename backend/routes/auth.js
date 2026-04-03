@@ -8,6 +8,32 @@ const router = express.Router();
 // In-memory OTP storage for the demo
 const otpStore = new Map();
 
+// Check if email exists
+router.post('/check-email', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ exists: false, message: 'Email required' });
+
+    // Normalize email for check
+    const normalizedEmail = email.toLowerCase().trim();
+    console.log(`[AUTH] Checking registration status for node: ${normalizedEmail}`);
+
+    // User Model check (Users collection)
+    const user = await User.findOne({ email: new RegExp(`^${normalizedEmail}$`, 'i') });
+
+    if (user) {
+      console.warn(`[AUTH] Access Denied: Node ${normalizedEmail} already registered.`);
+      return res.status(200).json({ exists: true, message: 'Identity node already registered.' });
+    }
+
+    console.log(`[AUTH] Success: Node ${normalizedEmail} available for enrolment.`);
+    return res.status(200).json({ exists: false });
+  } catch (error) {
+    console.error('[AUTH] Critical Lookup Error:', error.message);
+    res.status(500).json({ success: false, message: 'Database lookup failed' });
+  }
+});
+
 // Send OTP
 router.post('/send-otp', (req, res) => {
   try {
@@ -34,7 +60,7 @@ router.post('/send-otp', (req, res) => {
         </div>
       `,
     };
-    
+
     // Create Transporter dynamically to ensure it reads the latest .env
     const transporter = nodemailer.createTransport({
       service: 'gmail',
@@ -53,9 +79,9 @@ router.post('/send-otp', (req, res) => {
       });
 
     // Return SUCCESS immediately to the UI
-    return res.status(200).json({ 
-      success: true, 
-      message: 'Verification Code Pushed' 
+    return res.status(200).json({
+      success: true,
+      message: 'Verification Code Pushed'
     });
   } catch (error) {
     console.error('OTP Route Error:', error);
@@ -73,7 +99,7 @@ router.post('/signup', async (req, res) => {
     if (otp !== '000000' && (!storedOtp || storedOtp !== otp)) {
       return res.status(400).json({ message: 'Invalid or expired OTP' });
     }
-    
+
     // Clear OTP after use
     otpStore.delete(email);
 
@@ -169,7 +195,7 @@ router.get('/me', async (req, res) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
     const user = await User.findById(decoded.id).select('-password');
-    
+
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     res.status(200).json({ success: true, user });
