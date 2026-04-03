@@ -3,8 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Check, Shield, AlertTriangle, X, ChevronRight, Menu, 
   LayoutDashboard, CreditCard, Send, User, Settings as SettingsIcon,
-  BarChart3, Activity, ShieldAlert, Users
+  BarChart3, Activity, ShieldAlert, Users, LogOut, ArrowUpRight, ArrowDownRight, Search, ShieldCheck
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import { clsx } from 'clsx';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -96,8 +97,8 @@ export const LoadingSpinner = () => (
 );
 
 export const NavBar = ({ isCollapsed, setCollapsed }) => {
+  const { logout } = useAuth();
   const location = useLocation();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: 'LayoutDashboard' },
     { name: 'Transactions', path: '/transactions', icon: 'CreditCard' },
@@ -150,32 +151,16 @@ export const NavBar = ({ isCollapsed, setCollapsed }) => {
         </nav>
 
         <div className="p-4 border-t border-white/5">
-          {!isCollapsed && (
-            <div className="glass p-3 rounded-xl flex items-center space-x-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-accent to-accent-violet flex items-center justify-center text-white font-bold">RM</div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold truncate">Rahul Mehta</p>
-                <div className="flex items-center space-x-1">
-                  <div className="w-1.5 h-1.5 rounded-full bg-trust-safe"></div>
-                  <span className="text-[10px] text-secondary font-semibold uppercase tracking-wider">Protected</span>
-                </div>
-              </div>
-            </div>
-          )}
-          <div className={clsx("flex justify-center", !isCollapsed && "px-2")}>
-             <div className="w-full">
-              {!isCollapsed && <p className="text-[10px] text-secondary font-bold uppercase tracking-widest mb-3 text-center">Auth Health</p>}
-              <div className="relative w-12 h-12 mx-auto">
-                <svg className="w-full h-full transform -rotate-90">
-                  <circle cx="24" cy="24" r="20" fill="transparent" stroke="rgba(255,255,255,0.05)" strokeWidth="4" />
-                  <circle cx="24" cy="24" r="20" fill="transparent" stroke="#10B981" strokeWidth="4" strokeDasharray="125.6" strokeDashoffset="25.1" strokeLinecap="round" />
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-[10px] font-bold text-trust-safe">85%</span>
-                </div>
-              </div>
-             </div>
-          </div>
+          <button 
+            onClick={logout}
+            className={clsx(
+              "flex items-center space-x-3 px-4 py-3 rounded-xl transition-all group w-full text-trust-danger hover:bg-trust-danger/10",
+              isCollapsed ? "justify-center" : "justify-start"
+            )}
+          >
+            <LogOut size={20} className="group-hover:translate-x-1 transition-transform" />
+            {!isCollapsed && <span className="font-bold text-sm tracking-wide">Secure Logout</span>}
+          </button>
         </div>
       </aside>
 
@@ -275,4 +260,3 @@ export const AdminNav = ({ isCollapsed, setCollapsed }) => {
     </>
   );
 }
-

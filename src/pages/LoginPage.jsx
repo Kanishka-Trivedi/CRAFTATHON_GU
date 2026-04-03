@@ -9,13 +9,23 @@ import { GlassCard } from '../components/Shared';
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    login(email, password);
-    navigate('/dashboard');
+    setIsSubmitting(true);
+    setError('');
+    
+    const result = await login(email, password);
+    if (result?.success) {
+      navigate('/dashboard');
+    } else {
+      setError(result?.message || 'Login failed');
+    }
+    setIsSubmitting(false);
   };
 
   return (
@@ -131,6 +141,12 @@ const LoginPage = () => {
                 />
               </div>
 
+              {error && (
+                <div className="bg-trust-danger/10 border border-trust-danger/20 text-trust-danger text-xs p-4 rounded-xl text-center">
+                  {error}
+                </div>
+              )}
+
               <div className="flex items-center justify-between px-1">
                 <label className="flex items-center space-x-2 cursor-pointer group">
                   <input type="checkbox" className="w-4 h-4 rounded border-white/10 bg-white/5 text-accent focus:ring-accent/30" />
@@ -141,10 +157,11 @@ const LoginPage = () => {
 
               <button 
                 type="submit" 
-                className="w-full bg-gradient-to-r from-accent to-accent-violet py-4 rounded-xl font-bold text-lg hover:shadow-[0_0_20px_rgba(108,99,255,0.4)] transition-all active:scale-[0.98] flex items-center justify-center space-x-2 group"
+                disabled={isSubmitting}
+                className="w-full bg-gradient-to-r from-accent to-accent-violet py-4 rounded-xl font-bold text-lg hover:shadow-[0_0_20px_rgba(108,99,255,0.4)] transition-all active:scale-[0.98] flex items-center justify-center space-x-2 group disabled:opacity-50"
               >
-                <span>Access Secure Dashboard</span>
-                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                <span>{isSubmitting ? 'Authenticating...' : 'Access Secure Dashboard'}</span>
+                {!isSubmitting && <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />}
               </button>
             </form>
 

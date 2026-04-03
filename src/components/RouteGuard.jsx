@@ -3,11 +3,12 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export const ProtectedRoute = ({ children }) => {
-  const { user } = useAuth();
-  const token = localStorage.getItem('behaveguard_token');
+  const { user, loading } = useAuth();
   const location = useLocation();
 
-  if (!token) {
+  if (loading) return null; // Or a loader
+
+  if (!user) {
     return <Navigate to="/" state={{ from: location }} replace />;
   }
 
@@ -15,9 +16,12 @@ export const ProtectedRoute = ({ children }) => {
 };
 
 export const AdminRoute = ({ children }) => {
-  const token = localStorage.getItem('behaveguard_token');
-  // Simple check for now, in a real app check role in token
-  if (!token) {
+  const { user, loading } = useAuth();
+  
+  if (loading) return null;
+
+  // Simple check: In real app, check for user.role === 'admin'
+  if (!user) {
     return <Navigate to="/" replace />;
   }
   return children;

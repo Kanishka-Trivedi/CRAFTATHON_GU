@@ -118,7 +118,7 @@ const DashboardPage = () => {
               animate={{ opacity: 1, y: 0 }}
               className="font-sora font-extrabold text-3xl md:text-4xl mb-2"
             >
-              Good morning, {user?.name.split(' ')[0]}
+              Good morning, {user?.name?.split(' ')[0] || 'User'}
             </motion.h1>
             <div className="flex items-center space-x-2 text-secondary font-medium">
               <ShieldCheck size={16} className="text-trust-safe" />

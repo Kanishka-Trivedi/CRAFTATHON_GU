@@ -36,7 +36,7 @@ const BankCard = ({ variant = 'visa', cardData, className }) => {
       </div>
 
       <div className="my-8">
-        <p className="font-mono text-xl tracking-[0.2em]">{accountNo.includes('•') ? accountNo : accountNo.replace(/(\d{4})/g, '$1 ')}</p>
+        <p className="font-mono text-xl tracking-[0.2em]">{accountNo && accountNo.includes('•') ? accountNo : (accountNo ? accountNo.replace(/(\d{4})/g, '$1 ') : '•••• •••• •••• 0000')}</p>
       </div>
 
       <div className="flex justify-between items-end">
