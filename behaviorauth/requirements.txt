@@ -5,3 +5,6 @@ pandas
 numpy
 joblib
 pydantic
+pymongo
+python-dotenv
+twilio
