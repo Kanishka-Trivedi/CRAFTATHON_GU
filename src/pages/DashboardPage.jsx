@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { dummyTransactions } from '../data/dummy';
-import { GlassCard, TrustBadge, NavBar } from '../components/Shared';
+import { GlassCard, TrustBadge, NavBar, ToastNotification } from '../components/Shared';
 import BankCard from '../components/BankCard';
 import { Line } from 'react-chartjs-2';
 import {
@@ -22,6 +22,8 @@ import {
   Filler
 } from 'chart.js';
 
+import { useNavigate } from 'react-router-dom';
+
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -34,7 +36,8 @@ ChartJS.register(
 );
 
 const DashboardPage = () => {
-  const { user, trustScore, riskLevel } = useAuth();
+  const { user, trustScore, riskLevel, sessionEvents } = useAuth();
+  const navigate = useNavigate();
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [chartData, setChartData] = useState({
     labels: Array.from({ length: 30 }, (_, i) => i),
@@ -51,6 +54,14 @@ const DashboardPage = () => {
       },
     ],
   });
+
+  // Security Freeze active defense trigger!
+  useEffect(() => {
+    if (riskLevel === 'danger') {
+      const reason = sessionEvents.length > 0 ? sessionEvents[0].message : 'Critical behavioural anomaly detected';
+      navigate('/reauth', { state: { returnPath: '/dashboard', reason: reason } });
+    }
+  }, [riskLevel, sessionEvents, navigate]);
 
   // Update chart live
   useEffect(() => {
@@ -257,6 +268,16 @@ const DashboardPage = () => {
             </div>
           </GlassCard>
         </div>
+        
+        {/* ML Engine Anomaly Toasts */}
+        {sessionEvents && sessionEvents.length > 0 && (
+          <ToastNotification 
+             show={true}
+             type="danger"
+             message={sessionEvents[0].message}
+             onClose={() => {}}
+          />
+        )}
       </main>
     </div>
   );
