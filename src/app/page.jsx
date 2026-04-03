@@ -254,10 +254,19 @@ const LandingPage = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#020617] text-white overflow-x-hidden">
-      <div className="fixed inset-0 z-0 opacity-90 blur-[120px] pointer-events-none scale-150">
-        <DarkVeil speed={0.5} noiseIntensity={0.02} scanlineIntensity={0.1} warpAmount={0.25} />
+    <div className="min-h-screen text-white overflow-x-hidden relative">
+      <div style={{ width: '100%', height: '100vh', position: 'fixed', top: 0, left: 0, zIndex: 0 }}>
+        <DarkVeil
+          hueShift={0}
+          noiseIntensity={0}
+          scanlineIntensity={0}
+          speed={0.5}
+          scanlineFrequency={0}
+          warpAmount={0}
+        />
       </div>
+
+      <div className="relative z-10 w-full h-full">
 
 
 
@@ -592,6 +601,7 @@ const LandingPage = () => {
         </div>
       </footer>
 
+      </div>
     </div>
   );
 };
