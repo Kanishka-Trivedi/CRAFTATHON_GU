@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }) => {
   const [sessionEvents, setSessionEvents] = useState([]);
   const [keystrokes, setKeystrokes] = useState([]);
   
-  // Restore user session on reload if token exists
+  // Restore user session on reload (Checks backend for real cookie)
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
           setUser(response.data.user);
         }
       } catch (error) {
-        // Silently fail if not logged in
+        // Not logged in yet
       } finally {
         setLoading(false);
       }
@@ -63,7 +63,7 @@ export const AuthProvider = ({ children }) => {
   const lastMousePos = useRef({ x: null, y: null, time: Date.now() });
   const lastScrollTime = useRef(Date.now());
 
-  // 1. EVENT LISTENERS
+  // 1. EVENT LISTENERS (Behavioural Core)
   useEffect(() => {
     const handleKeyDown = (e) => {
       const now = Date.now();
@@ -81,8 +81,7 @@ export const AuthProvider = ({ children }) => {
       
       setKeystrokes(prev => {
         const updatedKeys = [...prev, { key: e.key, flightTime, timestamp: now }];
-        if (updatedKeys.length > 50) return updatedKeys.slice(-50);
-        return updatedKeys;
+        return updatedKeys.length > 50 ? updatedKeys.slice(-50) : updatedKeys;
       });
     };
 
@@ -126,10 +125,12 @@ export const AuthProvider = ({ children }) => {
     };
 
     const handleClick = (e) => {
+        const now = Date.now();
         const rect = e.target.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
-        metricsBuffer.current.clickDeviations.push(Math.sqrt(Math.pow(e.clientX - centerX, 2) + Math.pow(e.clientY - centerY, 2)));
+        const dist = Math.sqrt(Math.pow(e.clientX - centerX, 2) + Math.pow(e.clientY - centerY, 2));
+        metricsBuffer.current.clickDeviations.push(dist);
         lastActionTime.current = now;
     };
 
@@ -148,7 +149,7 @@ export const AuthProvider = ({ children }) => {
     };
   }, [user]);
 
-  // 2. INTERVAL EVALUATION (Every 5 seconds)
+  // 2. ML ENGINE EVALUATION (Every 5 seconds)
   useEffect(() => {
     let interval;
     if (user) {
@@ -196,7 +197,7 @@ export const AuthProvider = ({ children }) => {
                     }
                 }
             } catch (error) {
-                // Fallback simulation if ML engine is off
+                // Drift Simulation (Demo Fallback)
                 setTrustScore(prev => {
                     const drift = (Math.random() - 0.48) * 0.04;
                     return parseFloat(Math.max(0, Math.min(1, prev + drift)).toFixed(2));
