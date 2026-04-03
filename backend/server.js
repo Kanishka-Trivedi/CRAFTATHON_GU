@@ -20,6 +20,8 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import authRoutes from './routes/auth.js';
+import transferRoutes from './routes/transfer.js';
+import behavioralRoutes from './routes/behavioral.js';
 
 const app = express();
 
@@ -56,6 +58,8 @@ const connectDB = async () => {
 };
 
 app.use('/api/auth', authRoutes);
+app.use('/api/transfer', transferRoutes);
+app.use('/api/behavioral', behavioralRoutes);
 
 app.get('/', (req, res) => {
   res.send('BehaveGuard API is running...');

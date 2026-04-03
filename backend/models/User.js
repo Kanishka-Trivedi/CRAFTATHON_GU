@@ -11,6 +11,10 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
+  phone: {
+    type: String, // E.164 format (+91...)
+    required: true,
+  },
   password: {
     type: String,
     required: true,
@@ -34,6 +38,12 @@ const userSchema = new mongoose.Schema({
   trustScore: {
     type: Number,
     default: 1.0, // Start users at a perfect 1.0 Trust Score
+  },
+  behavioralBaseline: {
+    typingSpeedAvg: { type: Number, default: 6 }, // Realistic default
+    scrollSpeedAvg: { type: Number, default: 200 },
+    mouseVelocityAvg: { type: Number, default: 350 },
+    sessionCount: { type: Number, default: 0 },
   },
   createdAt: {
     type: Date,

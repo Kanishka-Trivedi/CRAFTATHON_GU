@@ -1,418 +1,80 @@
-// "use client";
-// import React, { useState, useEffect } from 'react';
-// import { clsx } from 'clsx';
-// import { motion, AnimatePresence } from 'framer-motion';
-// import {
-//   LayoutDashboard, CreditCard, Send, User, Settings as SettingsIcon,
-//   ArrowUpRight, ArrowDownRight, Shield, ShieldCheck, Activity, Search, X
-// } from 'lucide-react';
-// import { useAuth } from '../../context/AuthContext';
-// import { dummyTransactions } from '../../data/dummy';
-// import { GlassCard, TrustBadge, NavBar, ToastNotification } from '../../components/Shared';
-// import BankCard from '../../components/BankCard';
-// import { Line } from 'react-chartjs-2';
-// import {
-//   Chart as ChartJS,
-//   CategoryScale,
-//   LinearScale,
-//   PointElement,
-//   LineElement,
-//   Title,
-//   Tooltip,
-//   Legend,
-//   Filler
-// } from 'chart.js';
-
-// import { useRouter } from 'next/navigation';
-
-// ChartJS.register(
-//   CategoryScale,
-//   LinearScale,
-//   PointElement,
-//   LineElement,
-//   Title,
-//   Tooltip,
-//   Legend,
-//   Filler
-// );
-
-// const DashboardPage = () => {
-//   const { user, trustScore, riskLevel, sessionEvents } = useAuth();
-//   const router = useRouter();
-//   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
-//   const [showAnomalyModal, setShowAnomalyModal] = useState(false);
-//   const [searchQuery, setSearchQuery] = useState('');
-
-//   // Real-time transaction filtering
-//   const recentTransactions = dummyTransactions.filter(tx => {
-//     if (!searchQuery.trim()) return true;
-//     const q = searchQuery.toLowerCase();
-//     return (
-//       tx.merchant.toLowerCase().includes(q) ||
-//       tx.category.toLowerCase().includes(q) ||
-//       String(Math.abs(tx.amount)).includes(q)
-//     );
-//   }).slice(0, 5);
-
-//   const [chartData, setChartData] = useState({
-//     labels: Array.from({ length: 30 }, (_, i) => i),
-//     datasets: [
-//       {
-//         label: 'Trust Score',
-//         data: Array.from({ length: 30 }, () => 0.8 + Math.random() * 0.15),
-//         fill: true,
-//         borderColor: '#10B981',
-//         backgroundColor: 'rgba(16, 185, 129, 0.1)',
-//         tension: 0.4,
-//         pointRadius: 0,
-//         borderWidth: 2,
-//       },
-//     ],
-//   });
-
-//   // Security Freeze active defense trigger!
-//   useEffect(() => {
-//     if (riskLevel === 'danger') {
-//       setShowAnomalyModal(true);
-//       const reason = sessionEvents.length > 0 ? sessionEvents[0].message : 'Critical behavioural anomaly detected';
-
-//       // Wait 3 seconds for the user to see the "Freeze" modal before redirecting
-//       const timer = setTimeout(() => {
-//         router.push('/reauth', { state: { returnPath: '/dashboard', reason: reason } });
-//       }, 3000);
-
-//       return () => clearTimeout(timer);
-//     }
-//   }, [riskLevel, sessionEvents, router]);
-
-//   // Update chart live
-//   useEffect(() => {
-//     const interval = setInterval(() => {
-//       setChartData(prev => {
-//         const newData = [...prev.datasets[0].data.slice(1), trustScore];
-//         const color = trustScore > 0.6 ? '#10B981' : (trustScore > 0.35 ? '#F59E0B' : '#EF4444');
-//         const bgColor = trustScore > 0.6 ? 'rgba(16, 185, 129, 0.1)' : (trustScore > 0.35 ? 'rgba(245, 158, 11, 0.1)' : 'rgba(239, 68, 68, 0.1)');
-
-//         return {
-//           ...prev,
-//           datasets: [{
-//             ...prev.datasets[0],
-//             data: newData,
-//             borderColor: color,
-//             backgroundColor: bgColor
-//           }]
-//         };
-//       });
-//     }, 3000);
-//     return () => clearInterval(interval);
-//   }, [trustScore]);
-
-//   const chartOptions = {
-//     responsive: true,
-//     maintainAspectRatio: false,
-//     scales: {
-//       y: { min: 0, max: 1, grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#8B8DB8' } },
-//       x: { display: false }
-//     },
-//     plugins: { legend: { display: false }, tooltip: { enabled: true } },
-//     animation: { duration: 1000 }
-//   };
-
-//   return (
-//     <div className="min-h-screen bg-bg-deep text-white relative">
-//       <div className="bg-mesh">
-//         <div className="orb-1"></div>
-//         <div className="orb-2"></div>
-//         <div className="orb-3"></div>
-//       </div>
-
-//       <NavBar isCollapsed={isSidebarCollapsed} setCollapsed={setSidebarCollapsed} />
-
-//       <main className={clsx(
-//         "transition-all duration-300 p-8 pt-6 min-h-screen",
-//         isSidebarCollapsed ? "md:ml-20" : "md:ml-64"
-//       )}>
-//         {/* Header */}
-//         <header className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-6">
-//           <div>
-//             <motion.h1
-//               initial={{ opacity: 0, y: -20 }}
-//               animate={{ opacity: 1, y: 0 }}
-//               className="font-sora font-extrabold text-3xl md:text-4xl mb-2"
-//             >
-//               Good morning, {user?.name ? (user.name.includes('.') || user.name.includes('_') ? user.name.split(/[._]/)[0] : user.name.split(' ')[0]) : 'User'}
-//             </motion.h1>
-//             <div className="flex items-center space-x-2 text-secondary font-medium">
-//               <ShieldCheck size={16} className="text-trust-safe" />
-//               <span>Behavioural engine active · Continuous protection enabled</span>
-//             </div>
-//           </div>
-
-//           <div className="flex items-center space-x-4">
-//             <div className="hidden lg:flex items-center bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-secondary focus-within:border-accent transition-all">
-//               <Search size={18} className="mr-3 flex-shrink-0" />
-//               <input
-//                 type="text"
-//                 placeholder="Search transactions..."
-//                 value={searchQuery}
-//                 onChange={(e) => setSearchQuery(e.target.value)}
-//                 className="bg-transparent border-none outline-none text-sm w-48 text-white placeholder:text-secondary"
-//               />
-//               {searchQuery && (
-//                 <button onClick={() => setSearchQuery('')} className="ml-2 hover:text-white transition-colors">
-//                   <X size={14} />
-//                 </button>
-//               )}
-//             </div>
-//             <TrustBadge score={trustScore} />
-//           </div>
-//         </header>
-
-//         {/* Stats Row */}
-//         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-//           <GlassCard className="flex flex-col justify-between hover:bg-white/[0.05] transition-all cursor-pointer">
-//             <span className="text-xs font-bold text-secondary uppercase tracking-widest mb-4">Total Balance</span>
-//             <div className="flex items-end justify-between">
-//               <h2 className="font-sora font-bold text-2xl">₹1,24,500</h2>
-//               <span className="text-[10px] bg-trust-safe/10 text-trust-safe px-2 py-1 rounded font-bold">+12%</span>
-//             </div>
-//           </GlassCard>
-//           <GlassCard className="flex flex-col justify-between hover:bg-white/[0.05] transition-all cursor-pointer">
-//             <span className="text-xs font-bold text-secondary uppercase tracking-widest mb-4">Today's Spend</span>
-//             <div className="flex items-end justify-between">
-//               <h2 className="font-sora font-bold text-2xl">₹3,240</h2>
-//               <span className="text-[10px] bg-trust-danger/10 text-trust-danger px-2 py-1 rounded font-bold">-4%</span>
-//             </div>
-//           </GlassCard>
-//           <GlassCard className="flex flex-col justify-between hover:bg-white/[0.05] transition-all cursor-pointer">
-//             <span className="text-xs font-bold text-secondary uppercase tracking-widest mb-4">Trust Score</span>
-//             <div className="flex items-end justify-between">
-//               <motion.h2
-//                 key={trustScore}
-//                 initial={{ scale: 1.1, color: '#6C63FF' }}
-//                 animate={{ scale: 1, color: '#fff' }}
-//                 className="font-sora font-bold text-2xl"
-//               >
-//                 {Math.round(trustScore * 100)}%
-//               </motion.h2>
-//               <Activity className="text-accent" size={18} />
-//             </div>
-//           </GlassCard>
-//           <GlassCard className="flex flex-col justify-between hover:bg-white/[0.05] transition-all cursor-pointer">
-//             <span className="text-xs font-bold text-secondary uppercase tracking-widest mb-4">Sessions Protected</span>
-//             <div className="flex items-end justify-between">
-//               <h2 className="font-sora font-bold text-2xl">47</h2>
-//               <Shield className="text-accent-teal" size={18} />
-//             </div>
-//           </GlassCard>
-//         </div>
-
-//         {/* Chart & Cards Section */}
-//         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 mb-10">
-//           <GlassCard className="lg:col-span-2 min-h-[400px] flex flex-col">
-//             <div className="flex items-center justify-between mb-8">
-//               <div>
-//                 <h3 className="font-sora font-bold text-xl mb-1">Live Trust Monitoring</h3>
-//                 <p className="text-sm text-secondary">Real-time session behaviour analysis</p>
-//               </div>
-//               <div className="flex items-center space-x-2 text-xs font-bold text-secondary uppercase tracking-widest bg-white/5 py-1 px-3 rounded-lg border border-white/5">
-//                 <span className="w-2 h-2 rounded-full bg-trust-safe animate-pulse"></span>
-//                 <span>Live Stream</span>
-//               </div>
-//             </div>
-//             <div className="flex-1 w-full mt-4">
-//               <Line data={chartData} options={chartOptions} />
-//             </div>
-//           </GlassCard>
-
-//           <div className="flex flex-col space-y-6">
-//             <div className="relative h-[220px] mb-12">
-//               <BankCard cardData={user} className="absolute top-0 left-0 z-20" />
-//               <BankCard cardData={{ ...user, accountNo: '•••• •••• •••• 9210' }} variant="mastercard" className="absolute top-10 left-6 z-10 opacity-60 scale-95" />
-//             </div>
-
-//             <GlassCard className="flex-1 border-accent/20 bg-accent/5">
-//               <h4 className="font-sora font-bold mb-3">Security Insights</h4>
-//               <p className="text-sm text-secondary mb-4 leading-relaxed">
-//                 Your typing rhythm is consistent with your 30-day baseline. Verification will be waived for transfers under ₹1,0,000.
-//               </p>
-//               <button className="text-xs font-bold text-accent uppercase tracking-widest hover:underline">View Deep Profile</button>
-//             </GlassCard>
-//           </div>
-//         </div>
-
-//         {/* Transactions List */}
-//         <div className="grid grid-cols-1 gap-10">
-//           <GlassCard>
-//             <div className="flex items-center justify-between mb-8">
-//               <div>
-//                 <h3 className="font-sora font-bold text-xl">Recent Transactions</h3>
-//                 {searchQuery && (
-//                   <p className="text-xs text-secondary mt-1">
-//                     {recentTransactions.length > 0
-//                       ? `${recentTransactions.length} results for "${searchQuery}"`
-//                       : `No results for "${searchQuery}"`}
-//                   </p>
-//                 )}
-//               </div>
-//               <button onClick={() => router.push('/transactions')} className="text-sm font-bold text-accent hover:underline">View All History</button>
-//             </div>
-//             <div className="space-y-4 overflow-x-auto">
-//               <table className="w-full text-left min-w-[600px]">
-//                 <thead>
-//                   <tr className="border-b border-white/5 text-secondary text-xs uppercase tracking-widest font-bold">
-//                     <th className="pb-4 px-2">Merchant</th>
-//                     <th className="pb-4">Category</th>
-//                     <th className="pb-4 text-right">Amount</th>
-//                     <th className="pb-4 text-right px-2">Score</th>
-//                   </tr>
-//                 </thead>
-//                 <tbody className="divide-y divide-white/5">
-//                   {recentTransactions.length === 0 ? (
-//                     <tr>
-//                       <td colSpan={4} className="py-12 text-center text-secondary">
-//                         No transactions found matching your search.
-//                       </td>
-//                     </tr>
-//                   ) : recentTransactions.map((tx) => (
-//                     <tr key={tx.id} className="group hover:bg-white/[0.02] transition-all cursor-pointer">
-//                       <td className="py-4 px-2">
-//                         <div className="flex items-center space-x-4">
-//                           <div className={clsx("w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white", {
-//                             "bg-accent-teal": tx.category === "Food",
-//                             "bg-accent": tx.category === "Shopping",
-//                             "bg-trust-watch": tx.category === "Transfer",
-//                             "bg-accent-violet": tx.category === "Entertainment",
-//                             "bg-trust-safe": tx.category === "Income",
-//                             "bg-trust-danger": tx.category === "Bills"
-//                           })}>
-//                             {tx.merchant[0]}
-//                           </div>
-//                           <div>
-//                             <p className="font-bold text-primary">{tx.merchant}</p>
-//                             <p className="text-xs text-secondary">{tx.timestamp}</p>
-//                           </div>
-//                         </div>
-//                       </td>
-//                       <td className="py-4">
-//                         <span className="text-xs font-bold px-2 py-1 rounded bg-white/5 border border-white/5 text-secondary">{tx.category}</span>
-//                       </td>
-//                       <td className="py-4 text-right">
-//                         <p className={clsx("font-bold", tx.amount > 0 ? "text-trust-safe" : "text-white")}>
-//                           {tx.amount > 0 ? `+ ₹${tx.amount.toLocaleString()}` : `- ₹${Math.abs(tx.amount).toLocaleString()}`}
-//                         </p>
-//                         <p className="text-[10px] text-secondary">Completed</p>
-//                       </td>
-//                       <td className="py-4 text-right px-2">
-//                         <div className="flex items-center justify-end space-x-1.5">
-//                           <div className={clsx("w-1.5 h-1.5 rounded-full", tx.score > 0.9 ? "bg-trust-safe" : "bg-trust-watch")}></div>
-//                           <span className="text-xs font-bold text-secondary">{Math.round(tx.score * 100)}%</span>
-//                         </div>
-//                       </td>
-//                     </tr>
-//                   ))}
-//                 </tbody>
-//               </table>
-//             </div>
-//           </GlassCard>
-//         </div>
-
-//         {/* ML Engine Anomaly Toasts */}
-//         {sessionEvents && sessionEvents.length > 0 && !showAnomalyModal && (
-//           <ToastNotification
-//             show={true}
-//             type="danger"
-//             message={sessionEvents[0].message}
-//             onClose={() => { }}
-//           />
-//         )}
-
-//         {/* Anomaly Freeze Modal */}
-//         <AnimatePresence>
-//           {showAnomalyModal && (
-//             <motion.div
-//               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-//               className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
-//             >
-//               <motion.div
-//                 initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }}
-//                 className="bg-[#1C1D2A] border border-trust-danger/50 p-8 rounded-2xl max-w-md w-full text-center relative overflow-hidden"
-//               >
-//                 <div className="absolute top-0 left-0 w-full h-1 bg-trust-danger animate-pulse"></div>
-//                 <Shield className="w-16 h-16 text-trust-danger mx-auto mb-4" />
-//                 <h3 className="text-2xl font-sora font-bold text-white mb-2">Security Freeze Initiated</h3>
-//                 <p className="text-[#8B8DB8] mb-6 leading-relaxed">
-//                   Your recent typing speed and mouse behavior deviates drastically from your normal sessions.
-//                   Redirecting to identity verification...
-//                 </p>
-//                 <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden">
-//                   <motion.div
-//                     initial={{ width: "0%" }} animate={{ width: "100%" }} transition={{ duration: 3, ease: "linear" }}
-//                     className="h-full bg-trust-danger"
-//                   ></motion.div>
-//                 </div>
-//               </motion.div>
-//             </motion.div>
-//           )}
-//         </AnimatePresence>
-//       </main>
-//     </div>
-//   );
-// };
-
-// export default DashboardPage;
-
-
-
-
-
-
-
-
-
 "use client";
 import React, { useState, useEffect, useRef } from 'react';
 import { clsx } from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  LayoutDashboard, CreditCard, Send, User, Settings as SettingsIcon,
-  ArrowUpRight, ArrowDownRight, Shield, ShieldCheck, Activity, Search, X
+  Shield, ShieldCheck, Activity, Search, X,
+  AlertCircle, ArrowRight, Zap, Lock, TrendingUp, TrendingDown
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { dummyTransactions } from '../../data/dummy';
-import { GlassCard, TrustBadge, NavBar, ToastNotification } from '../../components/Shared';
+import { GlassCard, TrustBadge, NavBar } from '../../components/Shared';
 import BankCard from '../../components/BankCard';
 import { Line } from 'react-chartjs-2';
+import axios from 'axios';
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
+  Chart as ChartJS, CategoryScale, LinearScale, PointElement,
+  LineElement, Title, Tooltip, Legend, Filler
 } from 'chart.js';
-
 import { useRouter } from 'next/navigation';
-import useKeystrokeStream from '../../hooks/useKeystrokeStream';
 import { GlobalSpotlight } from '../../components/MagicSpotlight';
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
+
+// ── Micro-components ─────────────────────────────────────────────────────────
+const RiskPill = ({ riskLevel, isWarmingUp }) => {
+  if (isWarmingUp) return (
+    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/5 text-white/30">
+      <span className="w-1.5 h-1.5 rounded-full bg-white/20 animate-pulse" />
+      Calibrating
+    </span>
+  );
+
+  const map = {
+    safe: { label: 'All Clear', bg: 'bg-emerald-500/15', text: 'text-emerald-400', dot: 'bg-emerald-400' },
+    watch: { label: 'Monitoring', bg: 'bg-amber-500/15', text: 'text-amber-400', dot: 'bg-amber-400' },
+    danger: { label: 'Threat', bg: 'bg-red-500/15', text: 'text-red-400', dot: 'bg-red-400' },
+  };
+  const s = map[riskLevel] || map.safe;
+  return (
+    <span className={clsx('inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest', s.bg, s.text)}>
+      <span className={clsx('w-1.5 h-1.5 rounded-full animate-pulse', s.dot)} />
+      {s.label}
+    </span>
+  );
+};
+
+const StatCard = ({ label, children, className }) => (
+  <GlassCard className={clsx('p-6 flex flex-col justify-between hover:bg-white/[0.04] transition-all duration-300', className)}>
+    <span className="text-[9px] font-black text-white/30 uppercase tracking-[0.25em] mb-5">{label}</span>
+    {children}
+  </GlassCard>
 );
 
+// Pulsing dots shown while calibrating
+const CalibrationDots = () => (
+  <div className="flex flex-col items-center justify-center gap-2 py-1">
+    <div className="flex gap-1.5">
+      {[0, 1, 2].map(i => (
+        <motion.div
+          key={i}
+          className="w-2 h-2 rounded-full bg-white/20"
+          animate={{ opacity: [0.2, 1, 0.2], scale: [0.8, 1.1, 0.8] }}
+          transition={{ duration: 1.4, repeat: Infinity, delay: i * 0.22 }}
+        />
+      ))}
+    </div>
+    <span className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em]">
+      Calibrating…
+    </span>
+  </div>
+);
+
+// ── Main Dashboard ────────────────────────────────────────────────────────────
+
 const DashboardPage = () => {
-  const { user, trustScore, riskLevel, sessionEvents } = useAuth();
+  const { user, trustScore, riskLevel, sessionEvents, isWarmingUp, liveMetrics } = useAuth();
   const router = useRouter();
+
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [warning, setWarning] = useState(null);
@@ -420,541 +82,693 @@ const DashboardPage = () => {
   const [showAnomalyModal, setShowAnomalyModal] = useState(false);
   const [pinInput, setPinInput] = useState(['', '', '', '', '', '']);
   const [pinError, setPinError] = useState('');
-  const freezeStartedRef = useRef(false);
+  const [dbData, setDbData] = useState({ balance: 0, history: [] });
+  const [todaySpend, setTodaySpend] = useState(0);
+
   const pinLockActive = useRef(false);
   const entryTimeRef = useRef(Date.now());
+  const lastWarningTime = useRef(0);
   const gridRef = useRef(null);
 
-  // Real-time transaction filtering
-  const recentTransactions = dummyTransactions.filter(tx => {
+  // ── Fetch ledger ──────────────────────────────────────────────────────────
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await axios.get('http://localhost:5000/api/transfer/history', { withCredentials: true });
+        if (res.data.success) {
+          setDbData({ balance: res.data.balance, history: res.data.history });
+          const today = new Date().toDateString();
+          const currentUserId = user?._id || user?.id;
+          const spend = res.data.history
+            .filter(tx => tx.sender?._id === currentUserId && new Date(tx.timestamp).toDateString() === today)
+            .reduce((acc, curr) => acc + curr.amount, 0);
+          setTodaySpend(spend);
+        }
+      } catch { console.error('Ledger sync failed.'); }
+    };
+    if (user) fetchData();
+  }, [user]);
+
+  // ── Filtered transactions ─────────────────────────────────────────────────
+  const recentTransactions = dbData.history.filter(tx => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
     return (
-      tx.merchant.toLowerCase().includes(q) ||
-      tx.category.toLowerCase().includes(q) ||
-      String(Math.abs(tx.amount)).includes(q)
+      tx.sender?.name?.toLowerCase().includes(q) ||
+      tx.receiver?.name?.toLowerCase().includes(q) ||
+      tx.note?.toLowerCase().includes(q) ||
+      String(tx.amount).includes(q)
     );
-  }).slice(0, 5);
+  }).slice(0, 8);
 
+  // ── Live chart — seeded with null so warmup shows flat neutral line ───────
   const [chartData, setChartData] = useState({
-    labels: Array.from({ length: 30 }, (_, i) => i),
-    datasets: [
-      {
-        label: 'Trust Score',
-        data: Array.from({ length: 30 }, () => 0.8 + Math.random() * 0.15),
-        fill: true,
-        borderColor: '#10B981',
-        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-        tension: 0.4,
-        pointRadius: 0,
-        borderWidth: 2,
-      },
-    ],
+    labels: Array.from({ length: 40 }, (_, i) => i),
+    datasets: [{
+      label: 'Trust Score',
+      data: Array.from({ length: 40 }, () => null),   // null = no data yet
+      fill: true,
+      borderColor: '#10B981',
+      backgroundColor: 'rgba(16,185,129,0.08)',
+      tension: 0.5,
+      pointRadius: 0,
+      borderWidth: 2,
+      spanGaps: false,
+    }],
   });
 
-  // Step 1: Trigger "Security Freeze" for 3 seconds when danger is hit (After 10s grace period)
+  // Push every trustScore change immediately into the chart (rolling window 30)
   useEffect(() => {
+    if (isWarmingUp || trustScore === null) return;
+    setChartData(prev => {
+      const newData = [...prev.datasets[0].data.slice(-29), trustScore];
+      const color = trustScore > 0.6 ? '#10B981' : trustScore > 0.4 ? '#F59E0B' : '#EF4444';
+      const bgColor = trustScore > 0.6
+        ? 'rgba(16,185,129,0.08)'
+        : trustScore > 0.4
+          ? 'rgba(245,158,11,0.08)'
+          : 'rgba(239,68,68,0.08)';
+      return {
+        ...prev,
+        datasets: [{ ...prev.datasets[0], data: newData, borderColor: color, backgroundColor: bgColor }]
+      };
+    });
+  }, [trustScore, isWarmingUp]);
+
+  // ── Security — DANGER: respect 5 s warmup + 5 s extra entry grace ────────
+  useEffect(() => {
+    // Don't fire during engine warmup AT ALL
+    if (isWarmingUp) return;
+    // Extra 5 s grace after warmup ends (total ~10 s from login)
     const isGracePeriod = (Date.now() - entryTimeRef.current) < 10000;
-    if (riskLevel === 'danger' && !isGracePeriod) {
-      if (!pinLockActive.current && !freezeStartedRef.current) {
-        freezeStartedRef.current = true;
-        pinLockActive.current = true;
-        setWarning(null);
-        setShowAnomalyModal(true);
-        setTimeout(() => {
-          setShowAnomalyModal(false);
-          setShowPinModal(true);
-        }, 3000);
-      }
-    }
-  }, [riskLevel]);
-
-  // Update chart live
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setChartData(prev => {
-        const newData = [...prev.datasets[0].data.slice(1), trustScore];
-        const color = trustScore > 0.6 ? '#10B981' : (trustScore > 0.35 ? '#F59E0B' : '#EF4444');
-        const bgColor = trustScore > 0.6 ? 'rgba(16, 185, 129, 0.1)' : (trustScore > 0.35 ? 'rgba(245, 158, 11, 0.1)' : 'rgba(239, 68, 68, 0.1)');
-
-        return {
-          ...prev,
-          datasets: [{
-            ...prev.datasets[0],
-            data: newData,
-            borderColor: color,
-            backgroundColor: bgColor,
-            tension: 0.4,
-            pointRadius: 0,
-            borderWidth: 2,
-            fill: true
-          }]
-        };
-      });
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [trustScore]);
-
-  // Start streaming keystroke telemetry to backend
-  const sessionIdRef = useRef(null);
-  if (!sessionIdRef.current && typeof window !== 'undefined') {
-    sessionIdRef.current = (window.crypto?.randomUUID?.() || `session-${Date.now()}`);
-  }
-  useKeystrokeStream({
-    userId: user?._id || user?.id || 'anonymous',
-    sessionId: sessionIdRef.current || 'session-web'
-  });
-
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    scales: {
-      y: { min: 0, max: 1, grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#8B8DB8' } },
-      x: { display: false }
-    },
-    plugins: { legend: { display: false }, tooltip: { enabled: true } },
-    animation: { duration: 1000 }
-  };
-
-  // Step 2: Handle Watch (Yellow) warnings - Shows actual AI anomaly messages
-  const lastWarningTime = useRef(0);
-  useEffect(() => {
-    const now = Date.now();
-    const specificMessage = sessionEvents && sessionEvents.length > 0 ? sessionEvents[0].message : null;
-    const basicMessage = `Caution: Safety score at ${Math.round((trustScore || 0) * 100)}%. Unusual behaviour.`;
-    const messageToShow = specificMessage || basicMessage;
-
-    const isGracePeriod = (Date.now() - entryTimeRef.current) < 10000;
-
-    // Only show if:
-    // 1. It's 'watch' level only
-    // 2. We're not already in PIN mode
-    // 3. We haven't shown this exact message in the last 10 seconds
-    // 4. Grace period is over
-    if (riskLevel === 'watch' && !showPinModal && (now - lastWarningTime.current > 10000) && !isGracePeriod) {
-      setWarning(messageToShow);
-      lastWarningTime.current = now;
-
-      const timer = setTimeout(() => {
-        setWarning(null);
-      }, 3000);
-
-      return () => clearTimeout(timer);
-    }
-
-    if (riskLevel === 'safe') {
+    if (riskLevel === 'danger' && !isGracePeriod && !pinLockActive.current) {
+      pinLockActive.current = true;
       setWarning(null);
+      setShowAnomalyModal(true);
+      setTimeout(() => {
+        setShowAnomalyModal(false);
+        setShowPinModal(true);
+      }, 3000);
     }
-  }, [riskLevel, trustScore, showPinModal, sessionEvents]);
+  }, [riskLevel, isWarmingUp]);
 
+  // ── Security — WATCH banner only <50% score, throttled 45 s ──────────────
+  useEffect(() => {
+    if (isWarmingUp) return;
+    const now = Date.now();
+    if (
+      riskLevel === 'watch' &&
+      trustScore !== null &&
+      trustScore < 0.5 &&
+      !showPinModal &&
+      !showAnomalyModal &&
+      now - lastWarningTime.current > 45000
+    ) {
+      const msg = sessionEvents?.length > 0
+        ? sessionEvents[0].message
+        : `Unusual pattern detected — session health at ${Math.round(trustScore * 100)}%`;
+      setWarning(msg);
+      lastWarningTime.current = now;
+      const t = setTimeout(() => setWarning(null), 4000);
+      return () => clearTimeout(t);
+    }
+    if (riskLevel === 'safe') setWarning(null);
+  }, [riskLevel, trustScore, showPinModal, showAnomalyModal, sessionEvents, isWarmingUp]);
+
+  // ── PIN submit ────────────────────────────────────────────────────────────
   const handlePinSubmit = async () => {
     setPinError('');
     const pin = pinInput.join('');
-    if (pin.length !== 6) {
-      setPinError('Enter the full 6-digit PIN.');
-      return;
-    }
+    if (pin.length !== 6) { setPinError('Enter all 6 digits.'); return; }
     try {
       const res = await fetch('http://localhost:5000/api/auth/verify-pin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ pin })
+        body: JSON.stringify({ pin }),
       });
       const data = await res.json();
       if (!data.success) {
-        // Immediate redirection on PIN failure
-        window.location.href = '/';
+        setPinError(data.message || 'Wrong PIN — redirecting you out…');
+        setTimeout(() => { window.location.href = 'http://localhost:3000'; }, 1500);
       } else {
         setShowPinModal(false);
         setPinInput(['', '', '', '', '', '']);
         setPinError('');
         pinLockActive.current = false;
-        freezeStartedRef.current = false;
       }
-    } catch (err) {
-      // Immediate redirection on connection error
-      window.location.href = '/';
+    } catch {
+      setPinError('Verification node unreachable. Redirecting…');
+      setTimeout(() => { window.location.href = 'http://localhost:3000'; }, 1500);
     }
   };
 
+  // ── Chart options ─────────────────────────────────────────────────────────
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      y: {
+        min: 0, max: 1,
+        grid: { color: 'rgba(255,255,255,0.04)' },
+        ticks: {
+          color: 'rgba(255,255,255,0.2)',
+          font: { size: 10 },
+          callback: v => `${Math.round(v * 100)}%`,
+        },
+      },
+      x: { display: false },
+    },
+    plugins: { legend: { display: false }, tooltip: { enabled: true } },
+    animation: { duration: 800 },
+  };
+
+  const scoreColor =
+    isWarmingUp ? 'rgba(255,255,255,0.15)' :
+      riskLevel === 'safe' ? '#10B981' :
+        riskLevel === 'watch' ? '#F59E0B' : '#EF4444';
+
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-bg-deep text-white relative">
-      <div className="bg-mesh">
-        <div className="orb-1"></div>
-        <div className="orb-2"></div>
-        <div className="orb-3"></div>
+    <div className="min-h-screen bg-bg-deep text-white relative overflow-x-hidden">
+      <div className="bg-mesh pointer-events-none">
+        <div className="orb-1" /><div className="orb-2" /><div className="orb-3" />
       </div>
 
       <NavBar isCollapsed={isSidebarCollapsed} setCollapsed={setSidebarCollapsed} />
 
-      <main ref={gridRef} className={clsx(
-        "transition-all duration-300 p-8 pt-6 min-h-screen bento-section",
-        isSidebarCollapsed ? "md:ml-20" : "md:ml-64"
-      )}>
+      <main
+        ref={gridRef}
+        className={clsx(
+          'transition-all duration-300 p-6 md:p-10 pt-6 min-h-screen max-w-[1440px] mx-auto',
+          isSidebarCollapsed ? 'md:ml-20' : 'md:ml-64'
+        )}
+      >
         <GlobalSpotlight gridRef={gridRef} />
 
-        {/* Top warning banner for alerts (shows AI anomaly details) */}
+        {/* ── Amber warning banner ────────────────────────────────────────── */}
         <AnimatePresence>
-          {warning && !showPinModal && (
+          {warning && !showPinModal && !showAnomalyModal && (
             <motion.div
-              key="warn"
-              initial={{ opacity: 0, y: -20, scale: 0.95 }}
+              key="warn-banner"
+              initial={{ opacity: 0, y: -28, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -20, scale: 0.95 }}
-              className={clsx(
-                "fixed top-6 left-1/2 -translate-x-1/2 z-[70] px-10 py-5 rounded-3xl border shadow-[0_20px_50px_rgba(0,0,0,0.3)] backdrop-blur-2xl text-center max-w-2xl w-[90%] flex items-center justify-center gap-4",
-                riskLevel === 'danger' ? "bg-red-500/30 border-red-400/40 text-red-50" : "bg-amber-500/30 border-amber-400/40 text-amber-50"
-              )}
+              exit={{ opacity: 0, y: -20, scale: 0.96 }}
+              className="fixed top-5 left-1/2 -translate-x-1/2 z-[70] flex items-center gap-3 px-8 py-4 rounded-2xl border border-amber-400/30 bg-amber-500/20 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.4)] max-w-xl w-[92%]"
             >
-              <Shield size={24} className={clsx("animate-pulse", riskLevel === 'danger' ? "text-red-400" : "text-amber-400")} />
-              <span className="font-sora font-semibold text-lg leading-tight">{warning}</span>
+              <AlertCircle size={20} className="text-amber-400 shrink-0 animate-pulse" />
+              <span className="text-amber-100 text-sm font-semibold leading-snug">{warning}</span>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* ── ANOMALY CAUGHT MODAL (shows 3s before PIN prompt) ── */}
+        {/* ── Anomaly modal (3 s countdown) ───────────────────────────────── */}
         <AnimatePresence>
           {showAnomalyModal && (
             <motion.div
-              key="anomaly-modal"
+              key="anomaly"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[90] bg-black/85 backdrop-blur-md flex items-center justify-center p-4"
+              className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-black/80 backdrop-blur-xl"
             >
               <motion.div
-                initial={{ scale: 0.75, y: 50 }}
+                initial={{ scale: 0.72, y: 48 }}
                 animate={{ scale: 1, y: 0 }}
                 exit={{ scale: 0.85, opacity: 0 }}
-                transition={{ type: 'spring', stiffness: 280, damping: 22 }}
-                className="w-full max-w-lg bg-red-950/80 border border-red-500/40 rounded-3xl p-10 shadow-[0_0_100px_rgba(239,68,68,0.4)] text-center"
+                transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+                className="relative w-full max-w-lg rounded-[36px] border-2 border-red-500/50 bg-[#100C1C] p-12 text-center shadow-[0_0_120px_rgba(239,68,68,0.35)] overflow-hidden"
               >
-                {/* Pulsing shield icon */}
+                <div className="absolute inset-0 rounded-[36px] bg-gradient-to-b from-red-500/10 to-transparent pointer-events-none" />
+
                 <motion.div
-                  animate={{ scale: [1, 1.18, 1] }}
-                  transition={{ repeat: Infinity, duration: 0.75, ease: 'easeInOut' }}
-                  className="w-24 h-24 rounded-full bg-red-500/20 border-2 border-red-400/50 flex items-center justify-center mx-auto mb-6"
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ repeat: Infinity, duration: 0.7, ease: 'easeInOut' }}
+                  className="w-24 h-24 rounded-full bg-red-500/15 border-2 border-red-500/40 flex items-center justify-center mx-auto mb-8"
                 >
-                  <Shield size={44} className="text-red-400" />
+                  <Shield size={46} className="text-red-400" />
                 </motion.div>
 
-                <h2 className="font-sora font-extrabold text-3xl text-red-100 mb-3 tracking-tight">
-                  Anomaly Detected
+                <p className="text-[10px] font-black text-red-400/70 uppercase tracking-[0.3em] mb-3">Critical Alert</p>
+                <h2 className="font-sora font-extrabold text-4xl text-white mb-4 leading-tight">
+                  Anomaly<br />Detected
                 </h2>
-
-                <p className="text-red-200/80 text-base leading-relaxed mb-2">
-                  A <span className="font-bold text-red-300">significant behavioural deviation</span> was caught.
-                </p>
-                <p className="text-red-300/70 text-sm leading-relaxed mb-8">
-                  Your typing rhythm or mouse movement pattern differs vastly from your baseline profile.
-                  This session has been paused for your protection.
+                <p className="text-white/50 text-sm leading-relaxed mb-10 max-w-xs mx-auto">
+                  A <span className="text-red-300 font-semibold">significant behavioural deviation</span> was caught —
+                  typing rhythm or mouse pattern differs vastly from your baseline.
+                  Session paused for your protection.
                 </p>
 
-                {/* Countdown progress bar */}
-                <div className="w-full h-1.5 bg-red-900/50 rounded-full overflow-hidden mb-2">
+                <div className="w-full h-[3px] bg-white/10 rounded-full overflow-hidden">
                   <motion.div
-                    className="h-full bg-red-400 rounded-full"
+                    className="h-full bg-gradient-to-r from-red-500 to-red-400 rounded-full"
                     initial={{ width: '100%' }}
                     animate={{ width: '0%' }}
                     transition={{ duration: 3, ease: 'linear' }}
                   />
                 </div>
-                <p className="text-xs text-red-400/60 font-semibold tracking-widest uppercase">
-                  Identity verification opening…
+                <p className="text-[9px] text-red-400/50 font-bold uppercase tracking-[0.25em] mt-3">
+                  Verification opening…
                 </p>
               </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* ── PIN Re-auth Modal ── */}
+        {/* ── PIN modal ────────────────────────────────────────────────────── */}
         <AnimatePresence>
           {showPinModal && (
             <motion.div
-              key="pin-modal"
+              key="pin"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[80] bg-black/70 backdrop-blur-md flex items-center justify-center p-4"
+              className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-black/75 backdrop-blur-lg"
             >
               <motion.div
-                initial={{ scale: 0.95, y: 20 }}
+                initial={{ scale: 0.94, y: 30 }}
                 animate={{ scale: 1, y: 0 }}
-                className="w-full max-w-md bg-navy-900 border border-white/10 rounded-2xl p-8 shadow-2xl"
+                className="w-full max-w-sm bg-[#0E0C1E] border border-white/10 rounded-[32px] p-10 text-center shadow-2xl"
               >
-                <div className="flex items-center justify-center mb-4">
-                  <div className="w-14 h-14 rounded-full bg-red-500/15 border border-red-400/30 flex items-center justify-center">
-                    <Shield size={28} className="text-red-400" />
-                  </div>
+                <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-6">
+                  <Lock size={30} className="text-red-400" />
                 </div>
-                <h3 className="font-sora font-bold text-2xl text-center mb-2">Confirm Your PIN</h3>
-                <p className="text-center text-white/60 mb-6 text-sm leading-relaxed">
-                  We've paused your session because behaviour looks risky.<br />
-                  Enter your <span className="text-white/90 font-semibold">6-digit security PIN</span> to continue.
-                  <br />
-                  <span className="text-red-400/80 text-xs mt-1 block">Wrong PIN will end your session.</span>
+                <h3 className="font-sora font-bold text-2xl mb-2">Confirm Your PIN</h3>
+                <p className="text-white/40 text-xs leading-relaxed mb-1">
+                  Enter your <span className="text-white/80 font-semibold">6-digit security PIN</span> to resume.
                 </p>
-                <div className="flex justify-center gap-3 mb-4">
+                <p className="text-red-400/70 text-[10px] font-bold uppercase tracking-widest mb-8">
+                  Wrong PIN ends your session
+                </p>
+
+                <div className="flex justify-center gap-2 mb-5">
                   {pinInput.map((val, idx) => (
                     <input
                       key={idx}
-                      value={val}
-                      onChange={(e) => {
-                        const v = e.target.value.replace(/\D/g, '').slice(0, 1);
-                        const next = [...pinInput];
-                        next[idx] = v;
-                        setPinInput(next);
-                        if (v && idx < 5) document.getElementById(`pin-${idx + 1}`)?.focus();
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Backspace' && !pinInput[idx] && idx > 0) {
-                          document.getElementById(`pin-${idx - 1}`)?.focus();
-                        }
-                      }}
                       id={`pin-${idx}`}
-                      className="w-12 h-14 bg-white/5 border border-white/10 rounded-xl text-center text-2xl font-bold focus:ring-2 focus:ring-electric outline-none transition-all"
+                      value={val}
                       inputMode="numeric"
                       maxLength={1}
+                      onChange={e => {
+                        const v = e.target.value.replace(/\D/g, '').slice(0, 1);
+                        const next = [...pinInput]; next[idx] = v; setPinInput(next);
+                        if (v && idx < 5) document.getElementById(`pin-${idx + 1}`)?.focus();
+                      }}
+                      onKeyDown={e => {
+                        if (e.key === 'Backspace' && !pinInput[idx] && idx > 0)
+                          document.getElementById(`pin-${idx - 1}`)?.focus();
+                      }}
+                      className="w-11 h-13 bg-white/5 border border-white/10 rounded-xl text-center text-xl font-bold focus:border-accent focus:ring-1 focus:ring-accent outline-none transition-all"
                     />
                   ))}
                 </div>
-                {pinError && (
-                  <motion.p
-                    initial={{ opacity: 0, y: -4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-center text-red-400 text-sm mb-3 font-medium"
-                  >
-                    {pinError}
-                  </motion.p>
-                )}
+
+                <AnimatePresence>
+                  {pinError && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      className="text-red-400 text-xs font-semibold mb-4"
+                    >
+                      {pinError}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
+
                 <button
                   onClick={handlePinSubmit}
-                  className="w-full py-4 rounded-xl bg-gradient-to-r from-electric to-electric-dim text-white font-bold hover:shadow-[0_0_20px_rgba(79,110,247,0.4)] transition-all"
+                  className="w-full py-4 rounded-2xl bg-gradient-to-r from-accent to-accent/70 text-white font-black text-xs uppercase tracking-widest hover:shadow-[0_0_30px_rgba(99,102,241,0.4)] transition-all duration-300"
                 >
-                  Verify &amp; Continue
+                  Verify &amp; Resume
                 </button>
               </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Header */}
-        <header className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-6">
+        {/* ── Page Header ──────────────────────────────────────────────────── */}
+        <motion.header
+          initial={{ opacity: 0, y: -16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-6"
+        >
           <div>
-            <motion.h1
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-3xl md:text-5xl mb-2 tracking-tight leading-[0.9]"
-            >
-              <span className="font-heading font-black">Good morning,</span>
-              <span className="font-sora font-extrabold ml-3 whitespace-nowrap">
-                {user?.name ? (user.name.includes('.') || user.name.includes('_') ? user.name.split(/[._]/)[0] : user.name.split(' ')[0]) : 'User'}
-              </span>
-            </motion.h1>
-            <div className="flex items-center space-x-2 text-secondary font-medium">
-              <ShieldCheck size={16} className="text-trust-safe" />
-              <span>Behavioural engine active · Continuous protection enabled</span>
+            <h1 className="font-sora font-extrabold text-4xl md:text-5xl tracking-tighter leading-none mb-3">
+              Hello, {user?.name?.split(' ')[0] ?? 'User'}
+            </h1>
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2 text-white/40 text-[10px] font-black uppercase tracking-widest">
+                <ShieldCheck size={13} className="text-emerald-400" />
+                Active Guard · Real-time session protection
+              </div>
+              <RiskPill riskLevel={riskLevel} isWarmingUp={isWarmingUp} />
             </div>
           </div>
 
-          <div className="flex items-center space-x-4">
-            <div className="hidden lg:flex items-center bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-secondary focus-within:border-accent transition-all">
-              <Search size={18} className="mr-3 flex-shrink-0" />
+          <div className="flex items-center gap-4">
+            <div className="hidden lg:flex items-center bg-white/[0.04] border border-white/[0.08] rounded-2xl px-4 py-2.5 focus-within:border-accent/50 transition-all">
+              <Search size={15} className="mr-3 text-white/30" />
               <input
                 type="text"
-                placeholder="Search transactions..."
+                placeholder="Search ledger…"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-transparent border-none outline-none text-sm w-80 text-white placeholder:text-secondary"
+                onChange={e => setSearchQuery(e.target.value)}
+                className="bg-transparent border-none outline-none text-sm w-44 text-white placeholder:text-white/25"
               />
               {searchQuery && (
-                <button onClick={() => setSearchQuery('')} className="ml-2 hover:text-white transition-colors">
-                  <X size={14} />
+                <button onClick={() => setSearchQuery('')} className="ml-2 text-white/30 hover:text-white transition-colors">
+                  <X size={12} />
                 </button>
               )}
             </div>
+            <TrustBadge score={trustScore} />
           </div>
-        </header>
+        </motion.header>
 
-        {/* Stats Row */}
+        {/* ── Behavior Live-Stream Stats Card (New) ────────────────────────── */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-          <GlassCard className="flex flex-col justify-between hover:bg-white/[0.05] transition-all cursor-pointer magic-bento-card magic-bento-card--border-glow">
-            <span className="text-xs font-bold text-secondary uppercase tracking-widest mb-4">Total Balance</span>
+          <StatCard label="Typing Velocity">
             <div className="flex items-end justify-between">
-              <h2 className="font-sora font-bold text-2xl">₹1,24,500</h2>
-              <span className="text-[10px] bg-trust-safe/10 text-trust-safe px-2 py-1 rounded font-bold">+12%</span>
+              <h2 className="font-sora font-black text-2xl">{liveMetrics.typingSpeed?.toFixed(2)} <span className="text-[10px] text-white/20">cps</span></h2>
+              <Zap size={14} className="text-amber-400 mb-1" />
             </div>
-          </GlassCard>
+          </StatCard>
 
-          <GlassCard className="flex flex-col justify-between hover:bg-white/[0.05] transition-all cursor-pointer magic-bento-card magic-bento-card--border-glow">
-            <span className="text-xs font-bold text-secondary uppercase tracking-widest mb-4">Today's Spend</span>
+          <StatCard label="Keyboard Hold Avg">
             <div className="flex items-end justify-between">
-              <h2 className="font-sora font-bold text-2xl">₹3,240</h2>
-              <span className="text-[10px] bg-trust-danger/10 text-trust-danger px-2 py-1 rounded font-bold">-4%</span>
+              <h2 className="font-sora font-black text-2xl">{liveMetrics.keyHold?.toFixed(0)} <span className="text-[10px] text-white/20">ms</span></h2>
+              <Lock size={14} className="text-trust-safe mb-1" />
             </div>
-          </GlassCard>
+          </StatCard>
 
-          {/* Safety Score card — text centered + green when safe */}
-          <GlassCard className="flex flex-col justify-between hover:bg-white/[0.05] transition-all cursor-pointer magic-bento-card magic-bento-card--border-glow">
-            <span className="text-xs font-bold text-secondary uppercase tracking-widest mb-4">Safety Score</span>
-            <div className={clsx(
-              "flex items-end",
-              riskLevel === 'safe' ? "justify-center" : "justify-between"
-            )}>
-              <motion.h2
-                key={trustScore}
-                initial={{ scale: 1.1 }}
-                animate={{
-                  scale: 1,
-                  color: riskLevel === 'safe'
-                    ? '#10B981'
-                    : riskLevel === 'watch'
-                      ? '#F59E0B'
-                      : '#EF4444'
-                }}
-                className="font-sora font-bold text-2xl"
-              >
-                {Math.round(trustScore * 100)}%
-              </motion.h2>
-              {riskLevel !== 'safe' && (
-                <Activity
-                  className={clsx(
-                    riskLevel === 'watch' ? "text-trust-watch" : "text-trust-danger"
-                  )}
-                  size={18}
-                />
-              )}
-            </div>
-            {/* Green mode label */}
-            {riskLevel === 'safe' && (
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-center text-xs font-semibold text-trust-safe/70 mt-1 tracking-wide"
-              >
-                All Clear
-              </motion.p>
-            )}
-          </GlassCard>
-
-          <GlassCard className="flex flex-col justify-between hover:bg-white/[0.05] transition-all cursor-pointer magic-bento-card magic-bento-card--border-glow">
-            <span className="text-xs font-bold text-secondary uppercase tracking-widest mb-4">Sessions Protected</span>
+          <StatCard label="Live Mouse Flow">
             <div className="flex items-end justify-between">
-              <h2 className="font-sora font-bold text-2xl">47</h2>
-              <Shield className="text-accent-teal" size={18} />
+              <h2 className="font-sora font-black text-2xl">{liveMetrics.mouseSpeed?.toFixed(0)} <span className="text-[10px] text-white/20">px/s</span></h2>
+              <TrendingUp size={14} className="text-accent mb-1" />
             </div>
-          </GlassCard>
+          </StatCard>
+
+          <StatCard label="Page Scroll Depth">
+            <div className="flex items-end justify-between">
+              <h2 className="font-sora font-black text-2xl">{liveMetrics.scrollSpeed?.toFixed(0)} <span className="text-[10px] text-white/20">px/s</span></h2>
+              <Activity size={14} className="text-accent-teal mb-1" />
+            </div>
+          </StatCard>
         </div>
 
-        {/* Chart & Cards Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 mb-10">
-          <GlassCard className="lg:col-span-2 min-h-[400px] flex flex-col magic-bento-card magic-bento-card--border-glow">
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <h3 className="font-sora font-bold text-xl mb-1">Live Trust Monitoring</h3>
-                <p className="text-sm text-secondary">Real-time session behaviour analysis</p>
-              </div>
-              <div className="flex items-center space-x-2 text-xs font-bold text-secondary uppercase tracking-widest bg-white/5 py-1 px-3 rounded-lg border border-white/5">
-                <span className="w-2 h-2 rounded-full bg-trust-safe animate-pulse"></span>
-                <span>Live Stream</span>
-              </div>
-            </div>
-            <div className="flex-1 w-full mt-4">
-              <Line data={chartData} options={chartOptions} />
-            </div>
-          </GlassCard>
+        {/* ── Financial Summary & Risk Overview ─────────────────────────────── */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
 
-          <div className="flex flex-col space-y-6">
-            <div className="relative h-[240px] mb-8 mt-4 flex items-center justify-center pointer-events-auto">
-              <BankCard cardData={user} className="z-20" />
-            </div>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+            <StatCard label="Total Liquidity">
+              <div className="flex items-end justify-between">
+                <h2 className="font-sora font-black text-2xl text-white">
+                  ₹{(dbData.balance || 0).toLocaleString('en-IN')}
+                </h2>
+                <span className="flex items-center gap-1 text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded-lg font-bold">
+                  <TrendingUp size={10} /> Stable
+                </span>
+              </div>
+            </StatCard>
+          </motion.div>
 
-            <GlassCard className="flex-1 border-accent/20 bg-accent/5 magic-bento-card magic-bento-card--border-glow">
-              <h4 className="font-sora font-bold mb-3">Security Insights</h4>
-              <p className="text-sm text-secondary mb-4 leading-relaxed">
-                Your typing rhythm is consistent with your 30-day baseline. Verification will be waived for transfers under ₹1,0,000.
-              </p>
-              <button className="text-xs font-bold text-accent uppercase tracking-widest hover:underline">View Deep Profile</button>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+            <StatCard label="Today's Outflow">
+              <div className="flex items-end justify-between">
+                <h2 className="font-sora font-black text-2xl text-red-400">
+                  ₹{todaySpend.toLocaleString('en-IN')}
+                </h2>
+                <div className="w-8 h-8 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+                  <TrendingDown size={14} className="text-red-400" />
+                </div>
+              </div>
+            </StatCard>
+          </motion.div>
+
+          {/* ── Session Health — calibration-aware ── */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+            <StatCard label="Session Health">
+              <AnimatePresence mode="wait">
+                {isWarmingUp ? (
+                  // Warmup state — pulsing dots, no score
+                  <motion.div
+                    key="calibrating"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <CalibrationDots />
+                  </motion.div>
+                ) : (
+                  // Real score — centred green, or left-aligned watch/danger
+                  <motion.div
+                    key="score"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.4, type: 'spring', stiffness: 260 }}
+                    className={clsx(
+                      'flex transition-all duration-500',
+                      riskLevel === 'safe'
+                        ? 'flex-col items-center justify-center gap-1'
+                        : 'items-end justify-between'
+                    )}
+                  >
+                    <motion.h2
+                      key={`score-${Math.round((trustScore ?? 0) * 100)}`}
+                      initial={{ scale: 1.15 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: 'spring', stiffness: 300 }}
+                      className="font-sora font-black text-3xl"
+                      style={{ color: scoreColor }}
+                    >
+                      {Math.round((trustScore ?? 0) * 100)}%
+                    </motion.h2>
+
+                    {riskLevel === 'safe' ? (
+                      <span className="text-[9px] font-black text-emerald-400/60 uppercase tracking-[0.2em]">
+                        All Clear
+                      </span>
+                    ) : (
+                      <Activity
+                        size={18}
+                        className={clsx(
+                          'animate-pulse',
+                          riskLevel === 'watch' ? 'text-amber-400' : 'text-red-400'
+                        )}
+                      />
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </StatCard>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+            <StatCard label="Active Guard Nodes">
+              <div className="flex items-end justify-between">
+                <h2 className="font-sora font-black text-2xl">12 Active</h2>
+                <div className="w-8 h-8 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center">
+                  <Zap size={14} className="text-accent" />
+                </div>
+              </div>
+            </StatCard>
+          </motion.div>
+        </div>
+
+        {/* ── Chart + Card ──────────────────────────────────────────────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="lg:col-span-2"
+          >
+            <GlassCard className="p-8 min-h-[420px] flex flex-col h-full">
+              <div className="flex items-start justify-between mb-8">
+                <div>
+                  <h3 className="font-sora font-bold text-xl leading-tight">Identity Baseline Monitor</h3>
+                  <p className="text-xs text-white/30 mt-1.5">
+                    {isWarmingUp
+                      ? 'Collecting initial behavioural samples…'
+                      : 'Live mathematical representation of your interaction DNA'}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 bg-white/[0.04] border border-white/[0.07] rounded-xl px-3 py-1.5">
+                  <span className={clsx(
+                    'w-1.5 h-1.5 rounded-full',
+                    isWarmingUp ? 'bg-white/20 animate-pulse' : 'bg-emerald-400 animate-pulse'
+                  )} />
+                  <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/30">
+                    {isWarmingUp ? 'Warmup' : 'Live'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Chart area — shows placeholder skeleton during warmup */}
+              <div className="flex-1 w-full min-h-[280px] relative">
+                {isWarmingUp ? (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
+                    <div className="flex gap-1.5">
+                      {[0, 1, 2, 3].map(i => (
+                        <motion.div
+                          key={i}
+                          className="w-2 h-2 rounded-full bg-white/15"
+                          animate={{ opacity: [0.15, 0.7, 0.15], y: [0, -6, 0] }}
+                          transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.18 }}
+                        />
+                      ))}
+                    </div>
+                    <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em]">
+                      Sampling behavioural baseline…
+                    </p>
+                  </div>
+                ) : (
+                  <Line data={chartData} options={chartOptions} />
+                )}
+              </div>
             </GlassCard>
+          </motion.div>
+
+          <div className="flex flex-col gap-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="relative h-[220px]"
+            >
+              <BankCard cardData={user} className="absolute inset-0 z-10" />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35 }}
+            >
+              <GlassCard className="p-6 border-accent/20 bg-accent/[0.04]">
+                <div className="flex items-center gap-2 mb-3">
+                  <ShieldCheck size={13} className="text-emerald-400" />
+                  <h4 className="font-sora font-bold text-sm">Behavioral Insight</h4>
+                </div>
+                <p className="text-xs text-white/40 leading-relaxed mb-4">
+                  {isWarmingUp
+                    ? 'Guard engine is collecting your interaction DNA. Full protection activates in a moment.'
+                    : sessionEvents.length > 0
+                      ? <><span className="text-amber-300 font-semibold">⚠ {sessionEvents[0].message}</span></>
+                      : <>Typing flight times are within <span className="text-white/70 font-semibold">5%</span> of your baseline. High-confidence session verified.</>
+                  }
+                </p>
+                <button className="text-[10px] font-black text-accent uppercase tracking-widest hover:underline flex items-center gap-1">
+                  View Deep Profile <ArrowRight size={10} />
+                </button>
+              </GlassCard>
+            </motion.div>
           </div>
         </div>
 
-        {/* Transactions List */}
-        <div className="grid grid-cols-1 gap-10">
-          <GlassCard className="magic-bento-card magic-bento-card--border-glow">
+        {/* ── Ledger ────────────────────────────────────────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <GlassCard className="p-8">
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h3 className="font-sora font-bold text-xl">Recent Transactions</h3>
+                <h3 className="font-sora font-bold text-xl">Global Ledger History</h3>
                 {searchQuery && (
-                  <p className="text-xs text-secondary mt-1">
-                    {recentTransactions.length > 0
-                      ? `${recentTransactions.length} results for "${searchQuery}"`
-                      : `No results for "${searchQuery}"`}
+                  <p className="text-[10px] text-white/30 mt-1.5 font-medium">
+                    {recentTransactions.length} result{recentTransactions.length !== 1 ? 's' : ''} for "{searchQuery}"
                   </p>
                 )}
               </div>
-              <button onClick={() => router.push('/transactions')} className="text-sm font-bold text-accent hover:underline">View All History</button>
+              <button
+                onClick={() => router.push('/transactions')}
+                className="flex items-center gap-1.5 text-[10px] font-black text-accent uppercase tracking-[0.2em] hover:underline"
+              >
+                View Full Log <ArrowRight size={11} />
+              </button>
             </div>
-            <div className="space-y-4 overflow-x-auto">
-              <table className="w-full text-left min-w-[600px]">
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left min-w-[580px]">
                 <thead>
-                  <tr className="border-b border-white/5 text-secondary text-xs uppercase tracking-widest font-bold">
-                    <th className="pb-4 px-2">Merchant</th>
-                    <th className="pb-4">Category</th>
-                    <th className="pb-4 text-right">Amount</th>
-                    <th className="pb-4 text-right px-2">Score</th>
+                  <tr className="border-b border-white/[0.06] text-white/25 text-[9px] uppercase tracking-[0.25em] font-black">
+                    <th className="pb-4 px-2">Entity / Node</th>
+                    <th className="pb-4 px-2">Type</th>
+                    <th className="pb-4 px-2 text-right">Value</th>
+                    <th className="pb-4 px-2 text-right">Auth Score</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody className="divide-y divide-white/[0.04]">
                   {recentTransactions.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="py-12 text-center text-secondary">
-                        No transactions found matching your search.
-                      </td>
-                    </tr>
-                  ) : recentTransactions.map((tx) => (
-                    <tr key={tx.id} className="group hover:bg-white/[0.02] transition-all cursor-pointer">
-                      <td className="py-4 px-2">
-                        <div className="flex items-center space-x-4">
-                          <div className={clsx("w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white", {
-                            "bg-accent-teal": tx.category === "Food",
-                            "bg-accent": tx.category === "Shopping",
-                            "bg-trust-watch": tx.category === "Transfer",
-                            "bg-accent-violet": tx.category === "Entertainment",
-                            "bg-trust-safe": tx.category === "Income",
-                            "bg-trust-danger": tx.category === "Bills"
-                          })}>
-                            {tx.merchant[0]}
-                          </div>
-                          <div>
-                            <p className="font-bold text-primary">{tx.merchant}</p>
-                            <p className="text-xs text-secondary">{tx.timestamp}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-4">
-                        <span className="text-xs font-bold px-2 py-1 rounded bg-white/5 border border-white/5 text-secondary">{tx.category}</span>
-                      </td>
-                      <td className="py-4 text-right">
-                        <p className={clsx("font-bold text-lg", tx.amount > 0 ? "text-trust-safe" : "text-red-500")}>
-                          {tx.amount > 0 ? `+ ₹${tx.amount.toLocaleString('en-IN')}` : `- ₹${Math.abs(tx.amount).toLocaleString('en-IN')}`}
-                        </p>
-                        <p className="text-[10px] text-secondary">Completed</p>
-                      </td>
-                      <td className="py-4 text-right px-2">
-                        <div className="flex items-center justify-end space-x-1.5">
-                          <div className={clsx("w-1.5 h-1.5 rounded-full", tx.score > 0.9 ? "bg-trust-safe" : "bg-trust-watch")}></div>
-                          <span className="text-xs font-bold text-secondary">{Math.round(tx.score * 100)}%</span>
+                      <td colSpan={4} className="py-20 text-center">
+                        <div className="flex flex-col items-center opacity-20">
+                          <Activity size={36} className="mb-3" />
+                          <p className="text-[10px] font-black uppercase tracking-widest">No activities in ledger</p>
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  ) : recentTransactions.map(tx => {
+                    const isOutgoing = tx.sender?._id === (user?._id || user?.id);
+                    const counterParty = isOutgoing ? tx.receiver : tx.sender;
+                    return (
+                      <tr key={tx._id} className="group hover:bg-white/[0.02] transition-colors cursor-pointer">
+                        <td className="py-5 px-2">
+                          <div className="flex items-center gap-4">
+                            <div className={clsx(
+                              'w-10 h-10 rounded-xl flex items-center justify-center font-black text-base shrink-0',
+                              isOutgoing
+                                ? 'bg-accent/10 text-accent border border-accent/20'
+                                : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                            )}>
+                              {counterParty?.name?.[0]?.toUpperCase() || '?'}
+                            </div>
+                            <div>
+                              <p className="font-bold text-sm text-white">{counterParty?.name || 'External Node'}</p>
+                              <p className="text-[10px] text-white/30 font-medium mt-0.5">
+                                {new Date(tx.timestamp).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-5 px-2">
+                          <span className={clsx(
+                            'px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest',
+                            isOutgoing
+                              ? 'bg-white/[0.04] text-white/30'
+                              : 'bg-emerald-500/15 text-emerald-400'
+                          )}>
+                            {isOutgoing ? 'Withdrawal' : 'Deposit'}
+                          </span>
+                        </td>
+                        <td className="py-5 px-2 text-right">
+                          <p className={clsx('font-black text-lg', isOutgoing ? 'text-white' : 'text-emerald-400')}>
+                            {isOutgoing
+                              ? `− ₹${tx.amount.toLocaleString('en-IN')}`
+                              : `+ ₹${tx.amount.toLocaleString('en-IN')}`}
+                          </p>
+                          <p className="text-[9px] text-white/25 mt-0.5">Completed</p>
+                        </td>
+                        <td className="py-5 px-2 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <div className="h-1 w-14 bg-white/[0.06] rounded-full overflow-hidden">
+                              <div className="h-full bg-emerald-400 rounded-full" style={{ width: '98%' }} />
+                            </div>
+                            <span className="text-[10px] font-bold text-white/30">0.98</span>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           </GlassCard>
-        </div>
+        </motion.div>
 
       </main>
     </div>

@@ -3,7 +3,7 @@
 import React, { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, User, Lock, Mail, Fingerprint, Zap, ArrowLeft, ArrowRight, Check, X } from 'lucide-react';
+import { Shield, User, Lock, Mail, Fingerprint, Zap, ArrowLeft, ArrowRight, Check, X, Phone } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import dynamic from 'next/dynamic';
 const DotLottieReact = dynamic(() => import('@lottiefiles/dotlottie-react').then(mod => mod.DotLottieReact), { ssr: false });
@@ -24,7 +24,7 @@ const SignupPage = () => {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    name: '', email: '', password: '',
+    name: '', email: '', phone: '', password: '',
     pin: ['', '', '', '', '', ''],
     otp: ['', '', '', '', '', ''],
   });
@@ -353,6 +353,16 @@ const SignupPage = () => {
                       </div>
                     </div>
                   </div>
+
+                  <FloatingInput
+                    id="su-phone"
+                    label="Active Phone Number"
+                    type="text"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
+                    icon={Phone}
+                    placeholder="+91 00000 00000"
+                  />
 
                   <div className="space-y-3">
                     <FloatingInput
