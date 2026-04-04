@@ -1,129 +1,157 @@
-import React from 'react';
+"use client";
+import React, { useState } from 'react';
 import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
+import { Wifi, CreditCard as CreditCardIcon, Landmark, Zap, ShieldCheck } from 'lucide-react';
 
-const BankCard = ({ variant = 'visa', cardData, className = '' }) => {
-  const { name, accountNo, expiry = "12/28" } = cardData || { name: 'RAHUL MEHTA', accountNo: '•••• •••• •••• 4829' };
+const BankCard = ({ user, balance, className = '' }) => {
+  const [isFlipped, setIsFlipped] = useState(false);
+  const name = user?.name || 'Authorized Holder';
+  const accountNo = (user?._id || user?.id || '0000000000000000').slice(-16).replace(/(\d{4})/g, '$1 ').trim();
+  const balanceStr = Number(balance || 0).toLocaleString('en-IN');
 
-  // 3D Hover Effect setup
+  // 3D Hover physics
   const x = useMotionValue(0);
   const y = useMotionValue(0);
-
-  const mouseXSpring = useSpring(x, { stiffness: 150, damping: 15 });
-  const mouseYSpring = useSpring(y, { stiffness: 150, damping: 15 });
-
-  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["17.5deg", "-17.5deg"]);
-  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-17.5deg", "17.5deg"]);
+  const mouseXSpring = useSpring(x, { stiffness: 150, damping: 20 });
+  const mouseYSpring = useSpring(y, { stiffness: 150, damping: 20 });
+  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["10deg", "-10deg"]);
+  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-10deg", "10deg"]);
 
   const handleMouseMove = (e) => {
+    if (isFlipped) return;
     const rect = e.currentTarget.getBoundingClientRect();
-    const width = rect.width;
-    const height = rect.height;
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-    const xPct = mouseX / width - 0.5;
-    const yPct = mouseY / height - 0.5;
-    x.set(xPct);
-    y.set(yPct);
+    x.set(e.clientX - rect.left / rect.width - 0.5);
+    y.set(e.clientY - rect.top / rect.height - 0.5);
   };
 
-  const handleMouseLeave = () => {
-    x.set(0);
-    y.set(0);
+  const handleMouseLeave = () => { x.set(0); y.set(0); };
+
+  // Theme hashing
+  const getCardTheme = (str) => {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    const h = Math.abs(hash) % 360;
+    return `hsla(${h}, 70%, 40%, 1)`;
   };
+  const theme = getCardTheme(name);
 
   return (
-    <motion.div
-      style={{ perspective: 1000 }}
-      className={`relative w-[340px] h-[215px] ${className}`}
-      initial={{ y: 20, opacity: 0 }}
-      animate={{ 
-        y: [0, -8, 0], 
-        opacity: 1, 
-        transition: { y: { repeat: Infinity, duration: 4, ease: "easeInOut" }, opacity: { duration: 0.5 } } 
-      }}
-    >
+    <div className={`perspective-1000 w-full max-w-[420px] ${className}`} onClick={() => setIsFlipped(!isFlipped)}>
       <motion.div
+        className="relative w-full h-[260px] cursor-pointer"
+        initial={false}
+        animate={{ rotateY: isFlipped ? 180 : 0 }}
+        transition={{ duration: 0.6, type: 'spring', stiffness: 120, damping: 20 }}
+        style={{ transformStyle: 'preserve-3d' }}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        style={{
-          rotateX,
-          rotateY,
-          transformStyle: "preserve-3d",
-        }}
-        className="w-full h-full rounded-2xl relative cursor-pointer"
       >
-        {/* Card Body - Graphite Metallic Gradient */}
-        <div className="absolute inset-0 rounded-2xl overflow-hidden shadow-2xl border border-white/20 bg-gradient-to-br from-gray-900 via-gray-800 to-black p-6 flex flex-col justify-between"
-             style={{
-               boxShadow: '0 30px 60px -12px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.2)'
-             }}>
-          
-          {/* Holographic Gloss Overlay moving with mouse */}
-          <motion.div 
-            className="absolute inset-0 z-0 opacity-40 pointer-events-none"
-            style={{
-              background: 'linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.1) 45%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 55%, transparent 100%)',
-              x: useTransform(mouseXSpring, [-0.5, 0.5], ["-30%", "30%"]),
-              y: useTransform(mouseYSpring, [-0.5, 0.5], ["-30%", "30%"]),
-              scale: 2
-            }}
-          />
+        {/* FRONT SIDE */}
+        <div
+          className="absolute inset-0 rounded-[32px] overflow-hidden shadow-2xl bg-[#0A0B1E] border border-white/20"
+          style={{ backfaceVisibility: 'hidden', transformStyle: 'preserve-3d' }}
+        >
+          {/* Card Dynamic Gradient Background */}
+          <div className="absolute inset-0 opacity-40 blur-[100px] pointer-events-none" style={{ backgroundColor: theme }} />
+          <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent" />
 
-          {/* Decorative mesh/pattern to look like a premium card */}
-          <div className="absolute inset-x-0 bottom-0 top-1/3 opacity-20 pointer-events-none z-0"
-               style={{ backgroundImage: 'radial-gradient(circle at center, #ffffff 1px, transparent 1px)', backgroundSize: '10px 10px' }}>
-          </div>
-
-          <div className="relative z-10 flex justify-between items-start">
-            {/* Playful realistic chip */}
-            <div className="w-11 h-8 bg-gradient-to-br from-yellow-200 via-yellow-400 to-yellow-600 rounded-md flex flex-col justify-evenly px-1 border border-yellow-700/50 shadow-inner overflow-hidden relative">
-              <div className="absolute top-1/2 left-0 right-0 h-[1px] bg-yellow-700/50"></div>
-              <div className="absolute left-1/2 top-0 bottom-0 w-[1px] bg-yellow-700/50"></div>
-              <div className="w-full h-[1px] bg-yellow-700/30"></div>
-              <div className="w-full h-[1px] bg-yellow-700/30"></div>
-              <div className="w-full h-[1px] bg-yellow-700/30"></div>
-            </div>
-            
-            {/* Floating contactless icon and Logo */}
-            <div className="flex flex-col items-end gap-1 opacity-80">
-              {variant === 'visa' ? (
-                <span className="text-3xl font-serif italic font-extrabold text-white tracking-tight drop-shadow-md">VISA</span>
-              ) : (
-                <div className="flex -space-x-3.5 drop-shadow-md">
-                  <div className="w-9 h-9 rounded-full bg-red-500 mix-blend-screen opacity-90"></div>
-                  <div className="w-9 h-9 rounded-full bg-orange-500 mix-blend-screen opacity-90"></div>
+          {/* Content */}
+          <div className="relative h-full p-8 flex flex-col justify-between text-white z-10">
+            <div className="flex items-start justify-between">
+              <div className="space-y-1">
+                <h3 className="text-lg font-bold tracking-wider font-sora">BEHAVEGUARD BANK</h3>
+                <div className="flex items-center gap-2 text-[10px] font-black opacity-40 uppercase tracking-widest">
+                  <Wifi className="w-3 h-3" />
+                  <span>Contactless Biometrics</span>
                 </div>
-              )}
-              {/* Fake contactless lines */}
-              <div className="flex space-x-1 rotate-90 mt-2 opacity-50">
-                <span className="w-1 h-1 bg-white rounded-full"></span>
-                <span className="w-1.5 h-1.5 bg-transparent border-[1.5px] border-white rounded-full border-l-transparent border-b-transparent -ml-1"></span>
-                <span className="w-2.5 h-2.5 bg-transparent border-[1.5px] border-white rounded-full border-l-transparent border-b-transparent -ml-1.5"></span>
-                <span className="w-3.5 h-3.5 bg-transparent border-[1.5px] border-white rounded-full border-l-transparent border-b-transparent -ml-2"></span>
+              </div>
+              <Landmark className="w-6 h-6 opacity-40 text-white" />
+            </div>
+
+            {/* Chip */}
+            <div className="absolute top-24 left-8">
+              <div className="w-14 h-11 rounded-lg bg-gradient-to-br from-yellow-200 via-yellow-400 to-yellow-600 shadow-inner p-1 grid grid-cols-3 grid-rows-3 gap-[1px] border border-yellow-800/20">
+                {[...Array(9)].map((_, i) => (
+                  <div key={i} className="bg-yellow-500/30 rounded-sm" />
+                ))}
+              </div>
+            </div>
+
+            {/* Account Details */}
+            <div className="space-y-6">
+              <div className="font-mono text-xl tracking-[0.25em] font-semibold text-white/90 drop-shadow-lg">
+                {accountNo}
+              </div>
+
+              <div className="flex items-end justify-between">
+                <div className="space-y-1">
+                  <div className="text-[8px] uppercase tracking-[0.3em] opacity-30 font-black"></div>
+                  <div className="text-sm font-bold tracking-wider uppercase font-sora text-white/80">{name}</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-[8px] uppercase tracking-[0.3em] opacity-30 font-black">Vault Status</div>
+                  <div className="text-base font-bold text-trust-safe font-sora">₹{balanceStr}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Holographic Seal Placeholder */}
+            <div className="absolute bottom-8 right-8">
+              <div className="flex -space-x-3 opacity-30">
+                <div className="w-8 h-8 rounded-full bg-white/20" />
+                <div className="w-8 h-8 rounded-full bg-white/40" />
               </div>
             </div>
           </div>
+        </div>
 
-          <div className="relative z-10 mt-6 mb-2">
-            <p className="font-mono text-[22px] tracking-[0.14em] text-white drop-shadow-sm font-semibold"
-               style={{ textShadow: '0px 2px 2px rgba(0,0,0,0.8)' }}>
-              {accountNo && accountNo.includes('•') ? accountNo : (accountNo ? accountNo.replace(/(\d{4})/g, '$1 ') : '•••• •••• •••• 0000')}
-            </p>
-          </div>
+        {/* BACK SIDE */}
+        <div
+          className="absolute inset-0 rounded-[32px] overflow-hidden shadow-2xl bg-[#08091A] border border-white/10"
+          style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
+        >
+          <div className="relative h-full flex flex-col pt-8">
+            {/* Magnetic Stripe */}
+            <div className="w-full h-12 bg-black/90 mb-8" />
 
-          <div className="relative z-10 flex justify-between items-end">
-            <div>
-              <p className="text-[9px] text-white/50 mb-0.5 uppercase tracking-widest font-semibold">Card Holder</p>
-              <p className="font-medium tracking-widest uppercase text-sm text-white/95 truncate max-w-[160px]">{name}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-[9px] text-white/50 mb-0.5 uppercase tracking-widest font-semibold">Valid Thru</p>
-              <p className="font-mono font-medium tracking-wide text-sm text-white/95">{expiry}</p>
+            <div className="px-8 space-y-6">
+              {/* CVV Box */}
+              <div className="flex items-center gap-4">
+                <div className="flex-1 h-10 bg-white/5 rounded flex items-center px-4 overflow-hidden">
+                  <svg width="100" height="20" className="opacity-20">
+                    <path d="M 0 10 Q 10 0, 20 10 T 40 10 T 60 10 T 80 10" stroke="white" fill="none" strokeWidth="2" />
+                  </svg>
+                </div>
+                <div className="bg-white text-gray-900 px-4 py-1.5 rounded-md font-mono font-black tracking-widest text-sm">
+                  {(user?._id || '000').slice(-3)}
+                </div>
+              </div>
+
+              {/* Security Text */}
+              <div className="space-y-2 text-[8px] text-white/30 leading-relaxed font-medium">
+                <p>This biometric node remains property of BehaveGuard Secure Banking. Identity validation is continuous via ML interaction DNA.</p>
+                <p className="font-mono text-white/20">Biometric Support: 1-800-BEHAVE-GUARD</p>
+              </div>
+
+              {/* Chip-Back Hologram */}
+              <div className="absolute bottom-8 right-8">
+                <div className="w-16 h-16 rounded-full border-2 border-white/10 bg-white/5 flex items-center justify-center backdrop-blur-md">
+                  <ShieldCheck className="text-accent opacity-60" size={24} />
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </motion.div>
-    </motion.div>
+
+      <div className="text-center mt-6">
+        <p className="text-[10px] font-black text-white/10 uppercase tracking-[0.2em] animate-pulse">Click card to decrypt back-panel</p>
+      </div>
+
+      <style jsx>{`
+        .perspective-1000 { perspective: 1000px; }
+      `}</style>
+    </div>
   );
 };
 

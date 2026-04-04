@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { Shield, ArrowRight, Mail, Lock, Database } from 'lucide-react';
+import { Shield, ArrowRight, Mail, Lock, Database, Fingerprint } from 'lucide-react';
+import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import dynamic from 'next/dynamic';
 const DotLottieReact = dynamic(() => import('@lottiefiles/dotlottie-react').then(mod => mod.DotLottieReact), { ssr: false });
@@ -27,16 +28,29 @@ const LoginPage = () => {
     setLottieData(loginLottie);
   }, []);
 
+  const [isBioMode, setIsBioMode] = useState(false);
+  const [typingSpeed, setTypingSpeed] = useState(0);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
-    const result = await login(email, password);
+    let result;
+    if (isBioMode) {
+      // In Bio Mode, we call the bio-login with captured cadence
+      // For the demo, we assume the cadence is just what we tracked in state
+      result = await axios.post('http://localhost:5000/api/auth/bio-login',
+        { email, typingSpeed }, { withCredentials: true }
+      ).then(r => r.data).catch(err => ({ success: false, message: err.response?.data?.message }));
+    } else {
+      result = await login(email, password);
+    }
+
     if (result?.success) {
       router.push('/dashboard');
     } else {
-      setError(result?.message || 'Authentication failed. Please check your credentials.');
+      setError(result?.message || 'Authentication failed. Biological mismatch detected.');
       setIsLoading(false);
     }
   };
@@ -156,12 +170,27 @@ const LoginPage = () => {
           {/* Header */}
           <div className="mb-10">
             <h1 className="font-sora font-black text-[38px] leading-tight tracking-tight mb-1.5 text-white">
-              Sign In
+              {isBioMode ? 'Neural ID' : 'Sign In'}
             </h1>
             <p className="text-white/40 text-sm font-medium flex items-center gap-2">
               <Database size={13} className="text-indigo-400" />
-              Secure behavioral authentication
+              {isBioMode ? 'Authenticating by Interaction DNA' : 'Secure behavioral authentication'}
             </p>
+          </div>
+
+          <div className="flex gap-4 p-1.5 bg-white/5 border border-white/10 rounded-2xl mb-8">
+            <button
+              onClick={() => setIsBioMode(false)}
+              className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${!isBioMode ? 'bg-white text-black' : 'text-white/40 hover:text-white'}`}
+            >
+              Password
+            </button>
+            <button
+              onClick={() => setIsBioMode(true)}
+              className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isBioMode ? 'bg-white text-black' : 'text-white/40 hover:text-white flex items-center justify-center gap-2'}`}
+            >
+              {isBioMode ? 'Bio-Signature' : <><Fingerprint size={12} /> Bio-Sign</>}
+            </button>
           </div>
 
           {/* Form */}
@@ -177,16 +206,43 @@ const LoginPage = () => {
               autoComplete="email"
             />
 
-            <FloatingInput
-              id="login-password"
-              label="Enter Password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              icon={Lock}
-              required
-              autoComplete="current-password"
-            />
+            {!isBioMode ? (
+              <FloatingInput
+                id="login-password"
+                label="Enter Password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                icon={Lock}
+                required
+                autoComplete="current-password"
+              />
+            ) : (
+              <div className="relative">
+                <FloatingInput
+                  id="login-bio"
+                  label="Type passphrase: BEHAVEGUARD NODE"
+                  type="text"
+                  value={password} // Reusing field for simplicity in this demo
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setPassword(val);
+                    // Fake tracking for visual feedback
+                    if (val.length % 3 === 0) setTypingSpeed(10 + Math.random() * 20);
+                  }}
+                  icon={Fingerprint}
+                  required
+                />
+                <div className="mt-2 flex justify-between px-2">
+                  <span className="text-[9px] font-black uppercase tracking-widest text-white/20">Rhythm Capture: {typingSpeed} CPS</span>
+                  <div className="flex gap-1">
+                    <div className={`w-1 h-3 rounded-full ${typingSpeed > 0 ? 'bg-indigo-500' : 'bg-white/10'}`} />
+                    <div className={`w-1 h-3 rounded-full ${typingSpeed > 5 ? 'bg-indigo-500' : 'bg-white/10'}`} />
+                    <div className={`w-1 h-3 rounded-full ${typingSpeed > 15 ? 'bg-indigo-500' : 'bg-white/10'}`} />
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Error */}
             {error && (

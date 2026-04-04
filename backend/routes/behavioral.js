@@ -126,4 +126,108 @@ router.get('/audit', async (req, res) => {
     }
 });
 
+/**
+ * GET /admin-stats (Internal/Protected)
+ * Returns global stats for the Admin Security Command dashboard.
+ */
+router.get('/admin-stats', async (req, res) => {
+    try {
+        const totalUsers = await User.countDocuments();
+        const allSessions = await Session.find().sort({ timestamp: -1 });
+
+        // Distribution of trust scores (0-0.1, 0.1-0.2, etc.)
+        const distribution = new Array(10).fill(0);
+        allSessions.forEach(s => {
+            const idx = Math.floor((s.trustScore || 0) * 10);
+            if (idx >= 0 && idx < 10) distribution[idx]++;
+        });
+
+        // Calculate Average Trust Score
+        const avgScore = allSessions.length > 0
+            ? (allSessions.reduce((acc, s) => acc + (s.trustScore || 0), 0) / allSessions.length) * 100
+            : 100;
+
+        // Recent Alerts
+        const alerts = allSessions
+            .filter(s => s.riskLevel !== 'safe')
+            .slice(0, 15)
+            .map(s => ({
+                id: s._id,
+                user: s.userId, // We'd ideally populate this but for now return ID
+                time: new Date(s.timestamp).toLocaleString(),
+                riskScore: 1 - s.trustScore,
+                severity: s.riskLevel === 'danger' ? 'Critical' : 'High',
+                trigger: s.riskLevel === 'danger' ? 'Behavioral DNA Anomaly' : 'Unusual Navigation Flow',
+                action: s.riskLevel === 'danger' ? 'PIN Challenge' : 'Monitored'
+            }));
+
+        res.status(200).json({
+            success: true,
+            totalUsers,
+            activeSessions: allSessions.length,
+            avgTrustScore: avgScore.toFixed(1),
+            distribution,
+            alerts
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+/**
+ * POST /reset-baseline
+ * Clears the user's historical behavioral metrics for a clean start.
+ */
+router.post('/reset-baseline', async (req, res) => {
+    try {
+        const token = req.cookies.token;
+        if (!token) return res.status(401).json({ message: 'No Auth' });
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+
+        await User.findByIdAndUpdate(decoded.id, {
+            behavioralBaseline: {
+                typingSpeedAvg: 0,
+                scrollSpeedAvg: 0,
+                mouseVelocityAvg: 0,
+                sessionCount: 0
+            }
+        });
+
+        // Also wipe all old session records
+        await Session.deleteMany({ userId: decoded.id });
+
+        res.status(200).json({ success: true, message: 'Baseline recalibrated. System in warmup mode.' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+/**
+ * DELETE /delete-profile
+ * Wipes the user's entire behavioral identity permanentely.
+ */
+router.delete('/delete-profile', async (req, res) => {
+    try {
+        const token = req.cookies.token;
+        if (!token) return res.status(401).json({ message: 'No Auth' });
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+
+        await User.findByIdAndUpdate(decoded.id, {
+            isEnrolled: false,
+            behavioralBaseline: {
+                typingSpeedAvg: 0,
+                scrollSpeedAvg: 0,
+                mouseVelocityAvg: 0,
+                sessionCount: 0
+            }
+        });
+
+        await Session.deleteMany({ userId: decoded.id });
+
+        res.status(200).json({ success: true, message: 'Behavioral signature purged from network.' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 export default router;

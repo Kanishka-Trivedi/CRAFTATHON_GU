@@ -184,6 +184,53 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// Bio-Signature Login (Passwordless)
+router.post('/bio-login', async (req, res) => {
+  try {
+    const { email, typingSpeed } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: 'Identity node not found.' });
+    }
+
+    // Heuristic: Must be within 40% of baseline to pass (Hackathon demo logic)
+    const baseline = user.behavioralBaseline.typingSpeedAvg || 0;
+    const diff = Math.abs(baseline - typingSpeed);
+
+    // If they have no baseline yet, they must use password first
+    if (baseline === 0) {
+      return res.status(400).json({ message: 'No behavioral profile found. Please use password login once to enroll.' });
+    }
+
+    if (diff > (baseline * 0.4)) {
+      return res.status(401).json({ message: 'Biological Signature Rejected. Rhythm deviation too high.' });
+    }
+
+    // Success
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'secret', { expiresIn: '30d' });
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+
+    res.status(200).json({
+      success: true,
+      bioVerified: true,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        balance: user.balance,
+        trustScore: user.trustScore,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // Logout
 router.post('/logout', (req, res) => {
   res.cookie('token', '', {
@@ -227,10 +274,25 @@ router.post('/verify-pin', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid Transaction PIN' });
     }
 
+    // Success: Unlock the account
+    user.isLocked = false;
+    await user.save();
+
     res.status(200).json({ success: true });
   } catch (error) {
     res.status(500).json({ message: 'Verification failed' });
   }
+});
+
+// Lock account
+router.post('/lock', async (req, res) => {
+  try {
+    const token = req.cookies.token;
+    if (!token) return res.status(401).json({ message: 'Not authenticated' });
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+    await User.findByIdAndUpdate(decoded.id, { isLocked: true });
+    res.status(200).json({ success: true, message: 'Node Lockdown Active' });
+  } catch (error) { res.status(500).json({ message: error.message }); }
 });
 
 // Update Profile

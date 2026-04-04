@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { clsx } from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Shield, ShieldCheck, Activity, Search, X,
+  Shield, ShieldCheck, Activity, Search, X, CheckCircle, Landmark,
   AlertCircle, ArrowRight, Zap, Lock, TrendingUp, TrendingDown
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -72,7 +72,7 @@ const CalibrationDots = () => (
 // ── Main Dashboard ────────────────────────────────────────────────────────────
 
 const DashboardPage = () => {
-  const { user, trustScore, riskLevel, sessionEvents, isWarmingUp, liveMetrics, resetTrustScore } = useAuth();
+  const { user, trustScore, riskLevel, sessionEvents, isWarmingUp, liveMetrics, resetTrustScore, lockAccount, setUser } = useAuth();
   const router = useRouter();
 
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -167,6 +167,13 @@ const DashboardPage = () => {
 
   // ── Security — DANGER: respect 5 s warmup + 5 s extra entry grace ────────
   useEffect(() => {
+    if (user?.isLocked && !pinLockActive.current) {
+      pinLockActive.current = true;
+      setShowPinModal(true);
+    }
+  }, [user?.isLocked]);
+
+  useEffect(() => {
     // Don't fire during engine warmup AT ALL
     if (isWarmingUp) return;
     // Extra 5 s grace after warmup ends (total ~10 s from login)
@@ -176,6 +183,7 @@ const DashboardPage = () => {
 
     if (riskLevel === 'danger' && !isGracePeriod && !inCooldown && !pinLockActive.current) {
       pinLockActive.current = true;
+      lockAccount(); // Persist the lock in DB
       setWarning(null);
       setShowAnomalyModal(true);
       setTimeout(() => {
@@ -231,6 +239,7 @@ const DashboardPage = () => {
         pinLockActive.current = false;
         lastVerifiedTime.current = Date.now(); // Start cooldown
         resetTrustScore(); // Reset the behavioral engine's state for this session
+        setUser(prev => ({ ...prev, isLocked: false })); // Locally unlock since DB is already unlocked
       }
     } catch {
       setPinError('Verification node unreachable. Redirecting…');
@@ -422,43 +431,40 @@ const DashboardPage = () => {
           )}
         </AnimatePresence>
 
-        {/* ── Page Header ──────────────────────────────────────────────────── */}
+        {/* ── Global Search Header ── */}
         <motion.header
-          initial={{ opacity: 0, y: -16 }}
+          initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-6"
+          className="mb-14"
         >
-          <div>
-            <h1 className="font-sora font-extrabold text-4xl md:text-5xl tracking-tighter leading-none mb-3">
-              Hello, {user?.name?.split(' ')[0] ?? 'User'}
-            </h1>
-            <div className="flex items-center gap-3 flex-wrap">
-              <div className="flex items-center gap-2 text-white/40 text-[10px] font-black uppercase tracking-widest">
-                <ShieldCheck size={13} className="text-emerald-400" />
-                Active Guard · Real-time session protection
-              </div>
-              <RiskPill riskLevel={riskLevel} isWarmingUp={isWarmingUp} />
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-10">
+            <div className="max-w-xl">
+              <h1 className="font-sora font-extrabold text-5xl md:text-6xl tracking-tighter mb-4 leading-tight">
+                Vault <span className="text-accent underline decoration-white/10 underline-offset-8">Insight</span>
+              </h1>
+              <p className="text-secondary text-lg font-medium opacity-50">Authenticated Node: {(user?._id || user?.id)?.slice(-8).toUpperCase()}</p>
             </div>
-          </div>
 
-          <div className="flex items-center gap-4">
-            <div className="hidden lg:flex items-center bg-white/[0.04] border border-white/[0.08] rounded-2xl px-4 py-2.5 focus-within:border-accent/50 transition-all">
-              <Search size={15} className="mr-3 text-white/30" />
-              <input
-                type="text"
-                placeholder="Search ledger…"
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="bg-transparent border-none outline-none text-sm w-44 text-white placeholder:text-white/25"
-              />
-              {searchQuery && (
-                <button onClick={() => setSearchQuery('')} className="ml-2 text-white/30 hover:text-white transition-colors">
-                  <X size={12} />
-                </button>
-              )}
+            <div className="flex-1 flex items-center justify-center">
+              <div className="relative group w-full max-w-2xl">
+                <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-accent transition-colors" size={24} />
+                <input
+                  type="text"
+                  placeholder="Universal Intelligence Search..."
+                  className="w-full bg-white/[0.03] border-2 border-white/10 rounded-[32px] pl-16 pr-8 py-6 text-xl font-bold focus:border-accent focus:bg-white/[0.05] outline-none transition-all placeholder:text-white/10 shadow-2xl"
+                />
+                <div className="absolute right-6 top-1/2 -translate-y-1/2">
+                  <kbd className="px-2.5 py-1.5 bg-white/5 rounded-xl text-[10px] font-black border border-white/10 text-white/20 tracking-widest">CMD K</kbd>
+                </div>
+              </div>
             </div>
-            <TrustBadge score={trustScore} />
+
+            <div className="hidden xl:flex items-center gap-6">
+              <TrustBadge score={trustScore} />
+              <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 cursor-pointer transition-all">
+                <Activity size={20} className="text-white/40" />
+              </div>
+            </div>
           </div>
         </motion.header>
 
@@ -647,14 +653,14 @@ const DashboardPage = () => {
             </GlassCard>
           </motion.div>
 
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-14">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="relative h-[220px]"
+              className="relative h-[260px]"
             >
-              <BankCard cardData={user} className="absolute inset-0 z-10" />
+              <BankCard user={user} balance={dbData.balance} className="absolute inset-0 z-10" />
             </motion.div>
 
             <motion.div
@@ -675,7 +681,10 @@ const DashboardPage = () => {
                       : <>Typing flight times are within <span className="text-white/70 font-semibold">5%</span> of your baseline. High-confidence session verified.</>
                   }
                 </p>
-                <button className="text-[10px] font-black text-accent uppercase tracking-widest hover:underline flex items-center gap-1">
+                <button
+                  onClick={() => window.location.href = '/fingerprint'}
+                  className="text-[10px] font-black text-accent uppercase tracking-widest hover:underline flex items-center gap-1"
+                >
                   View Deep Profile <ArrowRight size={10} />
                 </button>
               </GlassCard>

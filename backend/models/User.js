@@ -46,6 +46,10 @@ const userSchema = new mongoose.Schema({
     mouseVelocityAvg: { type: Number, default: 350 },
     sessionCount: { type: Number, default: 0 },
   },
+  isLocked: {
+    type: Boolean,
+    default: false, // Persistent security lock for anomaly detection
+  },
   createdAt: {
     type: Date,
     default: Date.now,

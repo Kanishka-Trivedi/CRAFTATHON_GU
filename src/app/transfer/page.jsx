@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, ShieldAlert, CheckCircle2, AlertCircle, Activity, ArrowRight, User, Smartphone, CreditCard, Plus, ArrowUpRight, Zap, Lock } from 'lucide-react';
+import { Send, ShieldAlert, CheckCircle2, AlertCircle, Activity, ArrowRight, User, Smartphone, CreditCard, Plus, ArrowUpRight, Zap, Lock, Info, Landmark } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { GlassCard, NavBar, TrustBadge, RiskBar } from '../../components/Shared';
 import { GlobalSpotlight } from '../../components/MagicSpotlight';
@@ -40,6 +40,7 @@ const TransferPage = () => {
   const [showPinChallenge, setShowPinChallenge] = useState(false);
   const [pinInput, setPinInput] = useState(['', '', '', '', '', '']);
   const [pinError, setPinError] = useState('');
+  const [showSandboxHelp, setShowSandboxHelp] = useState(false);
 
   // Fetch balance + history
   useEffect(() => {
@@ -200,6 +201,13 @@ const TransferPage = () => {
               <p className="font-sora font-black text-lg text-white">₹{(balance || 0).toLocaleString('en-IN')}</p>
             </div>
             <TrustBadge score={trustScore} />
+            <button
+              onClick={() => setShowSandboxHelp(true)}
+              className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-accent/10 hover:border-accent/40 transition-all text-white/30 hover:text-accent"
+              title="Sandbox Info"
+            >
+              <Info size={18} />
+            </button>
           </div>
         </header>
 
@@ -608,6 +616,53 @@ const TransferPage = () => {
                   {isSubmitting ? 'Verifying...' : 'Authorize Transfer'}
                 </button>
               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Sandbox Help Modal ──────────────────────────────────────────────── */}
+      <AnimatePresence>
+        {showSandboxHelp && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
+              className="w-full max-w-sm bg-[#0C0D1D] border border-white/10 rounded-[32px] p-8 space-y-6 shadow-2xl relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 p-8 opacity-5">
+                <Landmark size={80} />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-xl font-bold font-sora">Demo Sandbox Info</h3>
+                <p className="text-[10px] text-white/30 uppercase tracking-widest font-black">For Judges & Evaluation Only</p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5">
+                  <p className="text-[8px] font-black text-emerald-400 uppercase tracking-widest mb-2">Test Card (Success)</p>
+                  <code className="text-sm font-mono text-white/60">4000 0000 0000 0012</code>
+                  <p className="text-[9px] text-white/20 mt-1">Exp: 12/28 • CVV: 123</p>
+                </div>
+                <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5">
+                  <p className="text-[8px] font-black text-amber-500 uppercase tracking-widest mb-2">Test Card (High Vol)</p>
+                  <code className="text-sm font-mono text-white/60">5105 1051 0510 5105</code>
+                  <p className="text-[9px] text-white/20 mt-1">Exp: 09/27 • CVV: 999</p>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-xl bg-accent/10 border border-accent/20 flex gap-3">
+                <ShieldAlert size={16} className="text-accent shrink-0" />
+                <p className="text-[10px] text-indigo-200/60 leading-relaxed font-medium">
+                  BehaveGuard uses <span className="text-white">Zero-Storage card logic</span>. Identity is proven via behavioral biometrics, not sensitive data.
+                </p>
+              </div>
+
+              <button
+                onClick={() => setShowSandboxHelp(false)}
+                className="w-full py-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 text-xs font-black uppercase tracking-widest transition-all"
+              >
+                Dismiss Helper
+              </button>
             </motion.div>
           </div>
         )}

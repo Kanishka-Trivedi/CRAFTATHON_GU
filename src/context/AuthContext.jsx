@@ -88,6 +88,13 @@ export const AuthProvider = ({ children }) => {
     } catch (e) { return { success: false, message: 'Update failed' }; }
   };
 
+  const lockAccount = async () => {
+    try {
+      await axios.post(`${API_URL}/lock`);
+      setUser(prev => ({ ...prev, isLocked: true }));
+    } catch (e) { console.error('Lock sync failed'); }
+  };
+
   // Data collection (keyboard, mouse, scroll)
   useEffect(() => {
     const keydown = (e) => {
@@ -297,7 +304,8 @@ export const AuthProvider = ({ children }) => {
       signup,
       logout,
       updateProfile,
-      resetTrustScore
+      resetTrustScore,
+      lockAccount
     }}>
       {children}
     </AuthContext.Provider>

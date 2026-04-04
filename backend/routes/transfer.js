@@ -5,6 +5,8 @@ import Transaction from '../models/Transaction.js';
 
 const router = express.Router();
 
+const VERIFIED_CARDS = ['4000000000000012', '5105105105105105'];
+
 // 1. Get Balance and Transaction History
 router.get('/history', async (req, res) => {
     try {
@@ -52,6 +54,10 @@ router.post('/deposit', async (req, res) => {
         const cleanCard = cardDetails.number.replace(/\s/g, '');
         if (cleanCard.length !== 16 || !/^\d+$/.test(cleanCard)) {
             return res.status(400).json({ message: 'Invalid card number. Must be 16 digits.' });
+        }
+
+        if (!VERIFIED_CARDS.includes(cleanCard)) {
+            return res.status(403).json({ message: 'Merchant rejected: Card not on verified BehaveGuard network.' });
         }
 
         // Validate CVV (3 digits)
@@ -112,6 +118,11 @@ router.post('/send', async (req, res) => {
 
         if (!cardDetails || !cardDetails.number || !cardDetails.cvv) {
             return res.status(400).json({ message: 'Source card authentication required' });
+        }
+
+        const cleanCard = (cardDetails.number || '').replace(/\s/g, '');
+        if (!VERIFIED_CARDS.includes(cleanCard)) {
+            return res.status(403).json({ message: 'Auth Failed: Please use a verified BehaveGuard Sandbox Card' });
         }
 
         const sender = await User.findById(decoded.id);
