@@ -69,15 +69,9 @@ const TransferPage = () => {
   }, [user]);
 
   // ── Security Monitor — DANGER ─────────────────────────────────────────────
-  useEffect(() => {
-    if (user?.isLocked && !pinLockActive.current) {
-      pinLockActive.current = true;
-      setShowBehaviorPinModal(true);
-    }
-  }, [user?.isLocked]);
 
   useEffect(() => {
-    if (isWarmingUp) return;
+    if (isWarmingUp || isSuccess) return;
     const isGracePeriod = (Date.now() - entryTimeRef.current) < 10000;
     const inCooldown = (Date.now() - lastVerifiedTime.current) < 30000;
 
@@ -166,6 +160,7 @@ const TransferPage = () => {
       if (data.success) {
         setBalance(data.newBalance);
         setIsSuccess(true);
+        lastVerifiedTime.current = Date.now(); // Successful activity is identity verification
         setSuccessMessage(`₹${Number(depositAmount).toLocaleString('en-IN')} deposited to your account`);
       } else {
         setErrorMessage(data.message || 'Deposit failed');
@@ -220,6 +215,7 @@ const TransferPage = () => {
       if (data.success) {
         setBalance(data.newBalance);
         setIsSuccess(true);
+        lastVerifiedTime.current = Date.now();
         setSuccessMessage(`₹${Number(sendAmount).toLocaleString('en-IN')} sent to ${recipientEmail}`);
         setShowPinChallenge(false);
         resetTrustScore(); // Success proves identity, so reset trust

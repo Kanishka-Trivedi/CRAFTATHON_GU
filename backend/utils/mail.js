@@ -1,16 +1,13 @@
 import { Resend } from 'resend';
-import dotenv from 'dotenv';
-dotenv.config();
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const sendOtpEmail = async (email, name, otp) => {
-    try {
-        const { data, error } = await resend.emails.send({
-            from: 'BehaveGuard Security <onboarding@resend.dev>', // Update with verify domain for prod
-            to: [email],
-            subject: `Your BehaveGuard Verification Code: ${otp}`,
-            html: `
+  try {
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    const { data, error } = await resend.emails.send({
+      from: 'BehaveGuard Security <onboarding@resend.dev>', // Update with verify domain for prod
+      to: [email],
+      subject: `Your BehaveGuard Verification Code: ${otp}`,
+      html: `
         <div style="font-family: 'Sora', sans-serif; padding: 40px; background-color: #070814; color: white; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);">
           <div style="text-align: center; margin-bottom: 30px;">
             <h2 style="color: #6366f1; font-size: 24px; font-weight: 800; margin: 0;">BehaveGuard</h2>
@@ -31,17 +28,17 @@ export const sendOtpEmail = async (email, name, otp) => {
           </div>
         </div>
       `,
-        });
+    });
 
-        if (error) {
-            console.error('[RESEND ERROR]', error);
-            return { success: false, error };
-        }
-
-        console.log('[RESEND SUCCESS] Email dispatched:', data.id);
-        return { success: true, data };
-    } catch (err) {
-        console.error('[RESEND CRITICAL]', err.message);
-        return { success: false, error: err.message };
+    if (error) {
+      console.error('[RESEND ERROR]', error);
+      return { success: false, error };
     }
+
+    console.log('[RESEND SUCCESS] Email dispatched:', data.id);
+    return { success: true, data };
+  } catch (err) {
+    console.error('[RESEND CRITICAL]', err.message);
+    return { success: false, error: err.message };
+  }
 };

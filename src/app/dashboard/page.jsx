@@ -168,13 +168,7 @@ const DashboardPage = () => {
     });
   }, [trustScore, isWarmingUp]);
 
-  // ── Security — DANGER: respect 5 s warmup + 5 s extra entry grace ────────
-  useEffect(() => {
-    if (user?.isLocked && !pinLockActive.current) {
-      pinLockActive.current = true;
-      setShowPinModal(true);
-    }
-  }, [user?.isLocked]);
+  // Security — DANGER monitor handles all dynamic locks
 
   useEffect(() => {
     // Don't fire during engine warmup AT ALL
