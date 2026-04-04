@@ -28,7 +28,7 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
-  origin: true, // Dynamically allow whatever origin Vercel assigns you
+  origin: true, // Universal acceptance for demo period
   credentials: true,
 }));
 
