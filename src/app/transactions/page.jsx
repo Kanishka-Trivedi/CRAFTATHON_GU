@@ -169,9 +169,14 @@ const TransactionsPage = () => {
                             <p className="font-bold text-lg text-white">
                               {isDeposit ? 'Self Node Deposit' : (counterParty?.name || 'External Node')}
                             </p>
-                            <p className="text-[10px] text-white/30 font-black uppercase tracking-widest mt-1">
-                              {new Date(tx.timestamp).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
-                            </p>
+                            <div className="flex items-center gap-2">
+                              {!isDeposit && counterParty?.email && (
+                                <p className="text-[11px] text-accent/50 font-bold uppercase tracking-widest">{counterParty.email}</p>
+                              )}
+                              <p className="text-[10px] text-white/30 font-black uppercase tracking-widest">
+                                {new Date(tx.timestamp).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
+                              </p>
+                            </div>
                           </div>
                         </div>
                       </td>
@@ -191,8 +196,13 @@ const TransactionsPage = () => {
                       </td>
                       <td className="py-7">
                         <div className="flex items-center space-x-2">
-                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                          <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Implicit Biometric Pass</span>
+                          <div className={clsx(
+                            "w-1.5 h-1.5 rounded-full",
+                            (tx.authScore || 100) > 60 ? "bg-emerald-400" : (tx.authScore || 100) > 30 ? "bg-amber-400" : "bg-red-400"
+                          )} />
+                          <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">
+                            Auth Score: {tx.authScore || 100}%
+                          </span>
                         </div>
                       </td>
                       <td className="py-7 px-10 text-right">

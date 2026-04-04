@@ -28,6 +28,10 @@ const transactionSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
+    authScore: {
+        type: Number,
+        default: 100,
+    }
 });
 
 const Transaction = mongoose.model('Transaction', transactionSchema, 'Transactions');

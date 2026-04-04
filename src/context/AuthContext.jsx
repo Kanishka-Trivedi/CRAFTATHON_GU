@@ -107,6 +107,19 @@ export const AuthProvider = ({ children }) => {
     } catch (e) { console.error('Lock sync failed'); }
   };
 
+  const unlockAccount = async (pin) => {
+    try {
+      const res = await axios.post(`${API_URL}/verify-pin`, { pin });
+      if (res.data.success) {
+        setUser(prev => ({ ...prev, isLocked: false }));
+        return { success: true };
+      }
+      return { success: false, message: res.data.message };
+    } catch (e) {
+      return { success: false, message: e.response?.data?.message || 'Verification failed' };
+    }
+  };
+
   // Data collection (keyboard, mouse, scroll)
   useEffect(() => {
     const keydown = (e) => {
@@ -211,25 +224,14 @@ export const AuthProvider = ({ children }) => {
       const idleTimeVal = avgOrZero(b.idleTimes);
       const clickDevVal = avgOrZero(b.clickDeviations);
 
-      // Check if user is truly idle (no activity at all in this window)
-      const isIdle = b.charCount === 0 && b.mouseSpeeds.length === 0 && b.scrollSpeeds.length === 0 && b.keysHeld.length === 0 && b.touchSpeeds.length === 0;
-
-      // Update display metrics (show zeros when idle)
-      setLiveMetrics({
-        typingSpeed: parseFloat(typingSpeed.toFixed(2)),
-        mouseSpeed: parseFloat(mouseVelocity.toFixed(0)),
-        scrollSpeed: parseFloat(scrollSpeedVal.toFixed(0)),
-        keyHold: parseFloat(keyHoldAvg.toFixed(0)),
-        keyFlight: parseFloat(keyFlightAvg.toFixed(0)),
-      });
+      // Reset buffer only for the ML scoring cycle
+      const isIdle = b.charCount === 0 && b.mouseSpeeds.length === 0 && b.scrollSpeeds.length === 0;
 
       // Reset buffer
       buffer.current = { keysHeld: [], keyFlights: [], mouseSpeeds: [], scrollSpeeds: [], idleTimes: [], clickDeviations: [], touchSpeeds: [], charCount: 0 };
 
-      // If idle, keep trust stable — only score when there's real activity
       if (isIdle) return;
 
-      // Build scoring payload only when there's real activity
       const payload = {
         user_id: user?._id || user?.id || 'anon',
         typing_speed: clamp(typingSpeed, 0, 20),
@@ -252,13 +254,25 @@ export const AuthProvider = ({ children }) => {
 
         if (res.ok) {
           const data = await res.json();
-          const trust = 1 - (data.risk_score / 100);
-          setTrustScore(parseFloat(trust.toFixed(2)));
 
-          if (data.risk_level === "LOW") setRiskLevel("safe");
-          else if (data.risk_level === "MEDIUM") setRiskLevel("watch");
-          else setRiskLevel("danger");
+          setTrustScore(prev => {
+            const instantTrust = 1 - (data.risk_score / 100);
+            if (prev === null) return instantTrust;
+            const alpha = 0.3;
+            const newTrust = (alpha * instantTrust) + (1 - alpha) * prev;
 
+            // Dynamic Risk Level based on thresholds:
+            // 60-100: Safe (Green)
+            // 30-60: Watch (Yellow)
+            // 0-30: Danger (Red + Modal)
+            if (newTrust >= 0.6) setRiskLevel("safe");
+            else if (newTrust >= 0.3) setRiskLevel("watch");
+            else setRiskLevel("danger");
+
+            return parseFloat(newTrust.toFixed(2));
+          });
+
+          // Track anomaly messages from backend regardless of threshold logic
           if (data.anomalies?.length > 0) {
             setSessionEvents(prev => [
               { timestamp: new Date().toISOString(), type: 'anomaly', message: data.anomalies[0] },
@@ -266,12 +280,33 @@ export const AuthProvider = ({ children }) => {
             ]);
           }
         }
-      } catch (e) {
-        // Swallow network errors — trust stays stable
-      }
+      } catch (e) { }
     }, 2000);
 
-    return () => clearInterval(interval);
+    // High-frequency UI update (100ms) for Typing/Mouse meters
+    const uiInterval = setInterval(() => {
+      const b = buffer.current;
+      const avgOrZero = (arr) => arr.length ? arr.reduce((a, v) => a + v, 0) / arr.length : 0;
+
+      setLiveMetrics(prev => {
+        const currentMouse = avgOrZero(b.mouseSpeeds);
+        const currentTyping = b.charCount / 0.1; // estimate over 100ms
+
+        return {
+          ...prev,
+          mouseSpeed: currentMouse > 0 ? parseFloat(currentMouse.toFixed(0)) : prev.mouseSpeed * 0.8, // decay
+          typingSpeed: currentTyping > 0 ? parseFloat(currentTyping.toFixed(2)) : prev.typingSpeed * 0.9,
+          keyHold: avgOrZero(b.keysHeld) || prev.keyHold,
+          keyFlight: avgOrZero(b.keyFlights) || prev.keyFlight,
+          scrollSpeed: avgOrZero(b.scrollSpeeds) || prev.scrollSpeed
+        };
+      });
+    }, 100);
+
+    return () => {
+      clearInterval(interval);
+      clearInterval(uiInterval);
+    };
   }, [user]);
 
   // Background sync (every 30s) — sends latest metrics snapshot to Node backend

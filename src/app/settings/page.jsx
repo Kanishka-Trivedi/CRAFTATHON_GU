@@ -243,38 +243,53 @@ const SettingsPage = () => {
                            </GlassCard>
 
                            <GlassCard className="p-8 border-white/5 magic-bento-card magic-bento-card--border-glow">
-                              <h3 className="font-sora font-bold text-xl mb-8">Login Sessions</h3>
+                              <h3 className="font-sora font-bold text-xl mb-8 flex items-center space-x-3">
+                                 <Smartphone size={20} className="text-accent" />
+                                 <span>Active Login Sessions</span>
+                              </h3>
                               <div className="space-y-4">
-                                 <div className="flex items-center justify-between p-6 rounded-2xl bg-white/[0.05] border border-accent/30 relative overflow-hidden">
-                                    <div className="flex items-center space-x-6">
-                                       <div className="w-12 h-12 rounded-2xl bg-accent/20 flex items-center justify-center text-accent">
-                                          <Globe size={24} />
-                                       </div>
-                                       <div className="space-y-1">
-                                          <p className="font-bold text-sm leading-none flex items-center space-x-2">
-                                             <span>Chrome on MacBook Pro</span>
-                                             <span className="text-[10px] bg-accent/20 text-accent px-2 py-0.5 rounded uppercase font-bold tracking-widest">Active now</span>
-                                          </p>
-                                          <p className="text-xs text-secondary">Mumbai, India · IP: 103.42.12.89</p>
-                                       </div>
-                                    </div>
-                                    <div className="absolute right-0 top-0 h-full flex items-center pr-6 opacity-0 hover:opacity-100 transition-all bg-gradient-to-l from-bg-card via-bg-card to-transparent">
-                                       <button className="text-[10px] font-bold text-trust-danger uppercase tracking-widest hover:underline">This is not me</button>
-                                    </div>
-                                 </div>
+                                 {/* Dynamic Device Capture */}
+                                 {(() => {
+                                    const ua = typeof window !== 'undefined' ? window.navigator.userAgent : '';
+                                    let browser = 'Chrome';
+                                    if (ua.includes('Firefox')) browser = 'Firefox';
+                                    else if (ua.includes('Safari') && !ua.includes('Chrome')) browser = 'Safari';
+                                    else if (ua.includes('Edg')) browser = 'Edge';
 
-                                 <div className="flex items-center justify-between p-6 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-accent/20 transition-all">
-                                    <div className="flex items-center space-x-6">
-                                       <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-secondary">
-                                          <Smartphone size={24} />
+                                    let os = 'Windows PC';
+                                    if (ua.includes('Macintosh')) os = 'MacBook Pro';
+                                    else if (ua.includes('iPhone')) os = 'iPhone';
+                                    else if (ua.includes('Android')) os = 'Android Device';
+                                    else if (ua.includes('Linux')) os = 'Linux Station';
+
+                                    return (
+                                       <div className="flex items-center justify-between p-6 rounded-2xl bg-white/[0.05] border border-accent/30 relative overflow-hidden group">
+                                          <div className="absolute inset-0 bg-gradient-to-r from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                                          <div className="flex items-center space-x-6 relative z-10">
+                                             <div className="w-12 h-12 rounded-2xl bg-accent/20 flex items-center justify-center text-accent">
+                                                <Globe size={24} />
+                                             </div>
+                                             <div className="space-y-1">
+                                                <p className="font-extrabold text-sm leading-none flex items-center space-x-2">
+                                                   <span>{browser} on {os}</span>
+                                                   <span className="text-[9px] bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-full uppercase font-black tracking-widest animate-pulse border border-emerald-500/20">
+                                                      Current Node
+                                                   </span>
+                                                </p>
+                                                <p className="text-xs text-secondary font-medium tracking-tight">Active Environment · Mumbai, IN (IP Verified)</p>
+                                             </div>
+                                          </div>
+                                          <div className="flex items-center space-x-4">
+                                             <span className="text-[10px] text-accent font-black uppercase tracking-widest hidden md:block">Session Secures</span>
+                                             <Lock size={14} className="text-accent/40" />
+                                          </div>
                                        </div>
-                                       <div className="space-y-1">
-                                          <p className="font-bold text-sm leading-none">Safari on iPhone 15</p>
-                                          <p className="text-xs text-secondary">Delhi, India · Last seen 2h ago</p>
-                                       </div>
-                                    </div>
-                                    <button className="px-4 py-2 rounded-xl border border-white/10 text-xs font-bold text-secondary hover:bg-trust-danger/10 hover:text-trust-danger transition-all">Revoke</button>
-                                 </div>
+                                    );
+                                 })()}
+
+                                 <p className="text-[9px] text-white/20 uppercase font-black tracking-widest text-center pt-4 italic">
+                                    No other active sessions detected on BehaveGuard mesh.
+                                 </p>
                               </div>
                            </GlassCard>
                         </motion.div>

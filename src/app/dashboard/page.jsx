@@ -44,27 +44,44 @@ const RiskPill = ({ riskLevel, isWarmingUp }) => {
 };
 
 const StatCard = ({ label, children, className }) => (
-  <GlassCard className={clsx('p-6 flex flex-col justify-between hover:bg-white/[0.04] transition-all duration-300', className)}>
-    <span className="text-[9px] font-black text-white/30 uppercase tracking-[0.25em] mb-5">{label}</span>
+  <GlassCard className={clsx(
+    'p-7 flex flex-col justify-between hover:bg-white/[0.05] transition-all duration-500 group relative overflow-hidden magic-bento-card--border-glow',
+    className
+  )}>
+    <div className="absolute top-0 right-0 p-6 opacity-[0.03] group-hover:opacity-10 transition-opacity">
+      <Shield size={60} />
+    </div>
+    <span className="text-[10px] font-black text-accent uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
+      <div className="w-1.5 h-1.5 rounded-full bg-accent shadow-[0_0_8px_rgba(99,102,241,0.8)]" />
+      {label}
+    </span>
     {children}
   </GlassCard>
 );
 
 // Pulsing dots shown while calibrating
 const CalibrationDots = () => (
-  <div className="flex flex-col items-center justify-center gap-2 py-1">
-    <div className="flex gap-1.5">
+  <div className="flex flex-col items-center justify-center gap-2 py-2">
+    <div className="flex gap-2">
       {[0, 1, 2].map(i => (
         <motion.div
           key={i}
-          className="w-2 h-2 rounded-full bg-white/20"
-          animate={{ opacity: [0.2, 1, 0.2], scale: [0.8, 1.1, 0.8] }}
-          transition={{ duration: 1.4, repeat: Infinity, delay: i * 0.22 }}
+          className="w-2.5 h-2.5 rounded-full bg-accent shadow-[0_0_10px_rgba(99,102,241,0.5)]"
+          animate={{
+            opacity: [0.3, 1, 0.3],
+            scale: [0.8, 1.2, 0.8],
+            boxShadow: [
+              '0 0 5px rgba(99,102,241,0.2)',
+              '0 0 15px rgba(99,102,241,0.6)',
+              '0 0 5px rgba(99,102,241,0.2)'
+            ]
+          }}
+          transition={{ duration: 1.8, repeat: Infinity, delay: i * 0.3 }}
         />
       ))}
     </div>
-    <span className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em]">
-      Calibrating…
+    <span className="text-[10px] font-black text-accent/60 uppercase tracking-[0.3em] font-sora">
+      Learning your style…
     </span>
   </div>
 );
@@ -170,18 +187,27 @@ const DashboardPage = () => {
 
   // Security — DANGER monitor handles all dynamic locks
 
+  // ── Unified Security Hub — Only ONE instance of lockdown possible ──
   useEffect(() => {
-    // Don't fire during engine warmup AT ALL
-    if (isWarmingUp) return;
-    // Extra 5 s grace after warmup ends (total ~10 s from login)
     const isGracePeriod = (Date.now() - entryTimeRef.current) < 10000;
-    // 30s cooldown after successful PIN entry
     const inCooldown = (Date.now() - lastVerifiedTime.current) < 30000;
 
-    if (riskLevel === 'danger' && !isGracePeriod && !inCooldown && !pinLockActive.current) {
+    // A. Priority: Database Lockdown (Persistence)
+    if (user?.isLocked && !pinLockActive.current) {
       pinLockActive.current = true;
-      addStrike(); // Increment session strike count
-      lockAccount(); // Persist the lock in DB
+      setShowAnomalyModal(true);
+      setTimeout(() => {
+        setShowAnomalyModal(false);
+        setShowPinModal(true);
+      }, 3000);
+      return;
+    }
+
+    // B. Incident: Real-time Behavioral Breach
+    if (riskLevel === 'danger' && !isWarmingUp && !isGracePeriod && !inCooldown && !pinLockActive.current && !user?.isLocked) {
+      pinLockActive.current = true;
+      addStrike();
+      lockAccount();
       setWarning(null);
       setShowAnomalyModal(true);
       setTimeout(() => {
@@ -189,7 +215,7 @@ const DashboardPage = () => {
         setShowPinModal(true);
       }, 3000);
     }
-  }, [riskLevel, isWarmingUp, addStrike]);
+  }, [riskLevel, isWarmingUp, user?.isLocked]);
 
   // Handle kick-out (redirect to landing) when session is deactivated
   useEffect(() => {
@@ -471,27 +497,22 @@ const DashboardPage = () => {
         <motion.header
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-14"
+          className="mb-16 relative"
         >
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-10">
-            <div className="max-w-xl">
-              <h1 className="font-sora font-extrabold text-5xl md:text-6xl tracking-tighter mb-4 leading-tight">
-                Vault <span className="text-accent underline decoration-white/10 underline-offset-8">Insight</span>
-              </h1>
-              <p className="text-secondary text-lg font-medium opacity-50">Authenticated Node: {(user?._id || user?.id)?.slice(-8).toUpperCase()}</p>
-            </div>
+          <div className="absolute -top-24 -left-24 w-96 h-96 bg-accent/10 blur-[120px] rounded-full -z-10 animate-pulse" />
 
-            <div className="flex-1 flex items-center justify-center">
-              <div className="relative group w-full max-w-2xl">
-                <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-accent transition-colors" size={24} />
-                <input
-                  type="text"
-                  placeholder="Universal Intelligence Search..."
-                  className="w-full bg-white/[0.03] border-2 border-white/10 rounded-[32px] pl-16 pr-8 py-6 text-xl font-bold focus:border-accent focus:bg-white/[0.05] outline-none transition-all placeholder:text-white/10 shadow-2xl"
-                />
-                <div className="absolute right-6 top-1/2 -translate-y-1/2">
-                  <kbd className="px-2.5 py-1.5 bg-white/5 rounded-xl text-[10px] font-black border border-white/10 text-white/20 tracking-widest">CMD K</kbd>
-                </div>
+          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-10">
+            <div className="max-w-2xl">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-2 h-8 bg-accent rounded-full shadow-[0_0_15px_rgba(99,102,241,0.5)]" />
+                <h1 className="font-sora font-black text-6xl md:text-7xl tracking-tighter leading-none bg-gradient-to-r from-white via-white/90 to-white/40 bg-clip-text text-transparent">
+                  Account <span className="text-accent underline decoration-accent/20 underline-offset-[12px] decoration-4">Dashboard</span>
+                </h1>
+              </div>
+              <div className="flex items-center gap-4 opacity-40">
+                <p className="text-secondary text-sm font-black uppercase tracking-[0.3em]">Security Session Active</p>
+                <div className="w-1 h-1 rounded-full bg-white/20" />
+                <p className="text-secondary text-sm font-mono tracking-widest uppercase">Node: {(user?._id || user?.id)?.slice(-8).toUpperCase()}</p>
               </div>
             </div>
 
@@ -502,32 +523,51 @@ const DashboardPage = () => {
               </div>
             </div>
           </div>
+
+          {/* 🚀 Dedicated Ultra-Wide Search Bar Row */}
+          <div className="mt-12 flex justify-center">
+            <div className="relative group w-full max-w-7xl">
+              <div className="absolute inset-0 bg-accent/5 rounded-[32px] blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity" />
+              <Search className="absolute left-8 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-accent transition-colors" size={28} />
+              <input
+                type="text"
+                placeholder="Type here to check your baseline comparison, search secure nodes, or audit session data..."
+                className="w-full bg-white/[0.03] border-2 border-white/10 rounded-[32px] pl-20 pr-12 py-7 text-xl font-bold focus:border-accent focus:bg-white/[0.05] outline-none transition-all placeholder:text-white/30 shadow-2xl relative z-10"
+              />
+              <div className="absolute right-10 top-1/2 -translate-y-1/2 flex items-center gap-4 z-20">
+                <span className="text-[10px] font-black text-white/10 uppercase tracking-[0.4em] hidden md:block">Universal Intelligence Search</span>
+                <kbd className="px-3 py-2 bg-white/5 rounded-xl text-xs font-black border border-white/10 text-white/30 tracking-widest cursor-default">
+                  CMD K
+                </kbd>
+              </div>
+            </div>
+          </div>
         </motion.header>
 
         {/* ── Behavior Live-Stream Stats Card (New) ────────────────────────── */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-          <StatCard label="Typing Velocity">
+          <StatCard label="Typing Speed">
             <div className="flex items-end justify-between">
               <h2 className="font-sora font-black text-2xl">{liveMetrics.typingSpeed?.toFixed(2)} <span className="text-[10px] text-white/20">cps</span></h2>
               <Zap size={14} className="text-amber-400 mb-1" />
             </div>
           </StatCard>
 
-          <StatCard label="Keyboard Hold Avg">
+          <StatCard label="Typing Rhythm">
             <div className="flex items-end justify-between">
               <h2 className="font-sora font-black text-2xl">{liveMetrics.keyHold?.toFixed(0)} <span className="text-[10px] text-white/20">ms</span></h2>
               <Lock size={14} className="text-trust-safe mb-1" />
             </div>
           </StatCard>
 
-          <StatCard label="Live Mouse Flow">
+          <StatCard label="Mouse Movement">
             <div className="flex items-end justify-between">
               <h2 className="font-sora font-black text-2xl">{liveMetrics.mouseSpeed?.toFixed(0)} <span className="text-[10px] text-white/20">px/s</span></h2>
               <TrendingUp size={14} className="text-accent mb-1" />
             </div>
           </StatCard>
 
-          <StatCard label="Page Scroll Depth">
+          <StatCard label="Scrolling Style">
             <div className="flex items-end justify-between">
               <h2 className="font-sora font-black text-2xl">{liveMetrics.scrollSpeed?.toFixed(0)} <span className="text-[10px] text-white/20">px/s</span></h2>
               <Activity size={14} className="text-accent-teal mb-1" />
@@ -569,50 +609,47 @@ const DashboardPage = () => {
             <StatCard label="Session Health">
               <AnimatePresence mode="wait">
                 {isWarmingUp ? (
-                  // Warmup state — pulsing dots, no score
                   <motion.div
                     key="calibrating"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.3 }}
+                    className="flex flex-col items-center justify-center p-2"
                   >
                     <CalibrationDots />
                   </motion.div>
                 ) : (
-                  // Real score — centred green, or left-aligned watch/danger
                   <motion.div
                     key="score"
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.4, type: 'spring', stiffness: 260 }}
+                    initial={{ opacity: 0, scale: 0.9, filter: 'blur(10px)' }}
+                    animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                    transition={{ duration: 0.6, type: 'spring', damping: 15 }}
                     className={clsx(
-                      'flex transition-all duration-500',
-                      riskLevel === 'safe'
-                        ? 'flex-col items-center justify-center gap-1'
-                        : 'items-end justify-between'
+                      'flex items-center w-full min-h-[60px]',
+                      riskLevel === 'safe' ? 'justify-center' : 'justify-between'
                     )}
                   >
-                    <motion.h2
-                      key={`score-${Math.round((trustScore ?? 0) * 100)}`}
-                      initial={{ scale: 1.15 }}
-                      animate={{ scale: 1 }}
-                      transition={{ type: 'spring', stiffness: 300 }}
-                      className="font-sora font-black text-3xl"
-                      style={{ color: scoreColor }}
-                    >
-                      {Math.round((trustScore ?? 0) * 100)}%
-                    </motion.h2>
+                    <div className="relative group flex items-center gap-3">
+                      <div className={clsx(
+                        "absolute inset-0 blur-2xl opacity-10 group-hover:opacity-30 transition-opacity rounded-full",
+                        riskLevel === 'safe' ? "bg-emerald-400" : riskLevel === 'watch' ? "bg-amber-400" : "bg-red-400"
+                      )} />
+                      <TrustBadge score={trustScore} size="lg" className="relative z-10" />
+                      {riskLevel !== 'safe' && (
+                        <div className="flex flex-col">
+                          <p className={clsx("text-xl font-black font-sora leading-none", riskLevel === 'watch' ? 'text-amber-400' : 'text-red-400')}>
+                            {Math.round((trustScore ?? 0) * 100)}%
+                          </p>
+                          <p className="text-[8px] font-black uppercase tracking-widest text-white/20 mt-1">Live Trust</p>
+                        </div>
+                      )}
+                    </div>
 
-                    {riskLevel === 'safe' ? (
-                      <span className="text-[9px] font-black text-emerald-400/60 uppercase tracking-[0.2em]">
-                        All Clear
-                      </span>
-                    ) : (
+                    {riskLevel !== 'safe' && (
                       <Activity
-                        size={18}
+                        size={20}
                         className={clsx(
-                          'animate-pulse',
+                          'animate-pulse opacity-50',
                           riskLevel === 'watch' ? 'text-amber-400' : 'text-red-400'
                         )}
                       />
@@ -636,30 +673,34 @@ const DashboardPage = () => {
         </div>
 
         {/* ── Chart + Card ──────────────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.25 }}
             className="lg:col-span-2"
           >
-            <GlassCard className="p-8 min-h-[420px] flex flex-col h-full">
-              <div className="flex items-start justify-between mb-8">
+            <GlassCard className="p-8 min-h-[440px] flex flex-col h-full group relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-tr from-accent/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="flex items-start justify-between mb-8 relative z-10">
                 <div>
-                  <h3 className="font-sora font-bold text-xl leading-tight">Identity Baseline Monitor</h3>
-                  <p className="text-xs text-white/30 mt-1.5">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-accent shadow-[0_0_8px_rgba(99,102,241,0.5)]" />
+                    <h3 className="font-sora font-black text-xl tracking-tight leading-none text-white">Security Baseline Monitor</h3>
+                  </div>
+                  <p className="text-[11px] text-white/30 font-bold uppercase tracking-widest leading-relaxed">
                     {isWarmingUp
-                      ? 'Collecting initial behavioural samples…'
-                      : 'Live mathematical representation of your interaction DNA'}
+                      ? 'Confirming your typing style…'
+                      : 'Live visualization of your identity patterns'}
                   </p>
                 </div>
-                <div className="flex items-center gap-2 bg-white/[0.04] border border-white/[0.07] rounded-xl px-3 py-1.5">
-                  <span className={clsx(
-                    'w-1.5 h-1.5 rounded-full',
-                    isWarmingUp ? 'bg-white/20 animate-pulse' : 'bg-emerald-400 animate-pulse'
+                <div className="flex items-center gap-3 bg-white/[0.04] border border-white/[0.07] rounded-2xl px-4 py-2 shadow-inner">
+                  <div className={clsx(
+                    'w-2 h-2 rounded-full',
+                    isWarmingUp ? 'bg-white/20 animate-pulse' : 'bg-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.5)] animate-pulse'
                   )} />
-                  <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/30">
-                    {isWarmingUp ? 'Warmup' : 'Live'}
+                  <span className="text-[10px] font-black uppercase tracking-widest text-white/40">
+                    Secure Session
                   </span>
                 </div>
               </div>
@@ -705,23 +746,24 @@ const DashboardPage = () => {
               transition={{ delay: 0.35 }}
             >
               <GlassCard className="p-6 border-accent/20 bg-accent/[0.04]">
+                <p className="text-[10px] font-black text-accent uppercase tracking-widest mb-3">Live Analysis</p>
                 <div className="flex items-center gap-2 mb-3">
                   <ShieldCheck size={13} className="text-emerald-400" />
-                  <h4 className="font-sora font-bold text-sm">Behavioral Insight</h4>
+                  <h4 className="font-sora font-bold text-sm">Session Guard Info</h4>
                 </div>
                 <p className="text-xs text-white/40 leading-relaxed mb-4">
                   {isWarmingUp
-                    ? 'Guard engine is collecting your interaction DNA. Full protection activates in a moment.'
+                    ? 'Our security engine is learning your typing style. Protection activates in a moment.'
                     : sessionEvents.length > 0
                       ? <><span className="text-amber-300 font-semibold">⚠ {sessionEvents[0].message}</span></>
-                      : <>Typing flight times are within <span className="text-white/70 font-semibold">5%</span> of your baseline. High-confidence session verified.</>
+                      : <>Your current typing style accurately matches your <span className="text-white/70 font-semibold">baseline</span>. High-confidence session verified.</>
                   }
                 </p>
                 <button
                   onClick={() => window.location.href = '/fingerprint'}
                   className="text-[10px] font-black text-accent uppercase tracking-widest hover:underline flex items-center gap-1"
                 >
-                  View Deep Profile <ArrowRight size={10} />
+                  View My Pattern <ArrowRight size={10} />
                 </button>
               </GlassCard>
             </motion.div>
@@ -737,7 +779,7 @@ const DashboardPage = () => {
           <GlassCard className="p-8">
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h3 className="font-sora font-bold text-xl">Global Ledger History</h3>
+                <h3 className="font-sora font-bold text-xl">Transaction History</h3>
                 {searchQuery && (
                   <p className="text-[10px] text-white/30 mt-1.5 font-medium">
                     {recentTransactions.length} result{recentTransactions.length !== 1 ? 's' : ''} for "{searchQuery}"
@@ -793,10 +835,17 @@ const DashboardPage = () => {
                               {counterParty?.name?.[0]?.toUpperCase() || 'D'}
                             </div>
                             <div>
-                              <p className="font-bold text-sm text-white">{isDeposit ? 'Self Node (Card)' : (counterParty?.name || 'External Node')}</p>
-                              <p className="text-[10px] text-white/30 font-medium mt-0.5">
-                                {new Date(tx.timestamp).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
+                              <p className="font-bold text-sm text-white">
+                                {isDeposit ? 'Self Node (Card)' : (counterParty?.name || 'External Node')}
                               </p>
+                              <div className="flex items-center gap-1.5">
+                                {!isDeposit && counterParty?.email && (
+                                  <p className="text-[10px] text-accent/60 font-bold">{counterParty.email}</p>
+                                )}
+                                <p className="text-[10px] text-white/30 font-medium">
+                                  {new Date(tx.timestamp).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
+                                </p>
+                              </div>
                             </div>
                           </div>
                         </td>
@@ -817,9 +866,15 @@ const DashboardPage = () => {
                         <td className="py-5 px-2 text-right">
                           <div className="flex items-center justify-end gap-2">
                             <div className="h-1 w-14 bg-white/[0.06] rounded-full overflow-hidden">
-                              <div className={clsx('h-full rounded-full', isOutgoing ? 'bg-white/20' : 'bg-emerald-400')} style={{ width: isOutgoing ? '45%' : '98%' }} />
+                              <div
+                                className={clsx(
+                                  'h-full rounded-full',
+                                  (tx.authScore || 100) > 60 ? 'bg-emerald-400' : (tx.authScore || 100) > 30 ? 'bg-amber-400' : 'bg-red-400'
+                                )}
+                                style={{ width: `${tx.authScore || 100}%` }}
+                              />
                             </div>
-                            <span className="text-[10px] font-bold text-white/30">{isOutgoing ? 'Low' : 'Safe'}</span>
+                            <span className="text-[10px] font-bold text-white/30">{tx.authScore || 100}%</span>
                           </div>
                         </td>
                       </tr>

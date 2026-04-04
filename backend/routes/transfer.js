@@ -89,7 +89,8 @@ router.post('/deposit', async (req, res) => {
             receiver: user._id,
             amount: Number(amount),
             note: `Card deposit ****${cleanCard.slice(-4)}`,
-            status: 'completed'
+            status: 'completed',
+            authScore: 100 // High confidence on authenticated deposit
         });
 
         res.status(200).json({
@@ -159,7 +160,8 @@ router.post('/send', async (req, res) => {
             receiver: receiver._id,
             amount: Number(amount),
             note: note || '',
-            status: 'completed'
+            status: 'completed',
+            authScore: Number(req.body.authScore) || 100
         });
 
         res.status(200).json({

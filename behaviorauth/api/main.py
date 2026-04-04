@@ -118,60 +118,81 @@ class ScoreResponse(BaseModel):
 
 def compute_risk_score(data: BehaviorInput) -> int:
     points = 0.0
+    baseline = data.baseline or {}
 
     # ── Typing speed ─────────────────────────────────────────────
     ts = data.typing_speed
+    b_ts = baseline.get("typingSpeedAvg", 0)
     if ts > 0:
         if ts <= 5:
-            points += ts * 1.6           # 3→4.8, 5→8
+            points += ts * 1.6
         elif ts <= 8:
-            points += 8 + (ts - 5) * 7   # 6→15, 8→29
+            points += 8 + (ts - 5) * 7
         else:
-            points += 29 + (ts - 8) * 8  # 10→45, 14→77
+            points += 29 + (ts - 8) * 8
+        
+        # Baseline deviation penalty
+        if b_ts > 0 and ts > b_ts * 1.5:
+            points += min(30, (ts / b_ts) * 5)
 
     # ── Mouse velocity ───────────────────────────────────────────
     mv = data.mouse_velocity
+    b_mv = baseline.get("mouseVelocityAvg", 0)
     if mv > 0:
         if mv <= 500:
-            points += mv / 100           # 200→2, 400→4
+            points += mv / 100
         elif mv <= 800:
-            points += 5 + (mv - 500) / 300 * 7    # 650→8.5
+            points += 5 + (mv - 500) / 300 * 7
         else:
-            points += 12 + (mv - 800) / 200 * 10  # 1000→22
+            points += 12 + (mv - 800) / 200 * 10
+            
+        # Baseline deviation penalty
+        if b_mv > 0 and mv > b_mv * 2.0:
+            points += 15
 
     # ── Key hold time ────────────────────────────────────────────
     kh = data.key_hold_avg_ms
+    b_kh = baseline.get("keyHoldAvg", 0)
     if kh > 0:
         if kh < 40:
-            points += 20     # Bot scripting
+            points += 25     # Bot scripting check (stricter)
         elif kh < 70:
-            points += 8      # Very fast, suspicious
+            points += 12
         elif kh <= 200:
-            points += 2      # Normal human
+            points += 2
         elif kh <= 350:
-            points += 5      # Slow but OK
+            points += 5
         else:
-            points += 12     # Very slow, unusual
+            points += 12
+
+        # Baseline deviation penalty
+        if b_kh > 0 and abs(kh - b_kh) > 80:
+            points += 10
 
     # ── Scroll speed ─────────────────────────────────────────────
     ss = data.scroll_speed
     if ss > 0:
         if ss <= 400:
-            points += ss / 200           # 200→1, 400→2
+            points += ss / 200
         elif ss <= 800:
-            points += 2 + (ss - 400) / 400 * 5    # 600→4.5
+            points += 2 + (ss - 400) / 400 * 5
         else:
-            points += 7 + (ss - 800) / 200 * 8    # 1000→15
+            points += 7 + (ss - 800) / 200 * 8
 
     # ── Key flight time ──────────────────────────────────────────
     kf = data.key_flight_avg_ms
+    b_kf = baseline.get("keyFlightAvg", 0)
     if kf > 0:
         if kf < 30:
-            points += 15     # Automated inter-key timing
+            points += 20
         elif kf <= 250:
-            points += 1      # Normal
+            points += 1
         else:
-            points += 3      # Slow
+            points += 5
+            
+        # Baseline deviation penalty
+        if b_kf > 0 and abs(kf - b_kf) > 100:
+            points += 8
 
     return max(0, min(100, int(points)))
 

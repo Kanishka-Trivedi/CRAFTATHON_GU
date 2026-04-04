@@ -70,22 +70,36 @@ const TransferPage = () => {
 
   // ── Security Monitor — DANGER ─────────────────────────────────────────────
 
+  // ── Unified Security Hub — Only ONE instance of lockdown possible ──
   useEffect(() => {
     if (isWarmingUp || isSuccess) return;
+
     const isGracePeriod = (Date.now() - entryTimeRef.current) < 10000;
     const inCooldown = (Date.now() - lastVerifiedTime.current) < 30000;
 
-    if (riskLevel === 'danger' && !isGracePeriod && !inCooldown && !pinLockActive.current) {
+    // A. Priority: Database Lockdown (Persistence after refresh)
+    if (user?.isLocked && !pinLockActive.current) {
+      pinLockActive.current = true;
+      setShowAnomalyModal(true);
+      setTimeout(() => {
+        setShowAnomalyModal(false);
+        setShowBehaviorPinModal(true);
+      }, 3000);
+      return; // Stop here, database state is truth
+    }
+
+    // B. Incident: Real-time Behavioral Breach
+    if (riskLevel === 'danger' && !isGracePeriod && !inCooldown && !pinLockActive.current && !user?.isLocked) {
       pinLockActive.current = true;
       addStrike();
-      lockAccount();
+      lockAccount(); // This will trigger the B -> A transition on next tick, but pinLockActive guard prevents double-fire
       setShowAnomalyModal(true);
       setTimeout(() => {
         setShowAnomalyModal(false);
         setShowBehaviorPinModal(true);
       }, 3000);
     }
-  }, [riskLevel, isWarmingUp, addStrike, lockAccount]);
+  }, [riskLevel, isWarmingUp, user?.isLocked]);
 
   // Handle auto-logout redirect
   useEffect(() => {
@@ -140,6 +154,15 @@ const TransferPage = () => {
       setErrorMessage('Enter expiry in MM/YY format');
       return;
     }
+
+    // Strict Expiry Check
+    const [m, y] = cardExpiry.split('/');
+    const expDate = new Date(2000 + parseInt(y), parseInt(m));
+    if (expDate < new Date()) {
+      setErrorMessage('Source card has expired — re-authentication required.');
+      return;
+    }
+
     if (!cvv || cvv.length !== 3) {
       setErrorMessage('Enter a valid 3-digit CVV');
       return;
@@ -185,13 +208,27 @@ const TransferPage = () => {
       setErrorMessage('Enter your 16-digit card number');
       return;
     }
+    if (!cardExpiry || !/^\d{2}\/\d{2}$/.test(cardExpiry)) {
+      setErrorMessage('Enter your card expiry');
+      return;
+    }
+    const [m, y] = cardExpiry.split('/');
+    const expDate = new Date(2000 + parseInt(y), parseInt(m));
+    if (expDate < new Date()) {
+      setErrorMessage('The card provided has expired.');
+      return;
+    }
     if (!cvv || cvv.length !== 3) {
       setErrorMessage('Enter your 3-digit CVV');
       return;
     }
 
     // PIN challenge for low trust or high amount
-    if ((trustScore < 0.6 || Number(sendAmount) > 10000) && !showPinChallenge) {
+    // Skip if recently verified (within 60s) via behavioral unlock
+    const recentlyVerified = (Date.now() - lastVerifiedTime.current) < 60000;
+    const isSecurityCaught = riskLevel === 'danger';
+
+    if ((trustScore < 0.6 || Number(sendAmount) > 10000) && !showPinChallenge && !recentlyVerified && !isSecurityCaught) {
       setShowPinChallenge(true);
       return;
     }
@@ -208,7 +245,8 @@ const TransferPage = () => {
           amount: Number(sendAmount),
           note: sendNote,
           cardDetails: { number: cardNumber, expiry: cardExpiry, cvv },
-          pin: pinInput.join('')
+          pin: pinInput.join(''),
+          authScore: Math.round(trustScore * 100)
         })
       });
       const data = await res.json();
