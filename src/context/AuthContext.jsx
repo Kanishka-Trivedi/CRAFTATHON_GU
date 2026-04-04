@@ -236,25 +236,30 @@ export const AuthProvider = ({ children }) => {
     return () => clearInterval(interval);
   }, [user]);
 
-  // Background sync (every 30s) to Node API
+  // Background sync (every 30s) — sends latest metrics snapshot to Node backend
   useEffect(() => {
     if (!user) return;
     const syncInterval = setInterval(async () => {
-      const b = buffer.current;
       const syncPayload = {
-        sessionId: `sess-${user.id || user._id}-${Date.now()}`,
+        sessionId: `sess-${user._id || user.id}-${Date.now()}`,
+        trustScore,
+        riskLevel,
         metrics: {
-          typingSpeed: b.charCount / 30,
-          keyHold: avg(b.keysHeld, 110),
-          mouseVelocity: avg(b.mouseSpeeds, 350),
-          scrollSpeed: avg(b.scrollSpeeds, 200),
-          idleTime: avg(b.idleTimes, 5)
+          typingSpeed: liveMetrics.typingSpeed,
+          keyHold: liveMetrics.keyHold,
+          keyFlight: liveMetrics.keyFlight,
+          mouseVelocity: liveMetrics.mouseSpeed,
+          scrollSpeed: liveMetrics.scrollSpeed,
+          idleTime: 0
         }
       };
-      try { await axios.post('http://localhost:5000/api/behavioral/sync-session', syncPayload); } catch (e) { }
+      try {
+        await axios.post('http://localhost:5000/api/behavioral/sync-session', syncPayload);
+        console.log('[SYNC] Session snapshot saved');
+      } catch (e) { }
     }, 30000);
     return () => clearInterval(syncInterval);
-  }, [user]);
+  }, [user, trustScore, riskLevel, liveMetrics]);
 
   return (
     <AuthContext.Provider value={{

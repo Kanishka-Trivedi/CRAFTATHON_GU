@@ -13,10 +13,20 @@ const sessionSchema = new mongoose.Schema({
     },
     metrics: {
         typingSpeed: Number,
+        keyHold: Number,
+        keyFlight: Number,
         scrollSpeed: Number,
         mouseVelocity: Number,
         idleTime: Number,
         isAnomalous: { type: Boolean, default: false }
+    },
+    trustScore: {
+        type: Number,
+        default: 1.0
+    },
+    riskLevel: {
+        type: String,
+        default: 'safe'
     },
     timestamp: {
         type: Date,
