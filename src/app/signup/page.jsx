@@ -14,9 +14,9 @@ import logo from '../../assets/logo.png';
 import Image from 'next/image';
 
 const STEPS = [
-  { label: 'Identity Setup' },
-  { label: 'Transaction PIN' },
-  { label: 'Activation Code' },
+  { label: 'Account Details' },
+  { label: 'Security PIN' },
+  { label: 'Verification Code' },
 ];
 
 const SignupPage = () => {
@@ -130,23 +130,20 @@ const SignupPage = () => {
   const handleNext = async () => {
     setError('');
 
-    if (step === 1 && (!formData.name || !formData.email || !formData.password)) {
-      return setError('All fields are required.');
+    if (step === 1 && (!formData.name || !formData.email || !formData.password || !formData.phone)) {
+      return setError('All identity fields are required for enrolment.');
     }
     if (step === 1 && !formData.email.includes('@')) {
       return setError('Please enter a valid email address.');
     }
     if (step === 1 && emailStatus === 'exists') {
-      return setError('This email is already registered.');
-    }
-    if (step === 1 && emailStatus === 'checking') {
-      return setError('Verifying email availability...');
+      return setError('This identity node is already active.');
     }
     if (step === 1 && passwordStrength < 100) {
-      return setError('Password must be 8+ chars with uppercase, number, and special character (100% required).');
+      return setError('Credential entropy must be 100% to proceed.');
     }
     if (step === 2 && !isPinValid) {
-      return setError('PIN is too simple. Avoid consecutive or repeated digits.');
+      return setError('PIN is too simple. Manual verification required.');
     }
 
     if (step < 3) return setStep(step + 1);
@@ -155,6 +152,7 @@ const SignupPage = () => {
     const result = await signup({
       name: formData.name,
       email: formData.email,
+      phone: formData.phone,
       password: formData.password,
       pin: formData.pin.join(''),
       otp: formData.otp.join(''),
@@ -163,7 +161,7 @@ const SignupPage = () => {
     if (result?.success) {
       router.push('/dashboard');
     } else {
-      setError(result?.message || 'Enrolment failed. Please try again.');
+      setError(result?.message || 'Enrolment failed. Verification error.');
       setIsSubmitting(false);
     }
   };
@@ -280,7 +278,7 @@ const SignupPage = () => {
       </div>
 
       {/* ─── RIGHT PANEL: FORM ───────────────────────────────── */}
-      <div className="flex-1 flex items-center justify-center px-8 sm:px-14 relative z-10 overflow-hidden">
+      <div className="flex-1 flex items-start justify-center px-8 sm:px-14 relative z-10 overflow-y-auto pt-20 pb-20 scrollbar-hide">
         <div className="w-full max-w-[420px]">
           {/* Mobile logo */}
           <div onClick={() => router.push('/')} className="flex lg:hidden items-center gap-3 cursor-pointer mb-10 w-fit">
@@ -297,31 +295,39 @@ const SignupPage = () => {
           </div>
 
           <AnimatePresence mode="wait">
-            {/* ── STEP 1 */}
+            {/* ── STEP 1: IDENTITY & CREDENTIALS */}
             {step === 1 && (
               <motion.div key="s1"
                 initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3 }}
-                className="space-y-8"
+                className="space-y-10"
               >
                 <div>
-                  <h2 className="font-sora font-black text-4xl tracking-tight mb-1.5 text-white">Create Account</h2>
-                  <p className="text-white/35 text-sm font-medium">Join the behavioral authentication network.</p>
+                  <h2 className="font-sora font-black text-4xl tracking-tight mb-2 text-white">Sign Up</h2>
+                  <p className="text-white/35 text-sm font-medium">Create your secure banking account.</p>
                 </div>
-                <div className="space-y-4">
-                  <FloatingInput
-                    id="su-name"
-                    label="Enter Full Name"
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    icon={User}
-                    autoComplete="name"
-                  />
+
+                <div className="space-y-12 pb-6">
+                  {/* Field 1: Name */}
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-indigo-400/50 px-1">Full Name</label>
+                    <FloatingInput
+                      id="su-name"
+                      label="Your Name"
+                      type="text"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      icon={User}
+                      autoComplete="name"
+                    />
+                  </div>
+
+                  {/* Field 2: Email */}
                   <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-indigo-400/50 px-1">Email Address</label>
                     <FloatingInput
                       id="su-email"
-                      label="Enter Email"
+                      label="email@example.com"
                       type="email"
                       value={formData.email}
                       onChange={(e) => {
@@ -332,44 +338,34 @@ const SignupPage = () => {
                       icon={Mail}
                       autoComplete="email"
                     />
-                    <div className="px-1 flex justify-between items-center text-[10px] font-bold uppercase tracking-wider">
-                      <div className="flex items-center gap-1.5">
-                        {emailStatus === 'checking' && (
-                          <>
-                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
-                            <span className="text-white/30">Checking Node...</span>
-                          </>
-                        )}
-                        {emailStatus === 'available' && (
-                          <>
-                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                            <span className="text-emerald-400/80">Identity Available</span>
-                          </>
-                        )}
-                        {emailStatus === 'exists' && (
-                          <>
-                            <div className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-                            <span className="text-red-400/80">User Already Registered</span>
-                          </>
-                        )}
+                    <div className="px-1 flex justify-between items-center text-[9px] font-bold uppercase tracking-widest">
+                      <div className="flex items-center gap-1.5 pt-1">
+                        {emailStatus === 'checking' && <><div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" /><span className="text-white/30">Checking...</span></>}
+                        {emailStatus === 'available' && <><span className="text-emerald-400">Email Available</span></>}
+                        {emailStatus === 'exists' && <><span className="text-rose-500">Email Taken</span></>}
                       </div>
                     </div>
                   </div>
 
-                  <FloatingInput
-                    id="su-phone"
-                    label="Active Phone Number"
-                    type="text"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
-                    icon={Phone}
-                    placeholder="+91 00000 00000"
-                  />
-
+                  {/* Field 3: Phone */}
                   <div className="space-y-3">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-indigo-400/50 px-1">Phone Number</label>
+                    <FloatingInput
+                      id="su-phone"
+                      label="+91 00000 00000"
+                      type="text"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
+                      icon={Phone}
+                    />
+                  </div>
+
+                  {/* Field 4: Password */}
+                  <div className="space-y-5">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-indigo-400/50 px-1">Create Password</label>
                     <FloatingInput
                       id="su-pass"
-                      label="Create Password"
+                      label="••••••••"
                       type="password"
                       value={formData.password}
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -377,62 +373,30 @@ const SignupPage = () => {
                       autoComplete="new-password"
                     />
 
-                    {/* Password Strength UI */}
-                    <div className="px-1 space-y-2.5">
-                      <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-[0.15em]">
-                        <span className="text-white/25">Entropy Strength</span>
-                        <span className={`transition-colors duration-500 ${passwordStrength === 100 ? 'text-emerald-400' :
-                          passwordStrength >= 50 ? 'text-amber-400' : 'text-rose-400'
-                          }`}>
+                    {/* Strength Indicator */}
+                    <div className="px-1 space-y-3">
+                      <div className="flex justify-between items-center text-[10px] font-black uppercase">
+                        <span className="text-white/25">Password Strength</span>
+                        <span className={`transition-all duration-500 ${passwordStrength === 100 ? 'text-emerald-400' : 'text-rose-400'}`}>
                           {passwordStrength}%
                         </span>
                       </div>
-
                       <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden flex gap-1">
-                        {[25, 50, 75, 100].map((stepVal) => (
-                          <div
-                            key={stepVal}
-                            className={`h-full flex-1 transition-all duration-700 rounded-full ${passwordStrength >= stepVal
-                              ? (passwordStrength === 100 ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]' :
-                                passwordStrength >= 50 ? 'bg-amber-500' : 'bg-rose-500')
-                              : 'bg-transparent'
-                              }`}
-                          />
-                        ))}
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 pt-1">
-                        {[
-                          { label: '8+ Characters', valid: formData.password.length >= 8 },
-                          { label: 'Uppercase', valid: /[A-Z]/.test(formData.password) },
-                          { label: 'Number', valid: /[0-9]/.test(formData.password) },
-                          { label: 'Special', valid: /[!@#$%^&*(),.?":{}|<>]/.test(formData.password) },
-                        ].map((req, idx) => (
-                          <div key={idx} className={`flex items-center gap-2 text-[10px] font-bold uppercase tracking-tight transition-all duration-300 ${req.valid ? 'text-emerald-400' : 'text-rose-400/50'
-                            }`}>
-                            {req.valid ? (
-                              <div className="w-3.5 h-3.5 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/20">
-                                <Check size={8} strokeWidth={4} />
-                              </div>
-                            ) : (
-                              <div className="w-3.5 h-3.5 rounded-full bg-rose-500/10 flex items-center justify-center border border-rose-500/20">
-                                <X size={8} strokeWidth={4} className="text-rose-500" />
-                              </div>
-                            )}
-                            {req.label}
-                          </div>
+                        {[25, 50, 75, 100].map((v) => (
+                          <div key={v} className={`h-full flex-1 transition-all duration-500 ${passwordStrength >= v ? (passwordStrength === 100 ? 'bg-emerald-500' : 'bg-indigo-500') : 'bg-transparent'}`} />
                         ))}
                       </div>
                     </div>
                   </div>
                 </div>
-                <p className="text-white/20 text-[11px] leading-relaxed">
-                  Your typing cadence is passively observed during enrolment to build your behavioral baseline.
-                </p>
+
+                <div className="pt-4 border-t border-white/5 text-[9px] text-white/20 italic leading-relaxed">
+                  Note: Behavioral sensors are active to secure your session.
+                </div>
               </motion.div>
             )}
 
-            {/* ── STEP 2 */}
+            {/* ── STEP 2: PIN */}
             {step === 2 && (
               <motion.div key="s2"
                 initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
@@ -482,7 +446,7 @@ const SignupPage = () => {
               </motion.div>
             )}
 
-            {/* ── STEP 3 */}
+            {/* ── STEP 3: VERIFICATION */}
             {step === 3 && (
               <motion.div key="s3"
                 initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
