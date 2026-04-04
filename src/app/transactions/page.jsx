@@ -23,7 +23,8 @@ const TransactionsPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/transfer/history', { withCredentials: true });
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+        const res = await axios.get(`${apiUrl}/transfer/history`, { withCredentials: true });
         if (res.data.success) {
           setDbData({ balance: res.data.balance, history: res.data.history });
         }

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Fingerprint, Activity, Clock, ShieldCheck, Zap, MousePointer2, ChevronRight, BarChart3, Database, Download, Trash2 } from 'lucide-react';
 import axios from 'axios';
+import { useAuth } from '../../context/AuthContext';
 import { GlassCard } from '../../components/Shared';
 import { Radar, Line } from 'react-chartjs-2';
 import jsPDF from 'jspdf';

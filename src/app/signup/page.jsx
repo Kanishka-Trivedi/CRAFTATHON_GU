@@ -54,7 +54,8 @@ const SignupPage = () => {
     }
     setEmailStatus('checking');
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/check-email', { email });
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      const res = await axios.post(`${apiUrl}/auth/check-email`, { email });
       setEmailStatus(res.data.exists ? 'exists' : 'available');
     } catch (err) {
       setEmailStatus('idle');
@@ -115,7 +116,8 @@ const SignupPage = () => {
     setIsSendingOtp(true);
     setError('');
     try {
-      await axios.post('http://localhost:5000/api/auth/send-otp', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      await axios.post(`${apiUrl}/auth/send-otp`, {
         email: formData.email, name: formData.name,
       });
       setShowOtpModal(true);

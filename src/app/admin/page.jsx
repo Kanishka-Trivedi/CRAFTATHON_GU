@@ -7,7 +7,7 @@ import {
    ArrowUpRight, ArrowDownRight, Search, Filter,
    MapPin, Clock, ExternalLink
 } from 'lucide-react';
-import { Link } from 'next/navigation';
+import Link from 'next/link';
 import { Bar, Line } from 'react-chartjs-2';
 import { useAdmin } from '../../context/AdminContext';
 import { GlassCard, AdminNav } from '../../components/Shared';

@@ -131,7 +131,8 @@ const TransferPage = () => {
 
     setIsSubmitting(true);
     try {
-      const res = await fetch('http://localhost:5000/api/transfer/send', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      const res = await fetch(`${apiUrl}/transfer/send`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

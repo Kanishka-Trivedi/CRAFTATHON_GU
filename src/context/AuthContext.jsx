@@ -2,7 +2,8 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/auth';
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_URL = `${BASE_URL}/auth`;
 axios.defaults.withCredentials = true;
 
 const AuthContext = createContext();
