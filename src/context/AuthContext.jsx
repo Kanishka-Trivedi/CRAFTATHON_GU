@@ -88,6 +88,16 @@ export const AuthProvider = ({ children }) => {
     } catch (e) { return { success: false, message: 'Update failed' }; }
   };
 
+  const updateAvatar = async (base64) => {
+    try {
+      const res = await axios.patch(`${API_URL}/profile/avatar`, { avatar: base64 });
+      if (res.data.success) {
+        setUser(prev => ({ ...prev, avatar: base64 }));
+        return { success: true };
+      }
+    } catch (e) { return { success: false, message: 'Avatar upload failed' }; }
+  };
+
   const lockAccount = async () => {
     try {
       await axios.post(`${API_URL}/lock`);
@@ -231,7 +241,8 @@ export const AuthProvider = ({ children }) => {
       };
 
       try {
-        const res = await fetch("http://localhost:8001/score", {
+        const mlUrl = process.env.NEXT_PUBLIC_ML_ENGINE_URL || "http://localhost:8001";
+        const res = await fetch(`${mlUrl}/score`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
@@ -304,6 +315,7 @@ export const AuthProvider = ({ children }) => {
       signup,
       logout,
       updateProfile,
+      updateAvatar,
       resetTrustScore,
       lockAccount
     }}>

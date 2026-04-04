@@ -26,13 +26,13 @@ const Logo = ({ size = "md" }) => {
   return (
     <div className="flex items-center space-x-4 group cursor-pointer">
       <div className={`relative ${isLarge ? 'w-12 h-12' : 'w-10 h-10'} flex items-center justify-center transition-transform group-hover:scale-110 duration-500`}>
-         <Image 
-            src={logo} 
-            alt="BehaveGuard Logo" 
-            width={isLarge ? 48 : 40} 
-            height={isLarge ? 48 : 40}
-            className="object-contain"
-         />
+        <Image
+          src={logo}
+          alt="BehaveGuard Logo"
+          width={isLarge ? 48 : 40}
+          height={isLarge ? 48 : 40}
+          className="object-contain"
+        />
       </div>
       <div className="flex flex-col">
         <div className="flex items-center gap-3">
@@ -262,283 +262,283 @@ const LandingPage = () => {
 
 
 
-      <HowItWorksModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+        <HowItWorksModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
 
-      {/* ─── NAVBAR (Larger & Centered) ───────────────────── */}
-      <motion.nav
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        className="fixed top-0 left-0 right-0 z-50 px-8 py-3"
-        style={{
-          background: scrollY > 50 ? 'rgba(2, 6, 23, 0.5)' : 'rgba(255, 255, 255, 0.03)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          borderBottom: scrollY > 50 ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid rgba(255, 255, 255, 0.03)',
-          boxShadow: scrollY > 50 ? '0 8px 32px rgba(0, 0, 0, 0.3)' : 'none',
-          transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-        }}
-      >
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <Logo size="lg" />
+        {/* ─── NAVBAR (Larger & Centered) ───────────────────── */}
+        <motion.nav
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="fixed top-0 left-0 right-0 z-50 px-8 py-3"
+          style={{
+            background: scrollY > 50 ? 'rgba(2, 6, 23, 0.5)' : 'rgba(255, 255, 255, 0.03)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            borderBottom: scrollY > 50 ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid rgba(255, 255, 255, 0.03)',
+            boxShadow: scrollY > 50 ? '0 8px 32px rgba(0, 0, 0, 0.3)' : 'none',
+            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+          }}
+        >
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <Logo size="lg" />
 
-          <div className="hidden lg:flex items-center space-x-12 font-dm text-base text-white/80 font-medium tracking-wide">
+            <div className="hidden lg:flex items-center space-x-12 font-dm text-base text-white/80 font-medium tracking-wide">
 
-            <a href="#features" className="hover:text-white transition-all relative group">
-              Features
-              <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-white/50 transition-all group-hover:w-full" />
-            </a>
-            <a href="#security" className="hover:text-white transition-all relative group">
-              Security
-              <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-white/50 transition-all group-hover:w-full" />
-            </a>
-            <a href="#cta" className="hover:text-white transition-all relative group">
-              Enterprise
-              <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-white/50 transition-all group-hover:w-full" />
-            </a>
+              <a href="#features" className="hover:text-white transition-all relative group">
+                Features
+                <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-white/50 transition-all group-hover:w-full" />
+              </a>
+              <a href="#security" className="hover:text-white transition-all relative group">
+                Security
+                <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-white/50 transition-all group-hover:w-full" />
+              </a>
+              <a href="#cta" className="hover:text-white transition-all relative group">
+                Enterprise
+                <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-white/50 transition-all group-hover:w-full" />
+              </a>
 
+            </div>
+
+            <div className="flex items-center gap-5">
+              <AuthButton text="Log In" onClick={() => router.push('/login')} />
+              <AuthButton text="Sign Up" onClick={() => router.push('/signup')} colorHex="#430BB8" colorRgb="67, 11, 184" />
+            </div>
           </div>
+        </motion.nav>
 
-          <div className="flex items-center gap-5">
-            <AuthButton text="Log In" onClick={() => router.push('/login')} />
-            <AuthButton text="Sign Up" onClick={() => router.push('/signup')} colorHex="#430BB8" colorRgb="67, 11, 184" />
+        {/* ─── HERO (Full-width centered) ──────────────────── */}
+        <section className="relative min-h-[calc(100vh-100px)] flex items-center justify-center px-6 pt-12 pb-8">
+          <div className="max-w-6xl mx-auto w-full z-10 flex flex-col items-center">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              className="flex flex-col items-center text-center"
+            >
+
+
+
+              <div className="flex flex-col items-center gap-1 mt-36 mb-5 max-w-4xl">
+                <BlurText
+                  text="Security that"
+                  className="font-heading font-black text-6xl md:text-[100px] leading-[0.95] tracking-tight text-white text-center"
+                  delay={110}
+                  animateBy="words"
+                  direction="top"
+                />
+                <BlurText
+                  text="reads you."
+                  className="font-heading font-black text-6xl md:text-[100px] leading-[0.95] tracking-tight text-white text-center"
+                  delay={110}
+                  animateBy="words"
+                  direction="bottom"
+                />
+              </div>
+
+
+              <p className="text-lg md:text-xl text-white/80 font-dm leading-[1.6] max-w-3xl mb-8">
+                Revolutionary behavioral biometrics that continuously authenticate you through{' '}
+                <span className="text-white font-semibold">typing patterns</span>,{' '}
+                <span className="text-white font-semibold">touch dynamics</span>, and{' '}
+                <span className="text-white font-semibold">navigation habits</span>.
+              </p>
+
+
+              {/* Stat Cards - wider */}
+              <div className="flex flex-wrap justify-center gap-4 mb-8">
+                <div className="px-8 py-5 rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm">
+                  <p className="font-sora font-bold text-4xl text-emerald">99.9%</p>
+                  <p className="font-dm text-sm text-white/70 mt-1">Accuracy</p>
+                </div>
+
+                <div className="px-8 py-5 rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm">
+                  <p className="font-sora font-bold text-4xl text-white/90">&lt;10ms</p>
+                  <p className="font-dm text-sm text-white/70 mt-1">Response</p>
+                </div>
+
+
+                <div className="px-8 py-5 rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm">
+                  <p className="font-sora font-bold text-4xl text-white/90">Zero</p>
+                  <p className="font-dm text-sm text-white/70 mt-1">Friction</p>
+                </div>
+
+
+              </div>
+
+              {/* CTA Buttons */}
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+                <ProtectionBtn onClick={() => router.push('/signup')} text="Start My Protection" />
+              </div>
+            </motion.div>
           </div>
-        </div>
-      </motion.nav>
+        </section>
 
-      {/* ─── HERO (Full-width centered) ──────────────────── */}
-      <section className="relative min-h-[calc(100vh-100px)] flex items-center justify-center px-6 pt-12 pb-8">
-        <div className="max-w-6xl mx-auto w-full z-10 flex flex-col items-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="flex flex-col items-center text-center"
-          >
+        <LiveTypingDemo />
 
-
-
-            <div className="flex flex-col items-center gap-1 mt-36 mb-5 max-w-4xl">
-              <BlurText
-                text="Security that"
-                className="font-heading font-black text-6xl md:text-[100px] leading-[0.95] tracking-tight text-white text-center"
-                delay={110}
-                animateBy="words"
-                direction="top"
-              />
-              <BlurText
-                text="reads you."
-                className="font-heading font-black text-6xl md:text-[100px] leading-[0.95] tracking-tight text-white text-center"
-                delay={110}
-                animateBy="words"
-                direction="bottom"
-              />
-            </div>
-
-
-            <p className="text-lg md:text-xl text-white/80 font-dm leading-[1.6] max-w-3xl mb-8">
-              Revolutionary behavioral biometrics that continuously authenticate you through{' '}
-              <span className="text-white font-semibold">typing patterns</span>,{' '}
-              <span className="text-white font-semibold">touch dynamics</span>, and{' '}
-              <span className="text-white font-semibold">navigation habits</span>.
-            </p>
-
-
-            {/* Stat Cards - wider */}
-            <div className="flex flex-wrap justify-center gap-4 mb-8">
-              <div className="px-8 py-5 rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm">
-                <p className="font-sora font-bold text-4xl text-emerald">99.9%</p>
-                <p className="font-dm text-sm text-white/70 mt-1">Accuracy</p>
-              </div>
-
-              <div className="px-8 py-5 rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm">
-                <p className="font-sora font-bold text-4xl text-white/90">&lt;10ms</p>
-                <p className="font-dm text-sm text-white/70 mt-1">Response</p>
-              </div>
-
-
-              <div className="px-8 py-5 rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm">
-                <p className="font-sora font-bold text-4xl text-white/90">Zero</p>
-                <p className="font-dm text-sm text-white/70 mt-1">Friction</p>
-              </div>
-
-
-            </div>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-              <ProtectionBtn onClick={() => router.push('/signup')} text="Start My Protection" />
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      <LiveTypingDemo />
-
-      {/* ─── PRIVACY & SECURITY ─────────────────────────────── */}
-      <section id="security" className="relative py-28 px-6">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          {/* Left Text */}
-          <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
-            <h2 className="font-sora font-bold text-3xl md:text-4xl mb-4 leading-tight">
-              Privacy-First, <span className="text-white">Security-Always</span>
-            </h2>
-
-            <p className="text-white/80 font-dm text-base leading-relaxed mb-8 max-w-lg">
-              Your behavioral patterns are processed <span className="text-white font-semibold">on-device</span> using advanced ML models. Zero data leaves your phone, maximum security stays with you.
-            </p>
-
-            <div className="space-y-4">
-              {[
-                { icon: Lock, text: 'AES 256-bit end-to-end encryption', color: '#4F6EF7' },
-                { icon: Cpu, text: 'On-device machine learning processing', color: '#00D4E8' },
-                { icon: BadgeCheck, text: 'GDPR, SOC 2, PCI DSS compliant', color: '#00E5A0' },
-                { icon: ShieldAlert, text: 'Zero-knowledge security architecture', color: '#8B5CF6' },
-                { icon: BatteryCharging, text: 'Optimized battery consumption', color: '#F5A623' },
-              ].map((item, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                  className="flex items-center gap-3"
-                >
-                  <item.icon size={18} className="text-white/80" />
-                  <span className="font-dm text-sm text-white font-medium">{item.text}</span>
-                </motion.div>
-
-
-              ))}
-            </div>
-          </motion.div>
-
-          {/* Right Trust Score Panel */}
-          <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
-            <TrustScorePanel />
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ─── CTA SECTION ────────────────────────────────────── */}
-      <section id="cta" className="relative py-28 px-6">
-        <div className="max-w-4xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="relative rounded-3xl p-12 md:p-16 text-center overflow-hidden"
-            style={{ background: 'linear-gradient(135deg, #1B3678 0%, #2B47D4 30%, #8B5CF6 60%, #FF4D6D 100%)' }}
-          >
-            {/* Glow overlay */}
-            <div className="absolute inset-0 opacity-30" style={{ background: 'radial-gradient(ellipse at 30% 50%, rgba(0,212,232,0.4), transparent 60%)' }} />
-
-            <div className="relative z-10">
-
-
-              <h2 className="font-sora font-bold text-3xl md:text-5xl text-white mb-4 leading-tight">
-                Ready for Invisible
-                <br />Security?
+        {/* ─── PRIVACY & SECURITY ─────────────────────────────── */}
+        <section id="security" className="relative py-28 px-6">
+          <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Left Text */}
+            <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
+              <h2 className="font-sora font-bold text-3xl md:text-4xl mb-4 leading-tight">
+                Privacy-First, <span className="text-white">Security-Always</span>
               </h2>
 
-              <p className="font-dm text-white/80 text-base max-w-lg mx-auto mb-10 leading-relaxed">
-                Experience the future of banking authentication. Zero friction, maximum protection.
+              <p className="text-white/80 font-dm text-base leading-relaxed mb-8 max-w-lg">
+                Your behavioral patterns are processed <span className="text-white font-semibold">on-device</span> using advanced ML models. Zero data leaves your phone, maximum security stays with you.
               </p>
 
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-8">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => router.push('/signup')}
-                  className="px-10 py-5 rounded-2xl bg-white text-navy-950 font-dm font-bold text-base flex items-center gap-3 shadow-xl"
-                >
-                  <Rocket size={18} />
-                  Start My Protection
-                </motion.button>
-                <button
-                  onClick={() => setIsModalOpen(true)}
-                  className="px-10 py-5 rounded-2xl border-2 border-white/[0.3] bg-white/[0.08] text-white font-dm font-bold text-base hover:bg-white/[0.15] transition-all backdrop-blur-md flex items-center gap-3"
-                >
-                  <Target size={18} />
-                  How It Works
-                </button>
+              <div className="space-y-4">
+                {[
+                  { icon: Lock, text: 'AES 256-bit end-to-end encryption', color: '#4F6EF7' },
+                  { icon: Cpu, text: 'On-device machine learning processing', color: '#00D4E8' },
+                  { icon: BadgeCheck, text: 'GDPR, SOC 2, PCI DSS compliant', color: '#00E5A0' },
+                  { icon: ShieldAlert, text: 'Zero-knowledge security architecture', color: '#8B5CF6' },
+                  { icon: BatteryCharging, text: 'Optimized battery consumption', color: '#F5A623' },
+                ].map((item, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.1 }}
+                    className="flex items-center gap-3"
+                  >
+                    <item.icon size={18} className="text-white/80" />
+                    <span className="font-dm text-sm text-white font-medium">{item.text}</span>
+                  </motion.div>
+
+
+                ))}
               </div>
+            </motion.div>
 
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ─── FOOTER ─────────────────────────────────────────── */}
-      <footer className="relative mt-20 pt-24 pb-16 px-8 border-t border-white/[0.08] bg-black/40 backdrop-blur-3xl">
-        <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-6 gap-16 mb-20">
-            {/* Brand column */}
-            <div className="lg:col-span-2 space-y-8">
-              <Logo size="md" />
-              <p className="text-white/60 font-dm text-base leading-relaxed max-w-sm">
-                Revolutionizing digital trust through continuous behavioral intelligence. Zero friction, total security.
-              </p>
-              <div className="flex items-center gap-6">
-                <a href="#" className="w-10 h-10 rounded-full bg-white/[0.03] border border-white/[0.08] flex items-center justify-center text-white/50 hover:text-white hover:bg-white/[0.08] hover:border-white/20 transition-all">
-                  <Github size={18} />
-                </a>
-                <a href="#" className="w-10 h-10 rounded-full bg-white/[0.03] border border-white/[0.08] flex items-center justify-center text-white/50 hover:text-white hover:bg-white/[0.08] hover:border-white/20 transition-all">
-                  <Twitter size={18} />
-                </a>
-                <a href="#" className="w-10 h-10 rounded-full bg-white/[0.03] border border-white/[0.08] flex items-center justify-center text-white/50 hover:text-white hover:bg-white/[0.08] hover:border-white/20 transition-all">
-                  <Linkedin size={18} />
-                </a>
-              </div>
-
-            </div>
-
-            {/* Links columns */}
-            {[
-              { title: 'Platform', links: ['Behavioral Auth', 'Threat Matrix', 'Risk Engine', 'Compliance'] },
-              { title: 'Resources', links: ['Documentation', 'API Reference', 'Case Studies', 'Security White-paper'] },
-              { title: 'Company', links: ['Mission', 'Privacy', 'Status', 'Contact'] },
-              { title: 'Legal', links: ['Privacy Policy', 'Data DPA', 'Security Terms', 'Cookie Policy'] },
-            ].map((col, i) => (
-              <div key={i} className="space-y-6">
-                <h4 className="font-sora font-semibold text-sm text-white tracking-wider uppercase opacity-90">{col.title}</h4>
-                <ul className="space-y-4">
-                  {col.links.map((link, j) => (
-                    <li key={j}>
-                      <span className="font-dm text-sm text-white/40 hover:text-white transition-all cursor-pointer flex items-center group">
-                        <ArrowRight size={12} className="opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all mr-2" />
-                        {link}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+            {/* Right Trust Score Panel */}
+            <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
+              <TrustScorePanel />
+            </motion.div>
           </div>
+        </section>
 
-          <div className="pt-8 border-t border-white/[0.05] flex flex-col md:flex-row items-center justify-between gap-8">
-            <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8">
-              <p className="font-dm text-sm text-white/30">
-                © 2026 BehaveGuard. All rights reserved.
-              </p>
-              <div className="flex items-center gap-6">
-                <span className="font-dm text-xs text-white/20 hover:text-white/40 transition-colors cursor-pointer">Status</span>
-                <span className="font-dm text-xs text-white/20 hover:text-white/40 transition-colors cursor-pointer">Security</span>
-                <span className="font-dm text-xs text-white/20 hover:text-white/40 transition-colors cursor-pointer">Uptime</span>
+        {/* ─── CTA SECTION ────────────────────────────────────── */}
+        <section id="cta" className="relative py-28 px-6">
+          <div className="max-w-4xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="relative rounded-3xl p-12 md:p-16 text-center overflow-hidden"
+              style={{ background: 'linear-gradient(135deg, #1B3678 0%, #2B47D4 30%, #8B5CF6 60%, #FF4D6D 100%)' }}
+            >
+              {/* Glow overlay */}
+              <div className="absolute inset-0 opacity-30" style={{ background: 'radial-gradient(ellipse at 30% 50%, rgba(0,212,232,0.4), transparent 60%)' }} />
+
+              <div className="relative z-10">
+
+
+                <h2 className="font-sora font-bold text-3xl md:text-5xl text-white mb-4 leading-tight">
+                  Ready for Invisible
+                  <br />Security?
+                </h2>
+
+                <p className="font-dm text-white/80 text-base max-w-lg mx-auto mb-10 leading-relaxed">
+                  Experience the future of banking authentication. Zero friction, maximum protection.
+                </p>
+
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-8">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => router.push('/signup')}
+                    className="px-10 py-5 rounded-2xl bg-white text-navy-950 font-dm font-bold text-base flex items-center gap-3 shadow-xl"
+                  >
+                    <Rocket size={18} />
+                    Start My Protection
+                  </motion.button>
+                  <button
+                    onClick={() => setIsModalOpen(true)}
+                    className="px-10 py-5 rounded-2xl border-2 border-white/[0.3] bg-white/[0.08] text-white font-dm font-bold text-base hover:bg-white/[0.15] transition-all backdrop-blur-md flex items-center gap-3"
+                  >
+                    <Target size={18} />
+                    How It Works
+                  </button>
+                </div>
+
               </div>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* ─── FOOTER ─────────────────────────────────────────── */}
+        <footer className="relative mt-20 pt-24 pb-16 px-8 border-t border-white/[0.08] bg-black/40 backdrop-blur-3xl">
+          <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+          <div className="max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-6 gap-16 mb-20">
+              {/* Brand column */}
+              <div className="lg:col-span-2 space-y-8">
+                <Logo size="md" />
+                <p className="text-white/60 font-dm text-base leading-relaxed max-w-sm">
+                  Revolutionizing digital trust through continuous behavioral intelligence. Zero friction, total security.
+                </p>
+                <div className="flex items-center gap-6">
+                  <a href="#" className="w-10 h-10 rounded-full bg-white/[0.03] border border-white/[0.08] flex items-center justify-center text-white/50 hover:text-white hover:bg-white/[0.08] hover:border-white/20 transition-all">
+                    <Github size={18} />
+                  </a>
+                  <a href="#" className="w-10 h-10 rounded-full bg-white/[0.03] border border-white/[0.08] flex items-center justify-center text-white/50 hover:text-white hover:bg-white/[0.08] hover:border-white/20 transition-all">
+                    <Twitter size={18} />
+                  </a>
+                  <a href="#" className="w-10 h-10 rounded-full bg-white/[0.03] border border-white/[0.08] flex items-center justify-center text-white/50 hover:text-white hover:bg-white/[0.08] hover:border-white/20 transition-all">
+                    <Linkedin size={18} />
+                  </a>
+                </div>
+
+              </div>
+
+              {/* Links columns */}
+              {[
+                { title: 'Platform', links: ['Behavioral Auth', 'Threat Matrix', 'Risk Engine', 'Compliance'] },
+                { title: 'Resources', links: ['Documentation', 'API Reference', 'Case Studies', 'Security White-paper'] },
+                { title: 'Company', links: ['Mission', 'Privacy', 'Status', 'Contact'] },
+                { title: 'Legal', links: ['Privacy Policy', 'Data DPA', 'Security Terms', 'Cookie Policy'] },
+              ].map((col, i) => (
+                <div key={i} className="space-y-6">
+                  <h4 className="font-sora font-semibold text-sm text-white tracking-wider uppercase opacity-90">{col.title}</h4>
+                  <ul className="space-y-4">
+                    {col.links.map((link, j) => (
+                      <li key={j}>
+                        <span className="font-dm text-sm text-white/40 hover:text-white transition-all cursor-pointer flex items-center group">
+                          <ArrowRight size={12} className="opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all mr-2" />
+                          {link}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
             </div>
 
-            <div className="flex items-center gap-6 px-5 py-2.5 rounded-full bg-white/[0.03] border border-white/[0.05]">
-              <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald animate-pulse" />
-                <span className="font-mono text-[9px] uppercase tracking-widest text-emerald font-bold">Systems Operational</span>
+            <div className="pt-8 border-t border-white/[0.05] flex flex-col md:flex-row items-center justify-between gap-8">
+              <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8">
+                <p className="font-dm text-sm text-white/30">
+                  © 2026 BehaveGuard. All rights reserved.
+                </p>
+                <div className="flex items-center gap-6">
+                  <span className="font-dm text-xs text-white/20 hover:text-white/40 transition-colors cursor-pointer">Status</span>
+                  <span className="font-dm text-xs text-white/20 hover:text-white/40 transition-colors cursor-pointer">Security</span>
+                  <span className="font-dm text-xs text-white/20 hover:text-white/40 transition-colors cursor-pointer">Uptime</span>
+                </div>
               </div>
-              <div className="w-[1px] h-3 bg-white/10" />
-              <span className="font-mono text-[9px] text-white/30 font-bold tracking-widest">v1.4.2</span>
+
+              <div className="flex items-center gap-6 px-5 py-2.5 rounded-full bg-white/[0.03] border border-white/[0.05]">
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald animate-pulse" />
+                  <span className="font-mono text-[9px] uppercase tracking-widest text-emerald font-bold">Systems Operational</span>
+                </div>
+                <div className="w-[1px] h-3 bg-white/10" />
+                <span className="font-mono text-[9px] text-white/30 font-bold tracking-widest">v1.4.2</span>
+              </div>
             </div>
           </div>
-        </div>
-      </footer>
+        </footer>
 
       </div>
     </div>

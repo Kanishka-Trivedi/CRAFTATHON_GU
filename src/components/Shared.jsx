@@ -133,12 +133,12 @@ export const NavBar = ({ isCollapsed, setCollapsed }) => {
           {!isCollapsed && (
             <div className="flex items-center space-x-3 group cursor-pointer" onClick={() => router.push('/')}>
               <div className="relative w-9 h-9 flex items-center justify-center transition-transform hover:scale-110 duration-300">
-                <Image 
-                   src={logo} 
-                   alt="Logo" 
-                   width={32} 
-                   height={32}
-                   className="object-contain"
+                <Image
+                  src={logo}
+                  alt="Logo"
+                  width={32}
+                  height={32}
+                  className="object-contain"
                 />
               </div>
               <div className="flex flex-col">
@@ -147,8 +147,8 @@ export const NavBar = ({ isCollapsed, setCollapsed }) => {
               </div>
             </div>
           )}
-          <button 
-            onClick={() => setCollapsed(!isCollapsed)} 
+          <button
+            onClick={() => setCollapsed(!isCollapsed)}
             className="absolute -right-3 top-10 w-7 h-7 rounded-full bg-navy-800 border border-[#8B5CF6]/30 flex items-center justify-center text-[#8B5CF6] hover:text-white hover:bg-[#8B5CF6] hover:scale-110 hover:shadow-[0_0_15px_rgba(139,92,246,0.6)] transition-all z-50 shadow-lg cursor-pointer"
           >
             {isCollapsed ? <ChevronRight size={14} className="ml-0.5" /> : <ChevronLeft size={14} className="-ml-0.5" />}
@@ -162,8 +162,8 @@ export const NavBar = ({ isCollapsed, setCollapsed }) => {
               href={item.path}
               className={clsx(
                 "flex items-center space-x-3 px-4 py-3 rounded-lg transition-all group relative overflow-hidden",
-                pathname === item.path 
-                  ? "text-[#a78bfa] bg-[#8B5CF6]/15 before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-8 before:w-[4px] before:bg-[#a78bfa] before:rounded-r-full font-bold shadow-[inset_0_0_15px_rgba(139,92,246,0.15)]" 
+                pathname === item.path
+                  ? "text-[#a78bfa] bg-[#8B5CF6]/15 before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-8 before:w-[4px] before:bg-[#a78bfa] before:rounded-r-full font-bold shadow-[inset_0_0_15px_rgba(139,92,246,0.15)]"
                   : "text-secondary hover:bg-white/5 hover:text-white"
               )}
             >
@@ -178,7 +178,13 @@ export const NavBar = ({ isCollapsed, setCollapsed }) => {
         <div className="p-4 border-t border-white/5 space-y-2">
           {!isCollapsed && user && (
             <div className="glass p-3 rounded-xl flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-accent to-accent-violet flex items-center justify-center text-white font-bold">{user.avatar || 'U'}</div>
+              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-accent to-accent-violet flex items-center justify-center text-white font-bold overflow-hidden border border-white/10 shrink-0">
+                {user.avatar && user.avatar.startsWith('data:') ? (
+                  <img src={user.avatar} className="w-full h-full object-cover" />
+                ) : (
+                  user.avatar || 'U'
+                )}
+              </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold truncate">{user.name}</p>
                 <div className="flex items-center space-x-1">
@@ -244,12 +250,12 @@ export const AdminNav = ({ isCollapsed, setCollapsed }) => {
           {!isCollapsed && (
             <div className="flex items-center space-x-3 group animate-pulse-slow">
               <div className="relative w-9 h-9 flex items-center justify-center">
-                <Image 
-                   src={logo} 
-                   alt="Logo" 
-                   width={32} 
-                   height={32}
-                   className="object-contain"
+                <Image
+                  src={logo}
+                  alt="Logo"
+                  width={32}
+                  height={32}
+                  className="object-contain"
                 />
               </div>
               <div className="flex flex-col">

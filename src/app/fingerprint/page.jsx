@@ -34,6 +34,20 @@ const FingerprintPage = () => {
     const [auditData, setAuditData] = useState(null);
     const [loading, setLoading] = useState(true);
     const pdfRef = React.useRef(null);
+    const fileInputRef = React.useRef(null);
+    const { user, updateAvatar } = useAuth();
+
+    const handleFileChange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+            const base64 = reader.result;
+            await updateAvatar(base64);
+        };
+        reader.readAsDataURL(file);
+    };
 
     const downloadPDF = async () => {
         const element = pdfRef.current;
@@ -120,9 +134,26 @@ const FingerprintPage = () => {
                     </div>
 
                     <GlassCard className="px-6 py-4 border-emerald/20 bg-emerald/5 flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-emerald/10 border border-emerald/20 flex items-center justify-center text-emerald">
-                            <ShieldCheck size={24} />
+                        <div
+                            className="w-12 h-12 rounded-full overflow-hidden border border-white/20 relative group cursor-pointer"
+                            onClick={() => fileInputRef.current?.click()}
+                        >
+                            {user?.avatar && user.avatar.startsWith('data:') ? (
+                                <img src={user.avatar} className="w-full h-full object-cover" />
+                            ) : (
+                                <div className="w-full h-full bg-gradient-to-tr from-accent to-accent-violet flex items-center justify-center text-white font-bold">
+                                    {user?.name?.[0] || '?'}
+                                </div>
+                            )}
+                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-[10px] font-black uppercase">Edit</div>
                         </div>
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            className="hidden"
+                            accept="image/*"
+                            onChange={handleFileChange}
+                        />
                         <div>
                             <p className="text-[10px] font-black text-emerald uppercase tracking-widest">Global Trust Rank</p>
                             <p className="text-xl font-black font-sora tracking-tight">TIER 1 (Verified)</p>

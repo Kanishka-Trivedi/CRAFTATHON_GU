@@ -39,8 +39,8 @@ const LoginPage = () => {
     let result;
     if (isBioMode) {
       // In Bio Mode, we call the bio-login with captured cadence
-      // For the demo, we assume the cadence is just what we tracked in state
-      result = await axios.post('http://localhost:5000/api/auth/bio-login',
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      result = await axios.post(`${apiUrl}/auth/bio-login`,
         { email, typingSpeed }, { withCredentials: true }
       ).then(r => r.data).catch(err => ({ success: false, message: err.response?.data?.message }));
     } else {

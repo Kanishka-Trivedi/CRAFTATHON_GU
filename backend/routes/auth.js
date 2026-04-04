@@ -327,8 +327,29 @@ router.patch('/profile', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Update Profile Error:', error);
     res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Update Avatar
+router.patch('/profile/avatar', async (req, res) => {
+  try {
+    const token = req.cookies.token;
+    if (!token) return res.status(401).json({ message: 'Not authenticated' });
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+    const { avatar } = req.body;
+
+    if (!avatar) return res.status(400).json({ message: 'No image data provided' });
+
+    const user = await User.findById(decoded.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    user.avatar = avatar;
+    await user.save();
+
+    res.status(200).json({ success: true, avatar: user.avatar });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 });
 
