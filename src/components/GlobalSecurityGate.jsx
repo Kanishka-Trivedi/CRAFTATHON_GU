@@ -33,6 +33,7 @@ export const GlobalSecurityGate = () => {
 
     // B. Incident: Real-time Behavioral Breach
     if (riskLevel === 'danger' && trustScore < 0.2 && !isWarmingUp && !pinLockActive.current && !user?.isLocked) {
+      // If we already have 3 strikes and another anomaly happens, that's the 4th!
       if (strikeCount >= 3) {
         logout();
         return;
@@ -75,7 +76,11 @@ export const GlobalSecurityGate = () => {
     const res = await unlockAccount(pin);
     if (!res.success) {
       setPinError(res.message || 'Wrong PIN.');
-      addStrike();
+      if (strikeCount + 1 > 3) {
+        logout();
+      } else {
+        addStrike();
+      }
     } else {
       setShowPinModal(false);
       setPinInput(['', '', '', '', '', '']);

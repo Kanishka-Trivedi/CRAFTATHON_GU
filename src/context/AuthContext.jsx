@@ -100,6 +100,9 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setUser(null); 
       setStrikeCount(0);
+      setTrustScore(1.0);
+      setRiskLevel('safe');
+      window.location.href = '/';
     }
   };
 
