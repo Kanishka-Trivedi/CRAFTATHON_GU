@@ -278,6 +278,10 @@ export const AuthProvider = ({ children }) => {
 
       try {
         const mlUrl = process.env.NEXT_PUBLIC_ML_ENGINE_URL || "http://localhost:8001";
+        if (mlUrl.includes('localhost') && window.location.hostname !== 'localhost') {
+           console.warn('[AuthContext] WARNING: Deployed site is targeting localhost ML Engine!');
+        }
+        
         const res = await fetch(`${mlUrl}/score`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -286,7 +290,6 @@ export const AuthProvider = ({ children }) => {
 
         if (res.ok) {
           const data = await res.json();
-
           if (typeof data.risk_score === 'number') {
             setTrustScore(prev => {
               const instantTrust = 1 - (data.risk_score / 100);
