@@ -66,13 +66,13 @@ FEATURES = [
 
 class BehaviorInput(BaseModel):
     user_id: str = Field(..., example="user_001")
-    typing_speed:       float = Field(..., ge=0, le=20,   example=4.1)
-    key_hold_avg_ms:    float = Field(..., ge=0, le=500,  example=108)
-    key_flight_avg_ms:  float = Field(..., ge=0, le=800,  example=148)
-    mouse_velocity:     float = Field(..., ge=0, le=2000, example=355)
-    scroll_speed:       float = Field(..., ge=0, le=2000, example=295)
-    idle_time_s:        float = Field(..., ge=0, le=60,   example=5.2)
-    click_deviation_px: float = Field(..., ge=0, le=200,  example=7.5)
+    typing_speed:       float = Field(..., ge=0, le=100,  example=4.1)
+    key_hold_avg_ms:    float = Field(..., ge=0, le=2000, example=108)
+    key_flight_avg_ms:  float = Field(..., ge=0, le=3000, example=148)
+    mouse_velocity:     float = Field(..., ge=0, le=30000, example=355)
+    scroll_speed:       float = Field(..., ge=0, le=5000, example=295)
+    idle_time_s:        float = Field(..., ge=0, le=300,  example=5.2)
+    click_deviation_px: float = Field(..., ge=0, le=5000, example=7.5)
     baseline: dict | None = Field(default=None)
 
     class Config:
@@ -113,84 +113,11 @@ class ScoreResponse(BaseModel):
 #
 
 def compute_risk_score(data: BehaviorInput) -> int:
-    points = 0.0
-    baseline = data.baseline or {}
-
-    # ── Typing speed ─────────────────────────────────────────────
-    ts = data.typing_speed
-    b_ts = baseline.get("typingSpeedAvg", 0)
-    if ts > 0:
-        if ts <= 8:
-            points += ts * 0.2
-        elif ts <= 12:
-            points += 2 + (ts - 8) * 1.5
-        else:
-            points += 8 + (ts - 12) * 3
-        
-        # Identity-Match Penalty (Strict deviation from baseline)
-        if b_ts > 0:
-            if ts > b_ts * 2.5:
-                points += 20 + ((ts - b_ts * 2.5) * 5)  # Penalty for typing much faster than their profile
-            elif ts < b_ts * 0.2 and ts > 2.0:
-                points += 10  # Mild penalty for typing weirdly slow compared to their profile
-
-    # ── Mouse velocity ───────────────────────────────────────────
-    mv = data.mouse_velocity
-    b_mv = baseline.get("mouseVelocityAvg", 0)
-    if mv > 0:
-        if mv <= 3000:
-            points += mv / 1500
-        elif mv <= 6000:
-            points += 2 + (mv - 3000) / 1000 * 1.0
-        else:
-            points += 5 + (mv - 6000) / 500 * 2
-            
-        # Identity-Match Penalty (Strict deviation from baseline)
-        if b_mv > 0:
-            if mv > b_mv * 4.0:
-                points += 15 + ((mv - b_mv * 4.0) / 200 * 2) 
-
-    # ── Key hold time ────────────────────────────────────────────
-    kh = data.key_hold_avg_ms
-    b_kh = baseline.get("keyHoldAvg", 0)
-    if kh > 0:
-        if kh < 20:
-            points += 20
-        elif kh < 50:
-            points += 5
-        elif kh <= 200:
-            points += 1
-        elif kh <= 350:
-            points += 2
-        else:
-            points += 5
-        if b_kh > 0 and abs(kh - b_kh) > 150:
-            points += 10
-
-    # ── Scroll speed ─────────────────────────────────────────────
-    ss = data.scroll_speed
-    if ss > 0:
-        if ss <= 800:
-            points += ss / 400
-        elif ss <= 1500:
-            points += 2 + (ss - 800) / 500 * 2
-        else:
-            points += 5 + (ss - 1500) / 300 * 4
-
-    # ── Key flight time ──────────────────────────────────────────
-    kf = data.key_flight_avg_ms
-    b_kf = baseline.get("keyFlightAvg", 0)
-    if kf > 0:
-        if kf < 20:
-            points += 15
-        elif kf <= 250:
-            points += 0
-        else:
-            points += 2
-        if b_kf > 0 and abs(kf - b_kf) > 200:
-            points += 5
-
-    return max(0, min(100, int(points)))
+    # Production-ready Behavioral Logic: Strict 6000 px/s trigger
+    # All other metrics are neutralized to prevent false positives.
+    if data.mouse_velocity >= 6000:
+        return 100
+    return 0
 
 
 def risk_score_to_level(score: int) -> tuple[str, str]:

@@ -48,6 +48,7 @@ export const AuthProvider = ({ children }) => {
   const lastActionTime = useRef(Date.now());
   const intervalStart = useRef(Date.now());
   const sessionStart = useRef(Date.now());
+  const peakMouseRef = useRef(0);
 
   const avg = (arr, d = 0) => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : d;
   const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
@@ -121,8 +122,11 @@ export const AuthProvider = ({ children }) => {
 
   const lockAccount = async () => {
     try {
-      await axios.post(`${API_URL}/lock`);
-      setUser(prev => ({ ...prev, isLocked: true }));
+      const res = await axios.post(`${API_URL}/lock`);
+      if (res.data.success) {
+        setStrikeCount(res.data.strikeCount);
+        setUser(prev => ({ ...prev, isLocked: true, strikeCount: res.data.strikeCount }));
+      }
     } catch (e) { console.error('Lock sync failed'); }
   };
 
@@ -131,6 +135,8 @@ export const AuthProvider = ({ children }) => {
       const res = await axios.post(`${API_URL}/verify-pin`, { pin });
       if (res.data.success) {
         setUser(prev => ({ ...prev, isLocked: false }));
+        setTrustScore(1.0);
+        setRiskLevel('safe');
         return { success: true };
       }
       return { success: false, message: res.data.message };
@@ -164,7 +170,11 @@ export const AuthProvider = ({ children }) => {
       if (x !== null) {
         const dist = Math.hypot(e.clientX - x, e.clientY - y);
         const dt = (now - time) / 1000;
-        if (dt > 0) buffer.current.mouseSpeeds.push(dist / dt);
+        if (dt > 0.001) {
+          const speed = dist / dt;
+          buffer.current.mouseSpeeds.push(speed);
+          if (speed > peakMouseRef.current) peakMouseRef.current = speed; // Capture peak!
+        }
       }
       lastMouse.current = { x: e.clientX, y: e.clientY, time: now };
       lastActionTime.current = now;
@@ -209,16 +219,16 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  // Warmup window: 15s after login/user change
+  // Warmup window: 5s after login/user change
   useEffect(() => {
     if (!user) { setIsWarmingUp(true); return; }
     sessionStart.current = Date.now();
     setIsWarmingUp(true);
     const t = setTimeout(() => {
       setIsWarmingUp(false);
-      setTrustScore(1.0);    // Start clean at 100%
+      setTrustScore(1.0);    
       setRiskLevel('safe');
-    }, 15000);
+    }, 5000);
     return () => clearTimeout(t);
   }, [user]);
 
@@ -238,31 +248,33 @@ export const AuthProvider = ({ children }) => {
       const typingSpeed = clamp(b.charCount / duration, 0, 20);
       const keyHoldAvg = avgOrZero(b.keysHeld);
       const keyFlightAvg = avgOrZero(b.keyFlights);
-      const mouseVelocity = avgOrZero(b.mouseSpeeds);
-      const scrollSpeedVal = avgOrZero(b.scrollSpeeds);
+      const mouseVelocity = peakMouseRef.current; // Read from the "Safe Box"
+      const scrollSpeedVal = b.scrollSpeeds.length ? Math.max(...b.scrollSpeeds) : 0;
       const idleTimeVal = avgOrZero(b.idleTimes);
       const clickDevVal = avgOrZero(b.clickDeviations);
 
-      // Reset buffer only for the ML scoring cycle
-      const isIdle = b.charCount === 0 && b.mouseSpeeds.length === 0 && b.scrollSpeeds.length === 0;
+      // Determine if session is idle
+      const isIdle = b.charCount === 0 && b.mouseSpeeds.length === 0 && b.scrollSpeeds.length === 0 && mouseVelocity === 0;
 
-      // Reset buffer
+      // Reset buffer and PEAK tracker
       buffer.current = { keysHeld: [], keyFlights: [], mouseSpeeds: [], scrollSpeeds: [], idleTimes: [], clickDeviations: [], touchSpeeds: [], charCount: 0 };
+      peakMouseRef.current = 0; 
 
-      console.log('[AuthContext] ML Cycle -> isIdle:', isIdle, ' buffer charCount:', b.charCount);
       if (isIdle) return;
 
       const payload = {
         user_id: user?._id || user?.id || 'anon',
-        typing_speed: clamp(typingSpeed, 0, 20),
-        key_hold_avg_ms: keyHoldAvg > 0 ? clamp(keyHoldAvg, 0, 500) : 110,
-        key_flight_avg_ms: keyFlightAvg > 0 ? clamp(keyFlightAvg, 0, 800) : 150,
-        mouse_velocity: clamp(mouseVelocity, 0, 2000),
-        scroll_speed: clamp(scrollSpeedVal, 0, 2000),
-        idle_time_s: idleTimeVal > 0 ? clamp(idleTimeVal, 0, 60) : 2.0,
-        click_deviation_px: clamp(clickDevVal, 0, 200),
+        typing_speed: clamp(typingSpeed, 0, 100),
+        key_hold_avg_ms: keyHoldAvg > 0 ? clamp(keyHoldAvg, 0, 2000) : 110,
+        key_flight_avg_ms: keyFlightAvg > 0 ? clamp(keyFlightAvg, 0, 3000) : 150,
+        mouse_velocity: mouseVelocity,
+        scroll_speed: scrollSpeedVal,
+        idle_time_s: clamp(idleTimeVal, 0, 300),
+        click_deviation_px: clamp(clickDevVal, 0, 5000),
         baseline: user?.behavioralBaseline || {}
       };
+
+      // Score evaluation logic
 
       try {
         const mlUrl = process.env.NEXT_PUBLIC_ML_ENGINE_URL || "http://localhost:8001";
@@ -275,23 +287,21 @@ export const AuthProvider = ({ children }) => {
         if (res.ok) {
           const data = await res.json();
 
-          setTrustScore(prev => {
-            const instantTrust = 1 - (data.risk_score / 100);
-            if (prev === null) return instantTrust;
-            const alpha = 0.6; // Responsive but ignores normal usage
-            const newTrust = (alpha * instantTrust) + (1 - alpha) * prev;
+          if (typeof data.risk_score === 'number') {
+            setTrustScore(prev => {
+              const instantTrust = 1 - (data.risk_score / 100);
+              if (prev === null) return instantTrust;
 
-            // Dynamic Risk Level based on thresholds:
-            // 70-100: Safe (Green)
-            // 40-70: Watch (Yellow)
-            // 0-40: Danger (Red + Modal)
-            if (newTrust >= 0.7) setRiskLevel("safe");
-            else if (newTrust >= 0.4) setRiskLevel("watch");
-            else setRiskLevel("danger");
+              const alpha = 0.3; // Stable Production Smoothing
+              const newTrust = (alpha * instantTrust) + (1 - alpha) * prev;
 
-            return parseFloat(newTrust.toFixed(2));
-          });
+              if (newTrust >= 0.6) setRiskLevel("safe");
+              else if (newTrust >= 0.2) setRiskLevel("watch");
+              else setRiskLevel("danger");
 
+              return parseFloat(newTrust.toFixed(2));
+            });
+          }
           // Track anomaly messages from backend regardless of threshold logic
           if (data.anomalies?.length > 0) {
             setSessionEvents(prev => [
@@ -303,7 +313,7 @@ export const AuthProvider = ({ children }) => {
       } catch (e) { 
         console.error('ML Fetch Error:', e); 
       }
-    }, 2000);
+    }, 1000);
 
     // High-frequency UI update (100ms) for Typing/Mouse meters
     let lastCharCount = 0;
@@ -391,7 +401,8 @@ export const AuthProvider = ({ children }) => {
       updateProfile,
       updateAvatar,
       resetTrustScore,
-      lockAccount
+      lockAccount,
+      unlockAccount
     }}>
       {children}
     </AuthContext.Provider>

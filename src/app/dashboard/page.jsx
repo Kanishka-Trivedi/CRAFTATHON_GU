@@ -81,7 +81,7 @@ const CalibrationDots = () => (
 // ── Main Dashboard ────────────────────────────────────────────────────────────
 
 const DashboardPage = () => {
-  const { user, trustScore, riskLevel, sessionEvents, isWarmingUp, liveMetrics, resetTrustScore, lockAccount, setUser, strikeCount, addStrike, logout } = useAuth();
+  const { user, loading, trustScore, riskLevel, sessionEvents, isWarmingUp, liveMetrics, resetTrustScore, lockAccount, setUser, strikeCount, addStrike, logout } = useAuth();
   const router = useRouter();
 
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -166,10 +166,10 @@ const DashboardPage = () => {
 
   // Handle kick-out (redirect to landing) when session is deactivated
   useEffect(() => {
-    if (!user) {
+    if (!loading && !user) {
       router.push('/');
     }
-  }, [user, router]);
+  }, [user, loading, router]);
 
   // ── Chart options ─────────────────────────────────────────────────────────
   const chartOptions = {

@@ -6,7 +6,7 @@ import { Lock, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export const GlobalSecurityGate = () => {
-  const { user, trustScore, riskLevel, sessionEvents, isWarmingUp, resetTrustScore, lockAccount, setUser, strikeCount, addStrike, logout } = useAuth();
+  const { user, trustScore, riskLevel, sessionEvents, isWarmingUp, resetTrustScore, lockAccount, unlockAccount, setUser, strikeCount, addStrike, logout } = useAuth();
   
   const [warning, setWarning] = useState(null);
   const [showPinModal, setShowPinModal] = useState(false);
@@ -20,31 +20,29 @@ export const GlobalSecurityGate = () => {
 
   // ── Unified Security Hub — Only ONE instance of lockdown possible ──
   useEffect(() => {
-    // 0. Grace Period: Allow session to settle for 30s after login
-    const isSessionNew = (Date.now() - sessionStartTime.current) < 30000;
+    // 0. Grace Period: Allow session to settle for 10s after login
+    const isSessionNew = (Date.now() - sessionStartTime.current) < 10000;
 
     // A. Priority: Database Lockdown (Persistence)
-    // Only trigger if we are NOT in the very first 2 seconds of mount (prevent race conditions)
-    if (user?.isLocked && !pinLockActive.current && !isSessionNew) {
+    // If the DB says we are locked, show the modal IMMEDIATELY on reload.
+    if (user?.isLocked && !pinLockActive.current) {
       pinLockActive.current = true;
       setShowPinModal(true);
       return;
     }
 
     // B. Incident: Real-time Behavioral Breach
-    // MUST be past warmup AND session grace period
-    if (riskLevel === 'danger' && !isWarmingUp && !isSessionNew && !pinLockActive.current && !user?.isLocked) {
+    if (riskLevel === 'danger' && trustScore < 0.2 && !isWarmingUp && !pinLockActive.current && !user?.isLocked) {
       if (strikeCount >= 3) {
         logout();
         return;
       }
       pinLockActive.current = true;
-      addStrike();
       lockAccount();
       setWarning(null);
       setShowPinModal(true);
     }
-  }, [riskLevel, isWarmingUp, user?.isLocked, user, strikeCount]);
+  }, [riskLevel, isWarmingUp, user?.isLocked, user, strikeCount, trustScore]);
 
   // ── Security — WATCH banner only <50% score, throttled 45 s ──────────────
   useEffect(() => {
@@ -73,29 +71,17 @@ export const GlobalSecurityGate = () => {
     setPinError('');
     const pin = pinInput.join('');
     if (pin.length !== 6) { setPinError('Enter all 6 digits.'); return; }
-    try {
-      const res = await fetch('http://localhost:5000/api/auth/verify-pin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ pin }),
-      });
-      const data = await res.json();
-      if (!data.success) {
-        setPinError(data.message || 'Wrong PIN.');
-        addStrike();
-      } else {
-        setShowPinModal(false);
-        setPinInput(['', '', '', '', '', '']);
-        setPinError('');
-        pinLockActive.current = false;
-        lastVerifiedTime.current = Date.now(); // Start cooldown
-        resetTrustScore(); // Reset the behavioral engine's state for this session
-        setUser(prev => ({ ...prev, isLocked: false })); // Locally unlock since DB is already unlocked
-      }
-    } catch {
-      setPinError('Verification node unreachable. Redirecting…');
-      setTimeout(() => { window.location.href = 'http://localhost:3000'; }, 1500);
+    
+    const res = await unlockAccount(pin);
+    if (!res.success) {
+      setPinError(res.message || 'Wrong PIN.');
+      addStrike();
+    } else {
+      setShowPinModal(false);
+      setPinInput(['', '', '', '', '', '']);
+      setPinError('');
+      pinLockActive.current = false;
+      lastVerifiedTime.current = Date.now();
     }
   };
 

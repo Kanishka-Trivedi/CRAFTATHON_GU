@@ -320,9 +320,8 @@ router.post('/verify-pin', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid Transaction PIN' });
     }
 
-    // Success: Unlock the account and reset strikes
+    // Success: Unlock the account (Preserve strikes for cumulative policy)
     user.isLocked = false;
-    user.strikeCount = 0;
     await user.save();
 
     res.status(200).json({ success: true });
@@ -331,14 +330,26 @@ router.post('/verify-pin', async (req, res) => {
   }
 });
 
-// Lock account
+// Lock account & increment strike count
 router.post('/lock', async (req, res) => {
   try {
     const token = req.cookies.token;
     if (!token) return res.status(401).json({ message: 'Not authenticated' });
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
-    await User.findByIdAndUpdate(decoded.id, { isLocked: true });
-    res.status(200).json({ success: true, message: 'Node Lockdown Active' });
+    
+    // Increment strike count and set isLocked to true
+    const user = await User.findById(decoded.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    
+    user.isLocked = true;
+    user.strikeCount = (user.strikeCount || 0) + 1;
+    await user.save();
+
+    res.status(200).json({ 
+      success: true, 
+      message: 'Node Lockdown Active', 
+      strikeCount: user.strikeCount 
+    });
   } catch (error) { res.status(500).json({ message: error.message }); }
 });
 
