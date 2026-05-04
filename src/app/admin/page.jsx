@@ -50,6 +50,8 @@ const AdminOverviewPage = () => {
          } catch (err) { console.error('Admin Fetch Failed', err); }
       };
       fetchStats();
+      const poll = setInterval(fetchStats, 5000);
+      return () => clearInterval(poll);
    }, []);
 
    // Distribution chart data
@@ -159,20 +161,40 @@ const AdminOverviewPage = () => {
                </GlassCard>
             </div>
 
-            {/* Charts Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-10">
-               <GlassCard className="p-8 h-[400px] flex flex-col">
+            {/* Live Terminal & Charts Row */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
+               <GlassCard className="lg:col-span-2 p-8 h-[400px] flex flex-col">
                   <h3 className="font-sora font-bold text-xl mb-1">Trust Score Distribution</h3>
                   <p className="text-xs text-secondary mb-8">Aggregated health across all active sessions</p>
                   <div className="flex-1 w-full flex items-center justify-center">
                      <Bar data={distData} options={options} />
                   </div>
                </GlassCard>
-               <GlassCard className="p-8 h-[400px] flex flex-col">
-                  <h3 className="font-sora font-bold text-xl mb-1">Incident Timeline</h3>
-                  <p className="text-xs text-secondary mb-8">Anomaly frequency per hour (last 24h)</p>
-                  <div className="flex-1 w-full flex items-center justify-center">
-                     <Line data={anomalyData} options={options} />
+               
+               <GlassCard className="p-8 h-[400px] flex flex-col bg-black/40 border-accent/20 overflow-hidden relative">
+                  <div className="absolute top-0 right-0 p-4">
+                     <div className="w-2 h-2 rounded-full bg-accent animate-pulse"></div>
+                  </div>
+                  <h3 className="font-sora font-bold text-lg mb-4 flex items-center gap-2">
+                     <Clock size={16} className="text-accent" />
+                     Live Command Terminal
+                  </h3>
+                  <div className="flex-1 font-mono text-[10px] text-accent/80 overflow-y-auto space-y-2 custom-scrollbar">
+                     <p className="text-white/40">[SYSTEM] Initializing secure telemetry...</p>
+                     <p className="text-emerald-400/60">[NETWORK] Enrolled nodes: {liveStats?.totalUsers || 0}</p>
+                     {(liveStats?.alerts || []).slice(0, 8).map((a, i) => (
+                        <p key={i} className="animate-in fade-in slide-in-from-left duration-500">
+                           <span className="text-white/20">[{a.time.split(',')[1].trim()}]</span>{' '}
+                           <span className={a.severity === 'Critical' ? 'text-red-400' : 'text-amber-400'}>
+                              {a.severity}: Anomaly detected on Node_{a.userId?.slice(-4)}
+                           </span>
+                        </p>
+                     ))}
+                     <motion.div 
+                        animate={{ opacity: [0, 1] }} 
+                        transition={{ repeat: Infinity, duration: 0.8 }}
+                        className="inline-block w-1.5 h-3 bg-accent"
+                     />
                   </div>
                </GlassCard>
             </div>
@@ -181,7 +203,10 @@ const AdminOverviewPage = () => {
             <GlassCard className="overflow-hidden border-white/5">
                <div className="p-8 pb-4 flex items-center justify-between">
                   <h3 className="font-sora font-bold text-xl">Operational Logs</h3>
-                  <Link href="/admin/alerts" className="text-xs font-bold text-accent hover:underline uppercase tracking-widest">Full Incident Log</Link>
+                  <div className="flex items-center gap-4">
+                     <span className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Auto-refreshes every 5s</span>
+                     <Link href="/admin/alerts" className="text-xs font-bold text-accent hover:underline uppercase tracking-widest">Full Incident Log</Link>
+                  </div>
                </div>
                <div className="overflow-x-auto">
                   <table className="w-full text-left min-w-[1000px]">
@@ -190,8 +215,8 @@ const AdminOverviewPage = () => {
                            <th className="py-5 px-8">Session / Time</th>
                            <th className="py-5">User Identity</th>
                            <th className="py-5">Risk Factor</th>
+                           <th className="py-5">Strikes</th>
                            <th className="py-5">Trigger Primary</th>
-                           <th className="py-5">Protocol Taken</th>
                            <th className="py-5 px-8 text-right">Action</th>
                         </tr>
                      </thead>
@@ -206,30 +231,47 @@ const AdminOverviewPage = () => {
                               </td>
                               <td className="py-5">
                                  <div className="flex items-center space-x-3">
-                                    <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-accent to-accent-violet flex items-center justify-center text-[10px] font-bold text-white shadow-lg">?</div>
-                                    <span className="text-sm font-bold text-primary">Node_{alert.user?.slice(-6)}</span>
+                                    <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-accent to-accent-violet flex items-center justify-center text-[10px] font-bold text-white shadow-lg">
+                                       {alert.user?.[0] || '?'}
+                                    </div>
+                                    <span className="text-sm font-bold text-primary">{alert.user}</span>
                                  </div>
                               </td>
                               <td className="py-5">
                                  <div className="flex items-center space-x-2">
                                     <div className={clsx(
                                        "w-2 h-2 rounded-full animate-pulse",
-                                       alert.severity === 'Critical' ? "bg-trust-danger" : (alert.severity === 'High' ? "bg-trust-watch" : "bg-accent")
+                                       alert.severity === 'Critical' ? "bg-trust-danger" : "bg-trust-watch"
                                     )}></div>
                                     <span className={clsx(
                                        "text-xs font-black uppercase tracking-widest",
-                                       alert.severity === 'Critical' ? "text-trust-danger" : (alert.severity === 'High' ? "text-trust-watch" : "text-accent")
+                                       alert.severity === 'Critical' ? "text-trust-danger" : "text-trust-watch"
                                     )}>{alert.severity} ({Math.round(alert.riskScore * 100)}%)</span>
                                  </div>
                               </td>
                               <td className="py-5">
-                                 <span className="text-secondary text-sm font-medium">{alert.trigger}</span>
+                                 <span className={clsx(
+                                    "px-2 py-0.5 rounded text-[10px] font-black",
+                                    alert.strikes > 0 ? "bg-red-500/20 text-red-400" : "bg-white/5 text-white/30"
+                                 )}>
+                                    {alert.strikes} STRIKES
+                                 </span>
                               </td>
                               <td className="py-5">
-                                 <span className="px-3 py-1 rounded-lg bg-white/5 border border-white/5 text-[10px] font-bold text-secondary uppercase tracking-widest">{alert.action}</span>
+                                 <span className="text-secondary text-sm font-medium">{alert.trigger}</span>
                               </td>
                               <td className="py-5 px-8 text-right">
-                                 <p className="text-[10px] font-black text-accent-teal uppercase tracking-widest">Under Review</p>
+                                 <button 
+                                    onClick={async () => {
+                                       try {
+                                          await axios.post('http://localhost:5000/api/behavioral/clear-strikes', { userId: alert.userId }, { withCredentials: true });
+                                          // Refresh will happen on next poll
+                                       } catch (e) { console.error('Clear failed'); }
+                                    }}
+                                    className="px-4 py-1.5 rounded-lg border border-accent/30 text-[10px] font-black text-accent uppercase tracking-widest hover:bg-accent hover:text-white transition-all"
+                                 >
+                                    RESTORE TRUST
+                                 </button>
                               </td>
                            </tr>
                         ))}

@@ -16,6 +16,7 @@ export const AuthProvider = ({ children }) => {
   const [riskLevel, setRiskLevel] = useState('safe');
   const [isWarmingUp, setIsWarmingUp] = useState(true);
   const [strikeCount, setStrikeCount] = useState(0);
+  const currentSessionId = useRef(`sess-${Math.random().toString(36).substring(7)}-${Date.now()}`);
 
   const [liveMetrics, setLiveMetrics] = useState({
     typingSpeed: 0,
@@ -56,7 +57,10 @@ export const AuthProvider = ({ children }) => {
     const checkAuth = async () => {
       try {
         const response = await axios.get(`${API_URL}/me`);
-        if (response.data.success) setUser(response.data.user);
+        if (response.data.success) {
+          setUser(response.data.user);
+          setStrikeCount(response.data.user.strikeCount || 0);
+        }
       } catch (err) {
       } finally {
         setLoading(false);
@@ -68,19 +72,34 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const res = await axios.post(`${API_URL}/login`, { email, password });
-      if (res.data.success) { setUser(res.data.user); return { success: true }; }
+      if (res.data.success) { 
+        setUser(res.data.user); 
+        setStrikeCount(res.data.user.strikeCount || 0);
+        return { success: true }; 
+      }
     } catch (e) { return { success: false, message: e.response?.data?.message || 'Login failed' }; }
   };
 
   const signup = async (data) => {
     try {
       const res = await axios.post(`${API_URL}/signup`, data);
-      if (res.data.success) { setUser(res.data.user); return { success: true }; }
+      if (res.data.success) { 
+        setUser(res.data.user); 
+        setStrikeCount(0);
+        return { success: true }; 
+      }
     } catch (e) { return { success: false, message: e.response?.data?.message || 'Signup failed' }; }
   };
 
   const logout = async () => {
-    try { await axios.post(`${API_URL}/logout`); setUser(null); setStrikeCount(0); } catch (e) { console.error(e); }
+    try { 
+      await axios.post(`${API_URL}/logout`); 
+    } catch (e) { 
+      console.error('Logout error', e); 
+    } finally {
+      setUser(null); 
+      setStrikeCount(0);
+    }
   };
 
   const updateProfile = async (data) => {
@@ -190,7 +209,7 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  // Warmup window: 5s after login/user change
+  // Warmup window: 15s after login/user change
   useEffect(() => {
     if (!user) { setIsWarmingUp(true); return; }
     sessionStart.current = Date.now();
@@ -199,7 +218,7 @@ export const AuthProvider = ({ children }) => {
       setIsWarmingUp(false);
       setTrustScore(1.0);    // Start clean at 100%
       setRiskLevel('safe');
-    }, 5000);
+    }, 15000);
     return () => clearTimeout(t);
   }, [user]);
 
@@ -230,6 +249,7 @@ export const AuthProvider = ({ children }) => {
       // Reset buffer
       buffer.current = { keysHeld: [], keyFlights: [], mouseSpeeds: [], scrollSpeeds: [], idleTimes: [], clickDeviations: [], touchSpeeds: [], charCount: 0 };
 
+      console.log('[AuthContext] ML Cycle -> isIdle:', isIdle, ' buffer charCount:', b.charCount);
       if (isIdle) return;
 
       const payload = {
@@ -241,7 +261,7 @@ export const AuthProvider = ({ children }) => {
         scroll_speed: clamp(scrollSpeedVal, 0, 2000),
         idle_time_s: idleTimeVal > 0 ? clamp(idleTimeVal, 0, 60) : 2.0,
         click_deviation_px: clamp(clickDevVal, 0, 200),
-        baseline: user?.behavioralBaseline || null
+        baseline: user?.behavioralBaseline || {}
       };
 
       try {
@@ -258,15 +278,15 @@ export const AuthProvider = ({ children }) => {
           setTrustScore(prev => {
             const instantTrust = 1 - (data.risk_score / 100);
             if (prev === null) return instantTrust;
-            const alpha = 0.3;
+            const alpha = 0.6; // Responsive but ignores normal usage
             const newTrust = (alpha * instantTrust) + (1 - alpha) * prev;
 
             // Dynamic Risk Level based on thresholds:
-            // 60-100: Safe (Green)
-            // 30-60: Watch (Yellow)
-            // 0-30: Danger (Red + Modal)
-            if (newTrust >= 0.6) setRiskLevel("safe");
-            else if (newTrust >= 0.3) setRiskLevel("watch");
+            // 70-100: Safe (Green)
+            // 40-70: Watch (Yellow)
+            // 0-40: Danger (Red + Modal)
+            if (newTrust >= 0.7) setRiskLevel("safe");
+            else if (newTrust >= 0.4) setRiskLevel("watch");
             else setRiskLevel("danger");
 
             return parseFloat(newTrust.toFixed(2));
@@ -280,22 +300,27 @@ export const AuthProvider = ({ children }) => {
             ]);
           }
         }
-      } catch (e) { }
+      } catch (e) { 
+        console.error('ML Fetch Error:', e); 
+      }
     }, 2000);
 
     // High-frequency UI update (100ms) for Typing/Mouse meters
+    let lastCharCount = 0;
     const uiInterval = setInterval(() => {
       const b = buffer.current;
       const avgOrZero = (arr) => arr.length ? arr.reduce((a, v) => a + v, 0) / arr.length : 0;
 
       setLiveMetrics(prev => {
         const currentMouse = avgOrZero(b.mouseSpeeds);
-        const currentTyping = b.charCount / 0.1; // estimate over 100ms
+        const charsTyped = b.charCount - lastCharCount;
+        lastCharCount = b.charCount;
+        const currentTyping = charsTyped / 0.1; // true cps in this 100ms window
 
         return {
           ...prev,
-          mouseSpeed: currentMouse > 0 ? parseFloat(currentMouse.toFixed(0)) : prev.mouseSpeed * 0.8, // decay
-          typingSpeed: currentTyping > 0 ? parseFloat(currentTyping.toFixed(2)) : prev.typingSpeed * 0.9,
+          mouseSpeed: currentMouse > 0 ? parseFloat(currentMouse.toFixed(0)) : parseFloat((prev.mouseSpeed * 0.8).toFixed(0)), // smooth decay
+          typingSpeed: currentTyping > 0 ? parseFloat(currentTyping.toFixed(2)) : parseFloat((prev.typingSpeed * 0.9).toFixed(2)),
           keyHold: avgOrZero(b.keysHeld) || prev.keyHold,
           keyFlight: avgOrZero(b.keyFlights) || prev.keyFlight,
           scrollSpeed: avgOrZero(b.scrollSpeeds) || prev.scrollSpeed
@@ -314,9 +339,10 @@ export const AuthProvider = ({ children }) => {
     if (!user) return;
     const syncInterval = setInterval(async () => {
       const syncPayload = {
-        sessionId: `sess-${user._id || user.id}-${Date.now()}`,
+        sessionId: currentSessionId.current,
         trustScore,
         riskLevel,
+        strikeCount,
         metrics: {
           typingSpeed: liveMetrics.typingSpeed,
           keyHold: liveMetrics.keyHold,
@@ -328,11 +354,11 @@ export const AuthProvider = ({ children }) => {
       };
       try {
         await axios.post('http://localhost:5000/api/behavioral/sync-session', syncPayload);
-        console.log('[SYNC] Session snapshot saved');
+        console.log('[SYNC] Session snapshot saved:', currentSessionId.current);
       } catch (e) { }
     }, 30000);
     return () => clearInterval(syncInterval);
-  }, [user, trustScore, riskLevel, liveMetrics]);
+  }, [user, trustScore, riskLevel, liveMetrics, strikeCount]);
 
   const resetTrustScore = () => {
     setTrustScore(1.0);
@@ -343,12 +369,7 @@ export const AuthProvider = ({ children }) => {
     setStrikeCount(prev => prev + 1);
   };
 
-  // Auto-logout on 3 strikes
-  useEffect(() => {
-    if (strikeCount >= 3) {
-      logout();
-    }
-  }, [strikeCount]);
+  // Auto-logout is handled directly by the dashboard to prevent ghost modals
 
   return (
     <AuthContext.Provider value={{

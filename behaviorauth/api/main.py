@@ -33,12 +33,8 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "https://craftathon-gu.vercel.app",
-        "https://craftathon-5qlebop8w-chahel-s-projects.vercel.app"
-    ],
-    allow_credentials=True,
+    allow_origins=["*"],  # Wildcard allowed when allow_credentials is False
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -50,9 +46,9 @@ MODEL_PATH = os.path.join(BASE_DIR, "model", "model.pkl")
 
 try:
     pipeline = joblib.load(MODEL_PATH)
-    print(f"✅ Model loaded from {MODEL_PATH}")
+    print(f"SUCCESS: Model loaded from {MODEL_PATH}")
 except FileNotFoundError:
-    print(f"❌ ERROR: model not found at {MODEL_PATH}")
+    print(f"ERROR: model not found at {MODEL_PATH}")
     print("Run: python model/train.py first")
     pipeline = None
 
@@ -77,7 +73,7 @@ class BehaviorInput(BaseModel):
     scroll_speed:       float = Field(..., ge=0, le=2000, example=295)
     idle_time_s:        float = Field(..., ge=0, le=60,   example=5.2)
     click_deviation_px: float = Field(..., ge=0, le=200,  example=7.5)
-    baseline: dict = Field(default=None)
+    baseline: dict | None = Field(default=None)
 
     class Config:
         json_schema_extra = {
@@ -124,88 +120,86 @@ def compute_risk_score(data: BehaviorInput) -> int:
     ts = data.typing_speed
     b_ts = baseline.get("typingSpeedAvg", 0)
     if ts > 0:
-        if ts <= 5:
-            points += ts * 1.6
-        elif ts <= 8:
-            points += 8 + (ts - 5) * 7
+        if ts <= 8:
+            points += ts * 0.2
+        elif ts <= 12:
+            points += 2 + (ts - 8) * 1.5
         else:
-            points += 29 + (ts - 8) * 8
+            points += 8 + (ts - 12) * 3
         
-        # Baseline deviation penalty
-        if b_ts > 0 and ts > b_ts * 1.5:
-            points += min(30, (ts / b_ts) * 5)
+        # Identity-Match Penalty (Strict deviation from baseline)
+        if b_ts > 0:
+            if ts > b_ts * 2.5:
+                points += 20 + ((ts - b_ts * 2.5) * 5)  # Penalty for typing much faster than their profile
+            elif ts < b_ts * 0.2 and ts > 2.0:
+                points += 10  # Mild penalty for typing weirdly slow compared to their profile
 
     # ── Mouse velocity ───────────────────────────────────────────
     mv = data.mouse_velocity
     b_mv = baseline.get("mouseVelocityAvg", 0)
     if mv > 0:
-        if mv <= 500:
-            points += mv / 100
-        elif mv <= 800:
-            points += 5 + (mv - 500) / 300 * 7
+        if mv <= 3000:
+            points += mv / 1500
+        elif mv <= 6000:
+            points += 2 + (mv - 3000) / 1000 * 1.0
         else:
-            points += 12 + (mv - 800) / 200 * 10
+            points += 5 + (mv - 6000) / 500 * 2
             
-        # Baseline deviation penalty
-        if b_mv > 0 and mv > b_mv * 2.0:
-            points += 15
+        # Identity-Match Penalty (Strict deviation from baseline)
+        if b_mv > 0:
+            if mv > b_mv * 4.0:
+                points += 15 + ((mv - b_mv * 4.0) / 200 * 2) 
 
     # ── Key hold time ────────────────────────────────────────────
     kh = data.key_hold_avg_ms
     b_kh = baseline.get("keyHoldAvg", 0)
     if kh > 0:
-        if kh < 40:
-            points += 25     # Bot scripting check (stricter)
-        elif kh < 70:
-            points += 12
-        elif kh <= 200:
-            points += 2
-        elif kh <= 350:
+        if kh < 20:
+            points += 20
+        elif kh < 50:
             points += 5
+        elif kh <= 200:
+            points += 1
+        elif kh <= 350:
+            points += 2
         else:
-            points += 12
-
-        # Baseline deviation penalty
-        if b_kh > 0 and abs(kh - b_kh) > 80:
+            points += 5
+        if b_kh > 0 and abs(kh - b_kh) > 150:
             points += 10
 
     # ── Scroll speed ─────────────────────────────────────────────
     ss = data.scroll_speed
     if ss > 0:
-        if ss <= 400:
-            points += ss / 200
-        elif ss <= 800:
-            points += 2 + (ss - 400) / 400 * 5
+        if ss <= 800:
+            points += ss / 400
+        elif ss <= 1500:
+            points += 2 + (ss - 800) / 500 * 2
         else:
-            points += 7 + (ss - 800) / 200 * 8
+            points += 5 + (ss - 1500) / 300 * 4
 
     # ── Key flight time ──────────────────────────────────────────
     kf = data.key_flight_avg_ms
     b_kf = baseline.get("keyFlightAvg", 0)
     if kf > 0:
-        if kf < 30:
-            points += 20
+        if kf < 20:
+            points += 15
         elif kf <= 250:
-            points += 1
+            points += 0
         else:
+            points += 2
+        if b_kf > 0 and abs(kf - b_kf) > 200:
             points += 5
-            
-        # Baseline deviation penalty
-        if b_kf > 0 and abs(kf - b_kf) > 100:
-            points += 8
 
     return max(0, min(100, int(points)))
 
 
 def risk_score_to_level(score: int) -> tuple[str, str]:
-    if score < 25:
+    if score < 40:
         return "LOW", "NONE"
-    elif score < 50:
+    elif score < 70:
         return "MEDIUM", "STEP_UP_AUTH"
-    elif score < 75:
-        return "HIGH", "RESTRICT_SESSION"
     else:
-        return "HIGH", "LOGOUT"
+        return "HIGH", "RESTRICT_SESSION"
 
 
 def get_anomaly_reasons(data: BehaviorInput, risk_score: int) -> list[str]:
@@ -214,27 +208,31 @@ def get_anomaly_reasons(data: BehaviorInput, risk_score: int) -> list[str]:
 
     reasons = []
 
-    if data.typing_speed > 8.0:
+    if data.typing_speed > 12.0:
         reasons.append(f"Typing speed critically high ({data.typing_speed:.1f} cps — possible automated input)")
-    elif data.typing_speed > 5.0:
+    elif data.typing_speed > 8.0:
         reasons.append(f"Elevated typing cadence ({data.typing_speed:.1f} cps)")
 
-    if data.mouse_velocity > 800:
+    if data.mouse_velocity > 2000:
         reasons.append(f"Erratic cursor movement ({data.mouse_velocity:.0f} px/s)")
 
-    if data.key_hold_avg_ms > 0 and data.key_hold_avg_ms < 40:
+    if data.key_hold_avg_ms > 0 and data.key_hold_avg_ms < 20:
         reasons.append(f"Key hold duration unnaturally short ({data.key_hold_avg_ms:.0f}ms)")
 
-    if data.scroll_speed > 800:
+    if data.scroll_speed > 1500:
         reasons.append(f"Abnormal scroll acceleration ({data.scroll_speed:.0f} px/s)")
 
-    if data.key_flight_avg_ms > 0 and data.key_flight_avg_ms < 30:
+    if data.key_flight_avg_ms > 0 and data.key_flight_avg_ms < 20:
         reasons.append("Inter-key timing below human threshold")
 
     baseline = data.baseline or {}
     b_typing = baseline.get("typingSpeedAvg", 0)
     if b_typing > 0 and data.typing_speed > b_typing * 2.5:
-        reasons.append(f"Typing 2.5x above your baseline ({data.typing_speed:.1f} vs {b_typing:.1f})")
+        reasons.append(f"Typing speed does not match your identity profile ({data.typing_speed:.1f} vs {b_typing:.1f})")
+        
+    b_mv = baseline.get("mouseVelocityAvg", 0)
+    if b_mv > 0 and data.mouse_velocity > b_mv * 3.0:
+        reasons.append(f"Mouse movements do not match your identity profile")
 
     return reasons
 

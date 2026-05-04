@@ -37,6 +37,7 @@ router.post('/sync-session', async (req, res) => {
             user.behavioralBaseline.mouseVelocityAvg, metrics.mouseVelocity
         );
         user.behavioralBaseline.sessionCount = newN;
+        user.strikeCount = req.body.strikeCount || 0;
         await user.save();
 
         // ── Save this session snapshot ──────────────────────────────
@@ -148,17 +149,22 @@ router.get('/admin-stats', async (req, res) => {
             : 100;
 
         // Recent Alerts
-        const alerts = allSessions
+        const alerts = await Promise.all(allSessions
             .filter(s => s.riskLevel !== 'safe')
             .slice(0, 15)
-            .map(s => ({
-                id: s._id,
-                user: s.userId, // We'd ideally populate this but for now return ID
-                time: new Date(s.timestamp).toLocaleString(),
-                riskScore: 1 - s.trustScore,
-                severity: s.riskLevel === 'danger' ? 'Critical' : 'High',
-                trigger: s.riskLevel === 'danger' ? 'Behavioral DNA Anomaly' : 'Unusual Navigation Flow',
-                action: s.riskLevel === 'danger' ? 'PIN Challenge' : 'Monitored'
+            .map(async s => {
+                const sessionUser = await User.findById(s.userId);
+                return {
+                    id: s._id,
+                    user: sessionUser?.name || 'Unknown',
+                    userId: s.userId,
+                    time: new Date(s.timestamp).toLocaleString(),
+                    riskScore: 1 - s.trustScore,
+                    strikes: sessionUser?.strikeCount || 0,
+                    severity: s.riskLevel === 'danger' ? 'Critical' : 'High',
+                    trigger: s.riskLevel === 'danger' ? 'Behavioral DNA Anomaly' : 'Unusual Navigation Flow',
+                    action: s.riskLevel === 'danger' ? 'PIN Challenge' : 'Monitored'
+                };
             }));
 
         res.status(200).json({
@@ -225,6 +231,19 @@ router.delete('/delete-profile', async (req, res) => {
         await Session.deleteMany({ userId: decoded.id });
 
         res.status(200).json({ success: true, message: 'Behavioral signature purged from network.' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+/**
+ * POST /clear-strikes (Admin Only)
+ */
+router.post('/clear-strikes', async (req, res) => {
+    try {
+        const { userId } = req.body;
+        await User.findByIdAndUpdate(userId, { strikeCount: 0, isLocked: false });
+        res.status(200).json({ success: true, message: 'Identity trust restored.' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

@@ -193,65 +193,54 @@ const SignupPage = () => {
         <div className="absolute bottom-0 right-0 w-full h-full bg-[radial-gradient(circle_at_80%_80%,_rgba(99,102,241,0.08)_0%,_transparent_40%)]" />
       </div>
 
-      {/* ─── LEFT SIDEBAR ────────────────────────────────────── */}
-      <div className="hidden lg:flex w-[42%] relative flex-col border-r border-white/5 overflow-hidden">
-        {/* Ambient glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none" />
+      {/* ─── LEFT PANEL ──────────────────────────────────────────── */}
+      <div className="hidden lg:flex w-1/2 relative flex-col items-center justify-center border-r border-white/5 overflow-hidden">
+        {/* Ambient background glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none" />
 
-        <div className="relative z-10 flex flex-col justify-between h-full py-10 px-10">
-          {/* Logo */}
-          <div onClick={() => router.push('/')} className="flex items-center gap-3 cursor-pointer group w-fit">
-            <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shadow-[0_0_20px_rgba(99,102,241,0.2)] group-hover:scale-110 transition-transform duration-300 overflow-hidden p-1">
-              <Image
-                src={logo}
-                alt="Logo"
-                width={32}
-                height={32}
-                className="object-contain"
-                style={{ width: 'auto', height: 'auto' }}
-              />
-            </div>
-            <span className="font-sora font-extrabold text-xl tracking-tighter">BehaveGuard</span>
-          </div>
-
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1, ease: 'easeOut' }}
+          className="relative z-10 flex flex-col items-center w-full max-w-md"
+        >
           {/* Lottie + 3 Rings */}
-          <div className="flex items-center justify-center">
-            <div className="relative w-[320px] h-[320px] flex items-center justify-center">
-              {/* Ring 1 */}
-              <motion.div
-                animate={{ rotate: 360, opacity: [0.4, 0.7, 0.4] }}
-                transition={{ rotate: { duration: 24, repeat: Infinity, ease: 'linear' }, opacity: { duration: 4, repeat: Infinity } }}
-                className="absolute w-[310px] h-[310px] rounded-full border-2 border-indigo-500/40"
-                style={{ boxShadow: '0 0 20px rgba(99,102,241,0.15)', filter: 'blur(0.5px)' }}
-              />
-              {/* Ring 2 */}
-              <motion.div
-                animate={{ rotate: -360, opacity: [0.2, 0.5, 0.2] }}
-                transition={{ rotate: { duration: 18, repeat: Infinity, ease: 'linear' }, opacity: { duration: 5, repeat: Infinity } }}
-                className="absolute w-[250px] h-[250px] rounded-full border-2 border-indigo-400/25"
-                style={{ boxShadow: '0 0 14px rgba(129,140,248,0.1)' }}
-              />
-              {/* Ring 3 */}
-              <motion.div
-                animate={{ scale: [1, 1.07, 1], opacity: [0.15, 0.4, 0.15] }}
-                transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-                className="absolute w-[190px] h-[190px] rounded-full border-2 border-white/15"
-              />
+          <div className="relative w-[380px] h-[380px] flex items-center justify-center mb-12">
+            {/* Ring 1 */}
+            <motion.div
+              animate={{ rotate: 360, opacity: [0.4, 0.7, 0.4] }}
+              transition={{ rotate: { duration: 28, repeat: Infinity, ease: 'linear' }, opacity: { duration: 4, repeat: Infinity } }}
+              className="absolute w-[370px] h-[370px] rounded-full border-2 border-indigo-500/40 blur-[1px]"
+              style={{ boxShadow: '0 0 24px rgba(99,102,241,0.15)' }}
+            />
+            {/* Ring 2 */}
+            <motion.div
+              animate={{ rotate: -360, opacity: [0.2, 0.5, 0.2] }}
+              transition={{ rotate: { duration: 20, repeat: Infinity, ease: 'linear' }, opacity: { duration: 5, repeat: Infinity } }}
+              className="absolute w-[300px] h-[300px] rounded-full border-2 border-indigo-400/30"
+              style={{ boxShadow: '0 0 16px rgba(129,140,248,0.1)' }}
+            />
+            {/* Ring 3 */}
+            <motion.div
+              animate={{ scale: [1, 1.06, 1], opacity: [0.15, 0.4, 0.15] }}
+              transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+              className="absolute w-[230px] h-[230px] rounded-full border-2 border-white/20"
+            />
 
-              {mounted && lottieData && (
-                <DotLottieReact
-                  data={lottieData}
-                  loop
-                  autoplay
-                  style={{ width: '250px', height: '250px', position: 'relative', zIndex: 10 }}
-                />
-              )}
-            </div>
+            {/* Lottie player */}
+            {mounted && lottieData && (
+              <DotLottieReact
+                data={lottieData}
+                loop
+                autoplay
+                style={{ width: '300px', height: '300px', position: 'relative', zIndex: 10 }}
+              />
+            )}
           </div>
 
           {/* Step Progress */}
-          <div className="flex flex-col items-center space-y-4">
-            <p className="text-[10px] uppercase font-black tracking-[0.3em] text-white/25 mb-6 text-center w-full">
+          <div className="flex flex-col items-center space-y-4 w-full">
+            <p className="text-[10px] uppercase font-black tracking-[0.3em] text-white/25 mb-2 text-center w-full">
               Enrolment Progress
             </p>
             {STEPS.map((s, i) => {
@@ -274,25 +263,35 @@ const SignupPage = () => {
               );
             })}
           </div>
-        </div>
+        </motion.div>
       </div>
 
-      {/* ─── RIGHT PANEL: FORM ───────────────────────────────── */}
-      <div className="flex-1 flex items-start justify-center px-8 sm:px-14 relative z-10 overflow-y-auto pt-20 pb-20 scrollbar-hide">
-        <div className="w-full max-w-[420px]">
-          {/* Mobile logo */}
-          <div onClick={() => router.push('/')} className="flex lg:hidden items-center gap-3 cursor-pointer mb-10 w-fit">
-            <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center overflow-hidden p-1">
+      {/* ─── RIGHT PANEL: FORM ───────────────────────────────────── */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center px-8 sm:px-16 relative z-10 transition-colors duration-500">
+        <motion.div
+          initial={{ opacity: 0, x: 24 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.7, ease: 'easeOut' }}
+          className="w-full max-w-[400px]"
+        >
+          {/* Logo */}
+          <div
+            onClick={() => router.push('/')}
+            className="flex items-center space-x-3 mb-5 cursor-pointer group w-fit"
+          >
+            <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shadow-[0_0_20px_rgba(99,102,241,0.2)] group-hover:scale-110 transition-transform duration-300 overflow-hidden p-1">
               <Image
                 src={logo}
                 alt="Logo"
-                width={28}
-                height={28}
+                width={32}
+                height={32}
                 className="object-contain"
+                style={{ width: 'auto', height: 'auto' }}
               />
             </div>
-            <span className="font-sora font-extrabold text-lg tracking-tighter text-white">BehaveGuard</span>
+            <span className="font-sora font-extrabold text-xl tracking-tighter">BehaveGuard</span>
           </div>
+
 
           <AnimatePresence mode="wait">
             {/* ── STEP 1: IDENTITY & CREDENTIALS */}
@@ -300,20 +299,19 @@ const SignupPage = () => {
               <motion.div key="s1"
                 initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3 }}
-                className="space-y-10"
+                className="space-y-4"
               >
                 <div>
                   <h2 className="font-sora font-black text-4xl tracking-tight mb-2 text-white">Sign Up</h2>
                   <p className="text-white/35 text-sm font-medium">Create your secure banking account.</p>
                 </div>
 
-                <div className="space-y-12 pb-6">
+                <div className="space-y-4">
                   {/* Field 1: Name */}
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-indigo-400/50 px-1">Full Name</label>
+                  <div>
                     <FloatingInput
                       id="su-name"
-                      label="Your Name"
+                      label="Enter Full Name"
                       type="text"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -323,11 +321,10 @@ const SignupPage = () => {
                   </div>
 
                   {/* Field 2: Email */}
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-indigo-400/50 px-1">Email Address</label>
+                  <div>
                     <FloatingInput
                       id="su-email"
-                      label="email@example.com"
+                      label="Enter Email Address"
                       type="email"
                       value={formData.email}
                       onChange={(e) => {
@@ -338,8 +335,8 @@ const SignupPage = () => {
                       icon={Mail}
                       autoComplete="email"
                     />
-                    <div className="px-1 flex justify-between items-center text-[9px] font-bold uppercase tracking-widest">
-                      <div className="flex items-center gap-1.5 pt-1">
+                    <div className="px-1 flex justify-between items-center text-[9px] font-bold uppercase tracking-widest mt-1.5">
+                      <div className="flex items-center gap-1.5">
                         {emailStatus === 'checking' && <><div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" /><span className="text-white/30">Checking...</span></>}
                         {emailStatus === 'available' && <><span className="text-emerald-400">Email Available</span></>}
                         {emailStatus === 'exists' && <><span className="text-rose-500">Email Taken</span></>}
@@ -348,11 +345,10 @@ const SignupPage = () => {
                   </div>
 
                   {/* Field 3: Phone */}
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-indigo-400/50 px-1">Phone Number</label>
+                  <div>
                     <FloatingInput
                       id="su-phone"
-                      label="+91 00000 00000"
+                      label="Enter Phone Number"
                       type="text"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
@@ -361,11 +357,10 @@ const SignupPage = () => {
                   </div>
 
                   {/* Field 4: Password */}
-                  <div className="space-y-5">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-indigo-400/50 px-1">Create Password</label>
+                  <div>
                     <FloatingInput
                       id="su-pass"
-                      label="••••••••"
+                      label="Create Password"
                       type="password"
                       value={formData.password}
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -374,7 +369,7 @@ const SignupPage = () => {
                     />
 
                     {/* Strength Indicator */}
-                    <div className="px-1 space-y-3">
+                    <div className="px-1 space-y-2 mt-3">
                       <div className="flex justify-between items-center text-[10px] font-black uppercase">
                         <span className="text-white/25">Password Strength</span>
                         <span className={`transition-all duration-500 ${passwordStrength === 100 ? 'text-emerald-400' : 'text-rose-400'}`}>
@@ -390,7 +385,7 @@ const SignupPage = () => {
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-white/5 text-[9px] text-white/20 italic leading-relaxed">
+                <div className="pt-3 border-t border-white/5 text-[9px] text-white/20 italic leading-relaxed">
                   Note: Behavioral sensors are active to secure your session.
                 </div>
               </motion.div>
@@ -496,7 +491,7 @@ const SignupPage = () => {
           )}
 
           {/* Navigation buttons */}
-          <div className="flex gap-3 mt-8">
+          <div className="flex gap-3 mt-4">
             {step > 1 && (
               <button onClick={() => setStep(step - 1)}
                 className="w-14 h-14 rounded-2xl border border-white/10 flex items-center justify-center hover:bg-white/5 transition-colors group flex-shrink-0"
@@ -518,13 +513,13 @@ const SignupPage = () => {
             </button>
           </div>
 
-          <p className="mt-8 text-center text-[11px] uppercase font-bold tracking-[0.2em] text-white/25">
+          <p className="mt-4 text-center text-[11px] uppercase font-bold tracking-[0.2em] text-white/25">
             Already a member?{' '}
             <span onClick={() => router.push('/login')} className="text-indigo-400 cursor-pointer hover:opacity-70 transition-opacity">
               Sign In
             </span>
           </p>
-        </div>
+        </motion.div>
       </div>
 
       {/* ── OTP Modal (Confirmation) */}

@@ -1,92 +1,139 @@
-# BehaveGuard: Continuous Behavioral Authentication for Banking
+# 🛡️ BehaveGuard
+### **Continuous Behavioral Authentication & Intelligence Engine**
 
-![BehaveGuard Banner](https://img.shields.io/badge/Security-FinTech-accent) 
-![Architecture](https://img.shields.io/badge/Stack-Next.js%20|%20FastAPI%20|%20Express%20|%20MongoDB-blue)
-
-## 🎯 Problem Statement
-**Problem Statement 16: Behaviour Based Continuous Authentication For Banking**  
-**Theme:** FinTech
-
-### Objective
-The objective of this project is to design an intelligent authentication system that continuously validates a user’s identity based on behavioral biometrics such as typing patterns, touch interactions, navigation habits, and device usage. The system leverages machine learning to learn normal user behavior, detect anomalies in real time, and trigger adaptive security responses when suspicious activity is identified.
+[![Security: FinTech](https://img.shields.io/badge/Security-FinTech-6C63FF?style=for-the-badge)](https://github.com/Kanishka-Trivedi/CRAFTATHON_GU)
+[![Stack: Next.js + FastAPI + Node](https://img.shields.io/badge/Stack-Next.js%20|%20FastAPI%20|%20Node-000000?style=for-the-badge)](https://github.com/Kanishka-Trivedi/CRAFTATHON_GU)
+[![Status: Production Ready](https://img.shields.io/badge/Status-Hired_Level-emerald?style=for-the-badge)](https://github.com/Kanishka-Trivedi/CRAFTATHON_GU)
 
 ---
 
-## 🚀 Core Features & Implementation
+## 💎 The Vision
+**BehaveGuard** is a next-generation security layer for banking that moves beyond static passwords. By capturing the **"Mathematical Rhythm"** of human interaction—how you type, move your mouse, and scroll—we create a persistent biological signature that is nearly impossible to spoof.
 
-### 1. Behavioral Data Collection
-*   **Keystroke Dynamics**: Captures typing speed (CPS), key hold times (ms), and flight times between keys.
-*   **Mouse/Touch Flow**: Monitors velocity, acceleration, and click deviation patterns.
-*   **Navigation Habits**: Tracks scroll depth and page interaction frequency to build a unique user "DNA".
+> *"We don't just verify who you are when you log in; we verify who you are every second you are logged in."*
 
-### 2. Continuous Authentication Engine
-*   **Real-Time Monitoring**: A high-frequency telemetry hook stream that syncs user behavior with our AI backend every 5 seconds.
-*   **ML-Based Profiling**: Uses a **StandardScaler + Isolation Forest** pipeline to create a mathematical representation of the genuine owner.
+---
 
-### 3. Anomaly Detection System
-*   **AI-Driven Analysis**: Differentiates between normal fluctuations and malicious fraud using anomaly scoring.
-*   **3-Second Security Window**: Detects deviations in real-time and pauses the session before sensitive actions can occur.
+## 🏗️ System Architecture
 
-### 4. Adaptive Security Response
-*   **Active Defense**: Triggers a **Behavioral PIN Challenge** or a mandatory **Session Termination** based on the severity of the anomaly.
-*   **Persistent Lockdown**: Syncs the lock state to the database, ensuring security persists even after a page refresh.
+```mermaid
+graph TD
+    subgraph "Client Tier (Next.js 14)"
+        A[Behavioral Telemetry Hook] -->|Raw Events| B[AuthContext Provider]
+        B -->|Feature Extraction| C[Live UI Counters]
+        B -->|Session Sync| D[Global Security Gate]
+    end
 
-### 5. User Transparency & Control
-*   **Behavioral Audit Ledger**: An interactive dashboard showing every transaction tied to its specific authentication score.
-*   **Security Passport**: A visual representation of the user's "Security Node" and session health.
+    subgraph "Intelligence Tier (FastAPI)"
+        E[Scoring Engine] -->|Isolation Forest| F[Anomaly Detection]
+        F -->|Risk Score| B
+    end
+
+    subgraph "Data & Auth Tier (Express.js)"
+        G[REST API] -->|JWT Auth| H[(MongoDB Atlas)]
+        G -->|Persistent Strikes| H
+        B -->|Periodic Snapshots| G
+    end
+
+    D -->|Challenge Trigger| I[PIN Modal]
+    I -->|Success| J[Reset Strikes]
+```
+
+---
+
+## 🌟 Key Innovations
+
+### 1. **Live Interaction DNA Feed**
+*   **Keystroke Dynamics**: Captures Typing Speed (CPS), Key Hold Times, and Flight Latency.
+*   **Motion Entropy**: Monitors Mouse Velocity, Acceleration, and Click Deviations.
+*   **Scroll Depth**: Analyzes reading patterns and navigation rhythms.
+
+### 2. **Continuous ML Scoring (2-Second Window)**
+Unlike traditional systems that only check at login, BehaveGuard runs an **Isolation Forest** ML model in the background. It evaluates your behavior every 2 seconds, producing a "Trust Score" (0-100%).
+
+### 3. **Persistent Security Gating**
+*   **Risk Escalation**: If the trust score drops below 40%, the system enters **Danger Mode**.
+*   **Strike Tracking**: Security anomalies are persisted in MongoDB. Refreshing the page or switching devices will **not** reset your security status.
+*   **Adaptive Challenge**: Triggers a 2FA PIN challenge or a total account lockdown based on the strike count.
+
+### 4. **SOC (Security Operations Center) Dashboard**
+A professional administrative hub for monitoring network health:
+*   **Live Telemetry Terminal**: Real-time stream of behavioral events.
+*   **Operational Logs**: Detailed audit trail of every security incident.
+*   **Trust Restoration**: Administrators can manually clear strikes and restore user trust.
 
 ---
 
 ## 🛠️ Technology Stack
-- **Frontend**: Next.js 14, Tailwind CSS, Framer Motion (Glassmorphism UI)
-- **Security API**: FastAPI (Python 3.10)
-- **Auth & Database Backend**: Express.js, Node.js, MongoDB Atlas (Mongoose)
-- **Machine Learning**: Scikit-Learn (Isolation Forest Algorithm), NumPy, Pandas
+
+| Layer | Technologies |
+| :--- | :--- |
+| **Frontend** | Next.js 14 (App Router), Tailwind CSS, Framer Motion, Chart.js |
+| **ML Engine** | Python 3.10, FastAPI, Scikit-Learn (Isolation Forest), Pandas |
+| **Backend** | Node.js, Express.js, Mongoose, JWT, Nodemailer |
+| **Database** | MongoDB Atlas (Cloud) |
+| **Identity** | Behavioral Biometrics (Keystroke & Pointer Dynamics) |
 
 ---
 
-## 🚦 Getting Started
+## 📂 Project Structure
+
+```text
+├── src/                    # Next.js Frontend
+│   ├── app/                # App Router (Dashboard, Admin, Passport)
+│   ├── components/         # Shared UI (MagicBento, GlobalSpotlight)
+│   ├── context/            # AuthContext (Telemetry Engine)
+│   └── assets/             # Branding & Icons
+├── backend/                # Node.js API
+│   ├── models/             # Mongoose Schemas (User, Session)
+│   ├── routes/             # Auth & Behavioral Sync logic
+│   └── utils/              # Mail & Security helpers
+└── behaviorauth/           # Python ML Engine
+    ├── api/                # FastAPI Routes
+    ├── models/             # Trained ML Model Snapshots
+    └── notebooks/          # Research & Development
+```
+
+---
+
+## 🚦 Installation & Setup
 
 ### 1. Prerequisites
-- Node.js & npm
-- Python 3.10+
-- MongoDB Atlas account (or local MongoDB)
+- **Node.js** v18+
+- **Python** 3.10+
+- **MongoDB** (Local or Atlas)
 
-### 2. Environment Setup
-Create a `.env` file in the root and `backend/` folders:
+### 2. Environment Configuration
+Create a `.env` file in both `root` and `/backend`:
 ```env
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_security_secret
+MONGO_URI=your_mongodb_url
+JWT_SECRET=senior_dev_secret
 NEXT_PUBLIC_ML_ENGINE_URL=http://localhost:8001
 ```
 
-### 3. Installation & Execution
+### 3. Launching the Ecosystem
 
-#### **Backend (Express)**
+**Step 1: Backend API**
 ```bash
-cd backend
-npm install
-node server.js
+cd backend && npm install && node server.js
 ```
 
-#### **ML Engine (FastAPI)**
+**Step 2: ML Engine**
 ```bash
-cd behaviorauth
-pip install -r requirements.txt
+cd behaviorauth && pip install -r requirements.txt
 uvicorn api.main:app --reload --port 8001
 ```
 
-#### **Frontend (Next.js)**
+**Step 3: Frontend**
 ```bash
-npm install
-npm run dev
+npm install && npm run dev
 ```
 
 ---
 
-## 🛡️ Security Philosophy
-BehaveGuard operates on a **Zero-Storage Philosophy** for biometrics. We do not store images or recordings; instead, we store the **mathematical rhythm** of your interaction. This ensures maximum privacy while providing bank-grade security.
+## 🛡️ Security Philosophy: Zero Storage
+We adhere to **GDPR-compliant security**. We never store raw biometric data (what you typed or where you clicked). We only store the **mathematical variance** from your baseline, ensuring your privacy is as un-spoofable as your identity.
 
 ---
 **Developed for CRAFTATHON_GU**  
-*Final Production State - 2026*
+*Senior Developer Audit Completed - 2026*

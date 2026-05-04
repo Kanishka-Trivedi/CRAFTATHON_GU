@@ -139,6 +139,7 @@ export const NavBar = ({ isCollapsed, setCollapsed }) => {
                   width={32}
                   height={32}
                   className="object-contain"
+                  style={{ width: 'auto', height: 'auto' }}
                 />
               </div>
               <div className="flex flex-col">
@@ -256,6 +257,7 @@ export const AdminNav = ({ isCollapsed, setCollapsed }) => {
                   width={32}
                   height={32}
                   className="object-contain"
+                  style={{ width: 'auto', height: 'auto' }}
                 />
               </div>
               <div className="flex flex-col">

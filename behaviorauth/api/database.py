@@ -11,9 +11,9 @@ try:
     client = MongoClient(MONGO_URI)
     db = client["behaveguard"]
     logs_collection = db["behavior_logs"]
-    print("✅ Connected to BehaveGuard Cloud Storage!")
+    print("SUCCESS: Connected to BehaveGuard Cloud Storage!")
 except Exception as e:
-    print(f"❌ Failed to connect to MongoDB: {e}")
+    print(f"ERROR: Failed to connect to MongoDB: {e}")
 
 def save_behavior_log(user_id, avg_typing, avg_mouse, risk_score, is_anomaly):
     """Saves the ML evaluation into MongoDB so we can graph it later."""

@@ -162,6 +162,8 @@ router.post('/signup', async (req, res) => {
         phone: user.phone,
         isEnrolled: user.isEnrolled,
         trustScore: user.trustScore,
+        isLocked: user.isLocked,
+        behavioralBaseline: user.behavioralBaseline,
       },
     });
   } catch (error) {
@@ -177,6 +179,13 @@ router.post('/login', async (req, res) => {
     const user = await User.findOne({ email });
     if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    // Unlock account and reset strikes upon successful password login
+    if (user.isLocked || user.strikeCount > 0) {
+      user.isLocked = false;
+      user.strikeCount = 0;
+      await user.save();
     }
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'secret', {
@@ -200,6 +209,8 @@ router.post('/login', async (req, res) => {
         balance: user.balance,
         isEnrolled: user.isEnrolled,
         trustScore: user.trustScore,
+        isLocked: user.isLocked,
+        behavioralBaseline: user.behavioralBaseline,
       },
     });
   } catch (error) {
@@ -215,6 +226,13 @@ router.post('/bio-login', async (req, res) => {
 
     if (!user) {
       return res.status(404).json({ message: 'Identity node not found.' });
+    }
+
+    // Unlock account and reset strikes upon successful bio-login
+    if (user.isLocked || user.strikeCount > 0) {
+      user.isLocked = false;
+      user.strikeCount = 0;
+      await user.save();
     }
 
     // Heuristic: Must be within 40% of baseline to pass (Hackathon demo logic)
@@ -248,6 +266,8 @@ router.post('/bio-login', async (req, res) => {
         email: user.email,
         balance: user.balance,
         trustScore: user.trustScore,
+        isLocked: user.isLocked,
+        behavioralBaseline: user.behavioralBaseline,
       },
     });
   } catch (error) {
@@ -300,8 +320,9 @@ router.post('/verify-pin', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid Transaction PIN' });
     }
 
-    // Success: Unlock the account
+    // Success: Unlock the account and reset strikes
     user.isLocked = false;
+    user.strikeCount = 0;
     await user.save();
 
     res.status(200).json({ success: true });
@@ -349,7 +370,9 @@ router.patch('/profile', async (req, res) => {
         avatar: user.avatar,
         balance: user.balance,
         isEnrolled: user.isEnrolled,
-        trustScore: user.trustScore
+        trustScore: user.trustScore,
+        isLocked: user.isLocked,
+        behavioralBaseline: user.behavioralBaseline
       }
     });
   } catch (error) {

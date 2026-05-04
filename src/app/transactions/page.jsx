@@ -126,7 +126,7 @@ const TransactionsPage = () => {
         </div>
 
         {/* Transaction Table */}
-        <GlassCard className="p-0 overflow-hidden border-white/5">
+        <GlassCard className="p-0 overflow-hidden border-white/5 magic-bento-card magic-bento-card--border-glow">
           <div className="overflow-x-auto">
             <table className="w-full text-left min-w-[900px]">
               <thead>

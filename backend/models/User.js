@@ -50,6 +50,10 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false, // Persistent security lock for anomaly detection
   },
+  strikeCount: {
+    type: Number,
+    default: 0, // Persistent strike count for auto-lock/auto-logout escalation
+  },
   createdAt: {
     type: Date,
     default: Date.now,

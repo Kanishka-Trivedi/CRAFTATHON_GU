@@ -321,7 +321,7 @@ const TransferPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
           {/* ── LEFT: Transfer Form (3 cols) ───────────────────────────────── */}
           <div className="lg:col-span-3">
-            <GlassCard className="p-10 border-white/5 relative overflow-hidden">
+            <GlassCard className="p-10 border-white/5 relative overflow-hidden magic-bento-card magic-bento-card--border-glow">
               <AnimatePresence mode="wait">
                 {!isSuccess ? (
                   <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -565,7 +565,7 @@ const TransferPage = () => {
           <div className="lg:col-span-2 flex flex-col gap-6">
 
             {/* Real-time behavioral metrics */}
-            <GlassCard className="p-8 border-white/5">
+            <GlassCard className="p-8 border-white/5 magic-bento-card magic-bento-card--border-glow">
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h3 className="font-sora font-bold text-lg">Live Behaviour Monitor</h3>
@@ -591,7 +591,7 @@ const TransferPage = () => {
             </GlassCard>
 
             {/* Live card preview */}
-            <GlassCard className="p-6 border-white/5">
+            <GlassCard className="p-6 border-white/5 magic-bento-card magic-bento-card--border-glow">
               <div className="p-6 rounded-[28px] bg-gradient-to-br from-[#1A1A3A] to-[#0D0D1E] border border-white/10 relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 blur-[40px] rounded-full group-hover:bg-indigo-500/20 transition-all duration-500" />
                 <div className="relative z-10 space-y-4">
@@ -617,7 +617,7 @@ const TransferPage = () => {
             </GlassCard>
 
             {/* Trust score ring */}
-            <GlassCard className="p-6 border-white/5">
+            <GlassCard className="p-6 border-white/5 magic-bento-card magic-bento-card--border-glow">
               <div className="flex items-center gap-6">
                 <div className="relative w-20 h-20 shrink-0">
                   <svg className="w-full h-full transform -rotate-90">
