@@ -210,6 +210,7 @@ router.post('/login', async (req, res) => {
         isEnrolled: user.isEnrolled,
         trustScore: user.trustScore,
         isLocked: user.isLocked,
+        strikeCount: user.strikeCount || 0,
         behavioralBaseline: user.behavioralBaseline,
       },
     });

@@ -121,9 +121,14 @@ export const AuthProvider = ({ children }) => {
   };
 
   const lockAccount = async () => {
+    // Optimistic Update: Increment UI instantly to prevent flickering
+    setStrikeCount(prev => prev + 1);
+    setUser(prev => ({ ...prev, isLocked: true, strikeCount: (prev.strikeCount || 0) + 1 }));
+
     try {
       const res = await axios.post(`${API_URL}/lock`);
       if (res.data.success) {
+        // Final Sync: Ensure we match the server exactly
         setStrikeCount(res.data.strikeCount);
         setUser(prev => ({ ...prev, isLocked: true, strikeCount: res.data.strikeCount }));
       }

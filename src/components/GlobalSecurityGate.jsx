@@ -21,11 +21,11 @@ export const GlobalSecurityGate = () => {
   // ── Unified Security Hub — Only ONE instance of lockdown possible ──
   useEffect(() => {
     // 0. Grace Period: Allow session to settle for 10s after login
-    const isSessionNew = (Date.now() - sessionStartTime.current) < 10000;
+    const isSessionNew = (Date.now() - sessionStartTime.current) < 3000;
 
     // A. Priority: Database Lockdown (Persistence)
-    // If the DB says we are locked, show the modal IMMEDIATELY on reload.
-    if (user?.isLocked && !pinLockActive.current) {
+    // If the DB says we are locked, show the modal.
+    if (user?.isLocked && !pinLockActive.current && !isSessionNew) {
       pinLockActive.current = true;
       setShowPinModal(true);
       return;
@@ -132,7 +132,7 @@ export const GlobalSecurityGate = () => {
                 "text-[10px] font-bold uppercase tracking-widest mb-4",
                 strikeCount >= 3 ? "text-orange-400" : "text-red-400/70"
               )}>
-                {strikeCount >= 3 ? 'FINAL WARNING: STRIKE 3/3' : `Security Check: Strike ${strikeCount}/3`}
+                {strikeCount === 0 ? 'Security Check: Strike 1/3' : (strikeCount >= 3 ? 'FINAL WARNING: STRIKE 3/3' : `Security Check: Strike ${strikeCount}/3`)}
               </p>
 
               {strikeCount >= 3 && (
