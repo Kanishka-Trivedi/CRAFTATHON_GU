@@ -89,6 +89,16 @@ app.post('/api/auth/send-otp', async (req, res) => {
   }
 });
 
+// TEST ROUTE: Visit this in your browser to verify email works!
+app.get('/api/auth/test-mail', async (req, res) => {
+  const { email } = req.query;
+  if (!email) return res.send("Please add ?email=your@email.com to the URL");
+  
+  console.log(`[TEST] Manually triggering email to ${email}`);
+  const result = await sendOtpEmail(email, "Tester", "123456");
+  res.json(result);
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api/transfer', transferRoutes);
 app.use('/api/behavioral', behavioralRoutes);
