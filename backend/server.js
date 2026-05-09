@@ -25,6 +25,12 @@ import behavioralRoutes from './routes/behavioral.js';
 
 const app = express();
 
+// ABSOLUTE TOP LOGGER
+app.use((req, res, next) => {
+  console.log(`>>> [SERVER INGRESS] ${req.method} ${req.url}`);
+  next();
+});
+
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
@@ -35,12 +41,6 @@ app.use(cors({
   preflightContinue: false,
   optionsSuccessStatus: 204
 }));
-
-// GLOBAL LOGGER: See every request hitting the server
-app.use((req, res, next) => {
-  console.log(`[GLOBAL LOG] ${req.method} ${req.url}`);
-  next();
-});
 
 // Connect to MongoDB Atlas (Now with DNS-Resilience)
 const connectDB = async () => {
