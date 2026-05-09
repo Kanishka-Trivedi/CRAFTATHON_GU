@@ -39,6 +39,8 @@ router.post('/check-email', async (req, res) => {
 router.post('/send-otp', async (req, res) => {
   try {
     const { email, name } = req.body;
+    console.log(`[AUTH] Incoming OTP request for: ${email}`);
+    
     if (!email) return res.status(400).json({ success: false, message: 'Email required' });
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6 digit OTP

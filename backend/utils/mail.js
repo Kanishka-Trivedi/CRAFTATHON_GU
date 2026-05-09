@@ -16,7 +16,10 @@ export const sendOtpEmail = async (email, name, otp) => {
       tls: {
         ciphers: 'SSLv3',
         rejectUnauthorized: false
-      }
+      },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 10000
     });
 
     const mailOptions = {
