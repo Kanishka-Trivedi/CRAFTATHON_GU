@@ -75,14 +75,18 @@ app.post('/api/auth/send-otp', async (req, res) => {
   const { email, name } = req.body;
   console.log(`!!! [SERVER.JS DIRECT] OTP REQUEST FOR: ${email} !!!`);
   
-  // Respond immediately
-  res.status(200).json({ success: true, message: 'Server.js handled this' });
-
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
   otpStore.set(email, otp);
   setTimeout(() => otpStore.delete(email), 10 * 60 * 1000);
   
-  sendOtpEmail(email, name, otp).catch(e => console.error("Async Email Error:", e));
+  console.log(`[MAIL] Initializing dispatch for ${email}...`);
+  const result = await sendOtpEmail(email, name, otp);
+
+  if (result.success) {
+    res.status(200).json({ success: true, message: 'Verification code sent.' });
+  } else {
+    res.status(500).json({ success: false, message: 'Mail delivery failed.', error: result.error });
+  }
 });
 
 app.use('/api/auth', authRoutes);
