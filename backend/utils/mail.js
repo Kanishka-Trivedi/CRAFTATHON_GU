@@ -1,11 +1,21 @@
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
+/**
+ * Sends a 6-digit OTP using Gmail SMTP
+ */
 export const sendOtpEmail = async (email, name, otp) => {
   try {
-    const resend = new Resend(process.env.RESEND_API_KEY);
-    const { data, error } = await resend.emails.send({
-      from: 'BehaveGuard Security <onboarding@resend.dev>', // Update with verify domain for prod
-      to: [email],
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS, // Use App Password here
+      },
+    });
+
+    const mailOptions = {
+      from: `"BehaveGuard Security" <${process.env.EMAIL_USER}>`,
+      to: email,
       subject: `Your BehaveGuard Verification Code: ${otp}`,
       html: `
         <div style="font-family: 'Sora', sans-serif; padding: 40px; background-color: #070814; color: white; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);">
@@ -28,17 +38,13 @@ export const sendOtpEmail = async (email, name, otp) => {
           </div>
         </div>
       `,
-    });
+    };
 
-    if (error) {
-      console.error('[RESEND ERROR]', error);
-      return { success: false, error };
-    }
-
-    console.log('[RESEND SUCCESS] Email dispatched:', data.id);
-    return { success: true, data };
+    const info = await transporter.sendMail(mailOptions);
+    console.log('[GMAIL SUCCESS] Email dispatched:', info.messageId);
+    return { success: true, messageId: info.messageId };
   } catch (err) {
-    console.error('[RESEND CRITICAL]', err.message);
+    console.error('[GMAIL CRITICAL] Email failed:', err.message);
     return { success: false, error: err.message };
   }
 };

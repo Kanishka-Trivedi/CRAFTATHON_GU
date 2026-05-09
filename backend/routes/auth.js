@@ -39,78 +39,36 @@ router.post('/check-email', async (req, res) => {
 router.post('/send-otp', async (req, res) => {
   try {
     const { email, name } = req.body;
-    const otp = Math.floor(100000 + Math.random() * 900000); // 6 digit OTP
+    if (!email) return res.status(400).json({ success: false, message: 'Email required' });
 
-    // Store it immediately so it works even if email fails
-    otpStore.set(email, otp.toString());
-    setTimeout(() => otpStore.delete(email), 10 * 60 * 1000);
+    const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6 digit OTP
 
-    const mailOptions = {
-      from: `"BehaveGuard Security" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: `Your BehaveGuard Verification Code: ${otp}`,
-      html: `
-        <div style="font-family: sans-serif; padding: 20px; background-color: #0A0B1A; color: white;">
-          <h2 style="color: #6C63FF;">BehaveGuard Security</h2>
-          <p>Hello ${name || 'User'},</p>
-          <p>Your verification code for enrolment is:</p>
-          <h1 style="background: rgba(108, 99, 255, 0.1); padding: 10px; border-radius: 10px; display: inline-block; letter-spacing: 5px;">${otp}</h1>
-          <p>This code will expire in 10 minutes.</p>
-          <hr style="border: none; border-top: 1px solid #ffffff1a; margin: 20px 0;">
-          <p style="font-size: 10px; color: #8B8DB8;">If you did not request this, please ignore this email.</p>
-        </div>
-      `,
-    };
+    // Store it immediately
+    otpStore.set(email, otp);
+    setTimeout(() => otpStore.delete(email), 10 * 60 * 1000); // 10 min expiry
 
-    // Send via Nodemailer (Gmail SMTP)
-    let mailOk = false;
-    try {
-      const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: { 
-          user: process.env.EMAIL_USER, 
-          pass: process.env.EMAIL_PASS 
-        }
-      });
+    console.log(`[AUTH] Generating OTP ${otp} for ${email}`);
 
-      const mailOptions = {
-        from: `"BehaveGuard Security" <${process.env.EMAIL_USER}>`,
-        to: email,
-        subject: `Your BehaveGuard Verification Code: ${otp}`,
-        html: `
-          <div style="font-family: 'Sora', sans-serif; padding: 40px; background-color: #070814; color: white; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);">
-            <div style="text-align: center; margin-bottom: 30px;">
-              <h2 style="color: #6366f1; font-size: 24px; font-weight: 800; margin: 0;">BehaveGuard</h2>
-              <p style="color: rgba(255,255,255,0.4); font-size: 10px; text-transform: uppercase; letter-spacing: 2px;">Security Protocol Active</p>
-            </div>
-            
-            <p style="font-size: 16px; margin-bottom: 20px;">Hello <strong>${name || 'Resident Node'}</strong>,</p>
-            <p style="color: rgba(255,255,255,0.6); font-size: 14px; line-height: 1.6;">A request for enrolment has been triggered. Please use the following one-time signature to proceed:</p>
-            
-            <div style="text-align: center; margin: 40px 0;">
-              <h1 style="background: rgba(99, 102, 241, 0.1); padding: 20px; border-radius: 16px; border: 1px solid rgba(99,102,241,0.3); display: inline-block; letter-spacing: 8px; color: #818cf8; font-size: 36px; margin: 0;">${otp}</h1>
-            </div>
-            
-            <p style="color: rgba(255,255,255,0.4); font-size: 12px; font-style: italic;">This code expires in 10 minutes. If you did not request this, please initiate a lockdown immediately.</p>
-          </div>
-        `,
-      };
-
-      await transporter.sendMail(mailOptions);
-      mailOk = true;
-      console.log(`[SMTP] OTP ${otp} successfully sent to ${email}`);
-
-    } catch (err) {
-      console.error('[SMTP CRITICAL] Email delivery failed:', err.message);
-    }
-
-    // Return SUCCESS immediately to the UI; include OTP for local/dev to unblock flow
+    // Send via Gmail Utility
+    const result = await sendOtpEmail(email, name, otp);
+    
     const isProd = process.env.NODE_ENV === 'production';
-    return res.status(200).json({
-      success: true,
-      message: mailOk ? 'Verification code sent' : 'Email delivery failed. Please check backend logs.',
-      otp: isProd ? undefined : otp.toString()
-    });
+    
+    if (result.success) {
+      return res.status(200).json({
+        success: true,
+        message: 'Verification code sent to your email.',
+        otp: isProd ? undefined : otp // Only send OTP back in response for dev/local testing
+      });
+    } else {
+      // Even if email fails, we return success in non-prod so you can use the bypass or console log
+      return res.status(200).json({
+        success: !isProd, 
+        message: isProd ? 'Failed to send email' : 'Email failed; check console/bypass.',
+        otp: isProd ? undefined : otp,
+        error: isProd ? undefined : result.error
+      });
+    }
   } catch (error) {
     console.error('OTP Route Error:', error);
     return res.status(500).json({ success: false, message: 'Internal Server Error' });
