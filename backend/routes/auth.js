@@ -62,51 +62,58 @@ router.post('/send-otp', async (req, res) => {
       `,
     };
 
-    // Send via Resend API
+    // Send via Nodemailer (Gmail SMTP)
     let mailOk = false;
     try {
-      const result = await sendOtpEmail(email, name, otp);
-      if (result.success) {
-        mailOk = true;
-        console.log(`[RESEND] Code ${otp} sent to ${email}`);
-      } else {
-        throw new Error(result.error?.message || 'Verification email rejected');
-      }
-    } catch (err) {
-      console.warn('!!! VERIFICATION MAIL FAILED !!!');
-      console.warn('Error:', err.message);
-
-      // Secondary fallback to legacy Nodemailer if EMAIL_PASS is present
-      if (process.env.EMAIL_PASS) {
-        try {
-          const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
-          });
-          await transporter.sendMail({
-            from: `"BehaveGuard Security" <${process.env.EMAIL_USER}>`,
-            to: email,
-            subject: `Verification Code: ${otp}`,
-            text: `Your BehaveGuard code is: ${otp}`
-          });
-          mailOk = true;
-          console.log('[FALLBACK] Email sent via legacy SMTP');
-        } catch (smtpErr) {
-          console.error('[CRITICAL] All mail routes failed');
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: { 
+          user: process.env.EMAIL_USER, 
+          pass: process.env.EMAIL_PASS 
         }
-      }
+      });
+
+      const mailOptions = {
+        from: `"BehaveGuard Security" <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: `Your BehaveGuard Verification Code: ${otp}`,
+        html: `
+          <div style="font-family: 'Sora', sans-serif; padding: 40px; background-color: #070814; color: white; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h2 style="color: #6366f1; font-size: 24px; font-weight: 800; margin: 0;">BehaveGuard</h2>
+              <p style="color: rgba(255,255,255,0.4); font-size: 10px; text-transform: uppercase; letter-spacing: 2px;">Security Protocol Active</p>
+            </div>
+            
+            <p style="font-size: 16px; margin-bottom: 20px;">Hello <strong>${name || 'Resident Node'}</strong>,</p>
+            <p style="color: rgba(255,255,255,0.6); font-size: 14px; line-height: 1.6;">A request for enrolment has been triggered. Please use the following one-time signature to proceed:</p>
+            
+            <div style="text-align: center; margin: 40px 0;">
+              <h1 style="background: rgba(99, 102, 241, 0.1); padding: 20px; border-radius: 16px; border: 1px solid rgba(99,102,241,0.3); display: inline-block; letter-spacing: 8px; color: #818cf8; font-size: 36px; margin: 0;">${otp}</h1>
+            </div>
+            
+            <p style="color: rgba(255,255,255,0.4); font-size: 12px; font-style: italic;">This code expires in 10 minutes. If you did not request this, please initiate a lockdown immediately.</p>
+          </div>
+        `,
+      };
+
+      await transporter.sendMail(mailOptions);
+      mailOk = true;
+      console.log(`[SMTP] OTP ${otp} successfully sent to ${email}`);
+
+    } catch (err) {
+      console.error('[SMTP CRITICAL] Email delivery failed:', err.message);
     }
 
     // Return SUCCESS immediately to the UI; include OTP for local/dev to unblock flow
     const isProd = process.env.NODE_ENV === 'production';
     return res.status(200).json({
       success: true,
-      message: mailOk ? 'Verification code sent' : 'Email failed; use dev OTP',
+      message: mailOk ? 'Verification code sent' : 'Email delivery failed. Please check backend logs.',
       otp: isProd ? undefined : otp.toString()
     });
   } catch (error) {
     console.error('OTP Route Error:', error);
-    return res.status(500).json({ success: false, message: 'Server Error' });
+    return res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 });
 
