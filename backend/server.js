@@ -28,7 +28,7 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
-  origin: ['https://behaveguard.vercel.app', 'http://localhost:3000'],
+  origin: true, // Universal acceptance for demo
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
