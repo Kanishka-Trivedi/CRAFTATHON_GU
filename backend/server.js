@@ -28,9 +28,12 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
-  origin: true, // Universal acceptance for demo period
+  origin: ['https://behaveguard.vercel.app', 'http://localhost:3000'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
 }));
+app.options('*', cors()); // Enable pre-flight for all routes
 
 // Connect to MongoDB Atlas (Now with DNS-Resilience)
 const connectDB = async () => {
