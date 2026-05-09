@@ -40,12 +40,13 @@ ChartJS.register(
 
 const AdminOverviewPage = () => {
    const [liveStats, setLiveStats] = useState(null);
+   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
    const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
 
    useEffect(() => {
       const fetchStats = async () => {
          try {
-            const res = await axios.get('http://localhost:5000/api/behavioral/admin-stats', { withCredentials: true });
+            const res = await axios.get(`${apiUrl}/behavioral/admin-stats`, { withCredentials: true });
             if (res.data.success) setLiveStats(res.data);
          } catch (err) { console.error('Admin Fetch Failed', err); }
       };
@@ -264,7 +265,7 @@ const AdminOverviewPage = () => {
                                  <button 
                                     onClick={async () => {
                                        try {
-                                          await axios.post('http://localhost:5000/api/behavioral/clear-strikes', { userId: alert.userId }, { withCredentials: true });
+                                          await axios.post(`${apiUrl}/behavioral/clear-strikes`, { userId: alert.userId }, { withCredentials: true });
                                           // Refresh will happen on next poll
                                        } catch (e) { console.error('Clear failed'); }
                                     }}

@@ -33,6 +33,7 @@ ChartJS.register(
 
 const FingerprintPage = () => {
     const [auditData, setAuditData] = useState(null);
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
     const [loading, setLoading] = useState(true);
     const pdfRef = React.useRef(null);
     const fileInputRef = React.useRef(null);
@@ -72,7 +73,7 @@ const FingerprintPage = () => {
     useEffect(() => {
         const fetchAudit = async () => {
             try {
-                const res = await axios.get('http://localhost:5000/api/behavioral/audit', { withCredentials: true });
+                const res = await axios.get(`${apiUrl}/behavioral/audit`, { withCredentials: true });
                 if (res.data.success) setAuditData(res.data);
             } catch (err) {
                 console.error('Audit Fetch Failed', err);
@@ -188,7 +189,7 @@ const FingerprintPage = () => {
                             <button
                                 onClick={async () => {
                                     if (confirm('Recalibrate baseline? This will trigger a 3-minute warmup mode.')) {
-                                        await axios.post('http://localhost:5000/api/behavioral/reset-baseline', {}, { withCredentials: true });
+                                        await axios.post(`${apiUrl}/behavioral/reset-baseline`, {}, { withCredentials: true });
                                         window.location.reload();
                                     }
                                 }}
@@ -304,7 +305,7 @@ const FingerprintPage = () => {
                         <button
                             onClick={async () => {
                                 if (confirm('⚠️ PERMANENT DELETE: Are you sure? This will wipe your behavioral DNA from the network.')) {
-                                    await axios.delete('http://localhost:5000/api/behavioral/delete-profile', { withCredentials: true });
+                                    await axios.delete(`${apiUrl}/behavioral/delete-profile`, { withCredentials: true });
                                     window.location.href = '/login';
                                 }
                             }}

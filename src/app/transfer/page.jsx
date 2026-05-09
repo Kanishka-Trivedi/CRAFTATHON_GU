@@ -9,6 +9,7 @@ import { GlobalSpotlight } from '../../components/MagicSpotlight';
 import { clsx } from 'clsx';
 
 const TransferPage = () => {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
   const {
     user, trustScore, riskLevel, liveMetrics, sessionEvents,
     resetTrustScore, setUser, lockAccount, strikeCount, addStrike, isWarmingUp
@@ -57,7 +58,7 @@ const TransferPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/transfer/history', { credentials: 'include' });
+        const res = await fetch(`${apiUrl}/transfer/history`, { credentials: 'include' });
         const data = await res.json();
         if (data.success) {
           setBalance(data.balance);
@@ -113,7 +114,7 @@ const TransferPage = () => {
     const pin = behaviorPinInput.join('');
     if (pin.length !== 6) { setBehaviorPinError('Enter all 6 digits.'); return; }
     try {
-      const res = await fetch('http://localhost:5000/api/auth/verify-pin', {
+      const res = await fetch(`${apiUrl}/auth/verify-pin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -122,7 +123,7 @@ const TransferPage = () => {
       const data = await res.json();
       if (!data.success) {
         setBehaviorPinError(data.message || 'Wrong PIN — redirecting…');
-        setTimeout(() => { window.location.href = 'http://localhost:3000'; }, 1500);
+        setTimeout(() => { window.location.href = '/'; }, 1500);
       } else {
         setShowBehaviorPinModal(false);
         setBehaviorPinInput(['', '', '', '', '', '']);
@@ -170,7 +171,7 @@ const TransferPage = () => {
 
     setIsSubmitting(true);
     try {
-      const res = await fetch('http://localhost:5000/api/transfer/deposit', {
+      const res = await fetch(`${apiUrl}/transfer/deposit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -235,7 +236,6 @@ const TransferPage = () => {
 
     setIsSubmitting(true);
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
       const res = await fetch(`${apiUrl}/transfer/send`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

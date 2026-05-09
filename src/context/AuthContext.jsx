@@ -374,7 +374,7 @@ export const AuthProvider = ({ children }) => {
         }
       };
       try {
-        await axios.post('http://localhost:5000/api/behavioral/sync-session', syncPayload);
+        await axios.post(`${BASE_URL}/behavioral/sync-session`, syncPayload);
         console.log('[SYNC] Session snapshot saved:', currentSessionId.current);
       } catch (e) { }
     }, 30000);
