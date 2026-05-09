@@ -106,6 +106,16 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const sendOtp = async (email, name) => {
+    try {
+      const res = await axios.post(`${API_URL}/send-otp`, { email, name });
+      return res.data;
+    } catch (e) {
+      console.error('OTP Error:', e);
+      return { success: false, message: e.response?.data?.message || 'Verification failed' };
+    }
+  };
+
   const updateProfile = async (data) => {
     try {
       const res = await axios.patch(`${API_URL}/profile`, data);

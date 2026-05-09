@@ -32,7 +32,7 @@ const SignupPage = () => {
   const [lottieData, setLottieData] = useState(null);
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [isOtpEnabled, setIsOtpEnabled] = useState(false);
-  const { signup } = useAuth();
+  const { signup, sendOtp: triggerOtp } = useAuth();
   const router = useRouter();
 
   React.useEffect(() => {
@@ -62,67 +62,14 @@ const SignupPage = () => {
     }
   };
 
-  React.useEffect(() => {
-    let score = 0;
-    const p = formData.password;
-    if (p.length >= 8) score += 25;
-    if (/[A-Z]/.test(p)) score += 25;
-    if (/[0-9]/.test(p)) score += 25;
-    if (/[!@#$%^&*(),.?":{}|<>]/.test(p)) score += 25;
-    setPasswordStrength(score);
-  }, [formData.password]);
-
-  React.useEffect(() => {
-    const pin = formData.pin.join('');
-    if (pin.length < 6) {
-      setPinStrength({ score: 0, label: 'Incomplete', color: 'white/10' });
-      return;
-    }
-
-    const consecutiveAsc = "0123456789";
-    const consecutiveDesc = "9876543210";
-    const isConsecutive = consecutiveAsc.includes(pin) || consecutiveDesc.includes(pin);
-    const isRepeated = /^(.)\1+$/.test(pin);
-    const isSimplePattern = /^(..)\1{2}$/.test(pin) || /^(...)\1{1}$/.test(pin); // 121212 or 123123
-
-    if (isConsecutive || isRepeated) {
-      setPinStrength({ score: 33, label: 'Weak', color: 'rose-500' });
-    } else if (isSimplePattern) {
-      setPinStrength({ score: 66, label: 'Moderate', color: 'amber-500' });
-    } else {
-      setPinStrength({ score: 100, label: 'Strong', color: 'emerald-500' });
-    }
-  }, [formData.pin]);
-
-  const checkPinStrength = () => {
-    const pinStr = formData.pin.join('');
-    if (pinStr.length !== 6) return false;
-    const consecutiveAsc = "0123456789";
-    const consecutiveDesc = "9876543210";
-    if (consecutiveAsc.includes(pinStr) || consecutiveDesc.includes(pinStr)) return false;
-    if (/^(.)\1+$/.test(pinStr)) return false;
-    return true;
-  };
-
-  const isPasswordValid =
-    formData.password.length >= 8 &&
-    /[A-Z]/.test(formData.password) &&
-    /[!@#$%^&*(),.?":{}|<>]/.test(formData.password) &&
-    /[0-9]/.test(formData.password);
-
-  const isPinValid = formData.pin.every(p => p !== '') && checkPinStrength();
-
   const sendOtp = async () => {
     setIsSendingOtp(true);
     setError('');
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-      await axios.post(`${apiUrl}/auth/send-otp`, {
-        email: formData.email, name: formData.name,
-      });
+    const result = await triggerOtp(formData.email, formData.name);
+    if (result.success) {
       setShowOtpModal(true);
-    } catch (err) {
-      setError('System unavailable. Please try again later.');
+    } else {
+      setError(result.message || 'System unavailable. Please try again later.');
     }
     setIsSendingOtp(false);
   };
