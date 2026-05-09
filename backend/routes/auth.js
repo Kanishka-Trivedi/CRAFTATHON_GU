@@ -35,45 +35,25 @@ router.post('/check-email', async (req, res) => {
   }
 });
 
-// Send OTP (returns OTP in non-production for local testing)
 router.post('/send-otp', async (req, res) => {
   try {
     const { email, name } = req.body;
-    console.log(`[AUTH] Incoming OTP request for: ${email}`);
+    console.log(`!!! [CRITICAL DEBUG] OTP REQUEST RECEIVED FOR: ${email} !!!`);
     
     if (!email) return res.status(400).json({ success: false, message: 'Email required' });
 
-    const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6 digit OTP
+    // TEMPORARY: Respond success immediately to see if it hits the logs
+    res.status(200).json({ success: true, message: 'Test: Request reached server' });
 
-    // Store it immediately
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
     otpStore.set(email, otp);
-    setTimeout(() => otpStore.delete(email), 10 * 60 * 1000); // 10 min expiry
-
-    console.log(`[AUTH] Generating OTP ${otp} for ${email}`);
-
-    // Send via Gmail Utility
-    const result = await sendOtpEmail(email, name, otp);
+    setTimeout(() => otpStore.delete(email), 10 * 60 * 1000);
     
-    const isProd = process.env.NODE_ENV === 'production';
+    // Fire and forget the email so the route doesn't hang
+    sendOtpEmail(email, name, otp).catch(e => console.error("Async Email Error:", e));
     
-    if (result.success) {
-      return res.status(200).json({
-        success: true,
-        message: 'Verification code sent to your email.',
-        otp: isProd ? undefined : otp // Only send OTP back in response for dev/local testing
-      });
-    } else {
-      // Even if email fails, we return success in non-prod so you can use the bypass or console log
-      return res.status(200).json({
-        success: !isProd, 
-        message: isProd ? 'Failed to send email' : 'Email failed; check console/bypass.',
-        otp: isProd ? undefined : otp,
-        error: isProd ? undefined : result.error
-      });
-    }
   } catch (error) {
     console.error('OTP Route Error:', error);
-    return res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 });
 
