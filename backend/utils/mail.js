@@ -1,16 +1,21 @@
 import nodemailer from 'nodemailer';
 
 /**
- * Sends a 6-digit OTP using Gmail SMTP
+ * Sends a 6-digit OTP using Gmail SMTP with explicit production settings
  */
 export const sendOtpEmail = async (email, name, otp) => {
   try {
     const transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true, // Use SSL
       auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS, // Use App Password here
+        pass: process.env.EMAIL_PASS, // App Password without spaces
       },
+      tls: {
+        rejectUnauthorized: false // Helps avoid handshake issues on some hosting providers
+      }
     });
 
     const mailOptions = {
