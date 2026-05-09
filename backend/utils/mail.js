@@ -17,6 +17,7 @@ export const sendOtpEmail = async (email, name, otp) => {
         ciphers: 'SSLv3',
         rejectUnauthorized: false
       },
+      family: 4, // FORCE IPv4 - Fixes ENETUNREACH on cloud providers
       connectionTimeout: 10000,
       greetingTimeout: 10000,
       socketTimeout: 10000
