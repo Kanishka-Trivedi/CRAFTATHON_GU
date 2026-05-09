@@ -32,8 +32,9 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 }));
-app.options('*', cors()); // Enable pre-flight for all routes
 
 // Connect to MongoDB Atlas (Now with DNS-Resilience)
 const connectDB = async () => {
