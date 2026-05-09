@@ -36,6 +36,12 @@ app.use(cors({
   optionsSuccessStatus: 204
 }));
 
+// GLOBAL LOGGER: See every request hitting the server
+app.use((req, res, next) => {
+  console.log(`[GLOBAL LOG] ${req.method} ${req.url}`);
+  next();
+});
+
 // Connect to MongoDB Atlas (Now with DNS-Resilience)
 const connectDB = async () => {
   const options = {
@@ -60,6 +66,24 @@ const connectDB = async () => {
     }
   }
 };
+
+// EMERGENCY OTP ROUTE (Direct in server.js)
+import { sendOtpEmail } from './utils/mail.js';
+const otpStore = new Map();
+
+app.post('/api/auth/send-otp', async (req, res) => {
+  const { email, name } = req.body;
+  console.log(`!!! [SERVER.JS DIRECT] OTP REQUEST FOR: ${email} !!!`);
+  
+  // Respond immediately
+  res.status(200).json({ success: true, message: 'Server.js handled this' });
+
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  otpStore.set(email, otp);
+  setTimeout(() => otpStore.delete(email), 10 * 60 * 1000);
+  
+  sendOtpEmail(email, name, otp).catch(e => console.error("Async Email Error:", e));
+});
 
 app.use('/api/auth', authRoutes);
 app.use('/api/transfer', transferRoutes);
