@@ -1,20 +1,21 @@
 import nodemailer from 'nodemailer';
 
 /**
- * Sends a 6-digit OTP using Gmail SMTP with explicit production settings
+ * Sends a 6-digit OTP using Gmail SMTP with STARTTLS (Port 587)
  */
 export const sendOtpEmail = async (email, name, otp) => {
   try {
     const transporter = nodemailer.createTransport({
       host: 'smtp.gmail.com',
-      port: 465,
-      secure: true, // Use SSL
+      port: 587,
+      secure: false, // Use STARTTLS
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS, // App Password without spaces
       },
       tls: {
-        rejectUnauthorized: false // Helps avoid handshake issues on some hosting providers
+        ciphers: 'SSLv3',
+        rejectUnauthorized: false
       }
     });
 
@@ -46,10 +47,10 @@ export const sendOtpEmail = async (email, name, otp) => {
     };
 
     const info = await transporter.sendMail(mailOptions);
-    console.log('[GMAIL SUCCESS] Email dispatched:', info.messageId);
+    console.log('[GMAIL SUCCESS] Email dispatched via 587:', info.messageId);
     return { success: true, messageId: info.messageId };
   } catch (err) {
-    console.error('[GMAIL CRITICAL] Email failed:', err.message);
+    console.error('[GMAIL CRITICAL] Email failed on 587:', err.message);
     return { success: false, error: err.message };
   }
 };
