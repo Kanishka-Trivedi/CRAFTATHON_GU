@@ -431,6 +431,7 @@ export const AuthProvider = ({ children }) => {
       login,
       signup,
       logout,
+      sendOtp,
       updateProfile,
       updateAvatar,
       resetTrustScore,
