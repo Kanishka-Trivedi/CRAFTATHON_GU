@@ -79,14 +79,13 @@ app.post('/api/auth/send-otp', async (req, res) => {
   otpStore.set(email, otp);
   setTimeout(() => otpStore.delete(email), 10 * 60 * 1000);
   
-  console.log(`[MAIL] Initializing dispatch for ${email}...`);
-  const result = await sendOtpEmail(email, name, otp);
-
-  if (result.success) {
-    res.status(200).json({ success: true, message: 'Verification code sent.' });
-  } else {
-    res.status(500).json({ success: false, message: 'Mail delivery failed.', error: result.error });
-  }
+  // Since Render blocks SMTP, we return the OTP to the frontend
+  // The frontend will then use the "Vercel Bridge" to send the email
+  res.status(200).json({ 
+    success: true, 
+    message: 'Code generated', 
+    otp: otp // Returning to frontend for Vercel sending
+  });
 });
 
 // TEST ROUTE: Visit this in your browser to verify email works!

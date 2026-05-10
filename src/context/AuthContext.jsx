@@ -108,11 +108,23 @@ export const AuthProvider = ({ children }) => {
 
   const sendOtp = async (email, name) => {
     try {
+      // 1. Get the OTP from the Render Backend
       const res = await axios.post(`${API_URL}/send-otp`, { email, name });
+      
+      if (res.data.success && res.data.otp) {
+        // 2. Send the actual email using the Vercel Bridge (which isn't blocked)
+        const emailRes = await axios.post('/api/send-otp', {
+          email,
+          name,
+          otp: res.data.otp
+        });
+        
+        return emailRes.data;
+      }
       return res.data;
     } catch (e) {
-      console.error('OTP Error:', e);
-      return { success: false, message: e.response?.data?.message || 'Verification failed' };
+      console.error('OTP Bridge Error:', e);
+      return { success: false, message: 'Verification dispatch failed' };
     }
   };
 
