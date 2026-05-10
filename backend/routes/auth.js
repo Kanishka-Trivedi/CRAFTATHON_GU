@@ -3,11 +3,11 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import nodemailer from 'nodemailer';
 import { sendOtpEmail } from '../utils/mail.js';
+import { otpStore } from '../server.js';
 
 const router = express.Router();
 
-// In-memory OTP storage for the demo
-const otpStore = new Map();
+// In-memory OTP storage for the demo (Imported from server.js)
 
 // Check if email exists
 router.post('/check-email', async (req, res) => {

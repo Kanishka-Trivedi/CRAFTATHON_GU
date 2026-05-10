@@ -67,9 +67,11 @@ const connectDB = async () => {
   }
 };
 
+// SHARED OTP STORE
+export const otpStore = new Map();
+
 // EMERGENCY OTP ROUTE (Direct in server.js)
 import { sendOtpEmail } from './utils/mail.js';
-const otpStore = new Map();
 
 app.post('/api/auth/send-otp', async (req, res) => {
   const { email, name } = req.body;
